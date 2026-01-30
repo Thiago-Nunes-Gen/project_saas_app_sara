@@ -230,9 +230,9 @@ export default function AgendaPage() {
                                 >
                                     <span className="block">{dayNumber}</span>
 
-                                    {/* Indicadores de eventos com hover preview individual */}
+                                    {/* Indicadores de eventos com hover preview individual - Apenas Desktop */}
                                     {(hasAppointments || hasReminders) && (
-                                        <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex gap-1">
+                                        <div className="absolute bottom-1 left-1/2 -translate-x-1/2 hidden md:flex gap-1">
                                             {hasAppointments && (
                                                 <div className="relative group/appointments">
                                                     <span className={`

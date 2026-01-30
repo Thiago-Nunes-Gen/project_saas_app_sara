@@ -132,11 +132,42 @@ export default function DashboardPage() {
 
   return (
     <div className="animate-fade-in">
-      {/* Greeting */}
-      <div className="mb-4">
-        <h1 className="text-[28px] font-normal text-gray-900">
-          {getGreeting()}, {client?.apelido || client?.name?.split(' ')[0] || 'Usuário'}. <span className="font-semibold">É bom te ver!</span>
+      {/* Mobile Date Card - Aparece primeiro no celular */}
+      <div className="md:hidden card mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-100 shadow-sm">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-white rounded-lg shadow-sm text-blue-600">
+            <Calendar className="w-5 h-5" />
+          </div>
+          <div>
+            <p className="text-base font-semibold text-gray-900 capitalize leading-tight">{dayOfWeek}</p>
+            <p className="text-xs text-gray-500">{fullDate}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Greeting - Adaptado para Mobile/Desktop */}
+      <div className="mb-6 md:mb-8">
+        <h1 className="text-2xl md:text-[28px] font-normal text-gray-900">
+          <span className="hidden md:inline">{getGreeting()}, </span>
+          <span className="md:hidden">Olá, </span>
+          {client?.apelido || client?.name?.split(' ')[0] || 'Usuário'}.
+          <span className="font-semibold block md:inline md:ml-1 mt-1 md:mt-0">É bom te ver!</span>
         </h1>
+      </div>
+
+      <div className="md:hidden grid grid-cols-2 gap-3 mb-6">
+        <Link href="/dashboard/lembretes" className="p-3 bg-white rounded-xl border border-gray-100 flex flex-col items-center justify-center gap-2 shadow-sm active:scale-95 transition-transform">
+          <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-500">
+            <Plus className="w-4 h-4" />
+          </div>
+          <span className="text-xs font-medium text-gray-700">Novo Lembrete</span>
+        </Link>
+        <Link href="/dashboard/financeiro" className="p-3 bg-white rounded-xl border border-gray-100 flex flex-col items-center justify-center gap-2 shadow-sm active:scale-95 transition-transform">
+          <div className="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center text-green-500">
+            <DollarSign className="w-4 h-4" />
+          </div>
+          <span className="text-xs font-medium text-gray-700">Nova Transação</span>
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
@@ -348,7 +379,7 @@ export default function DashboardPage() {
         {/* Right Sidebar */}
         <div className="space-y-6">
           {/* Agenda do Dia - Melhorada */}
-          <div className="card animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+          <div className="card animate-fade-in-up md:block hidden" style={{ animationDelay: '0.1s' }}>
             <div className="mb-4">
               <p className="text-lg font-semibold text-gray-900">{getGreeting()}!</p>
               <p className="text-sm text-gray-500 capitalize">{dayOfWeek}</p>
