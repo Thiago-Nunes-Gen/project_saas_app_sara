@@ -5,8 +5,8 @@ import { useClient } from '@/hooks/useClient'
 import { useTransactions, useMonthlyStats } from '@/hooks/useTransactions'
 import { useReminders } from '@/hooks/useReminders'
 import { createClient } from '@/lib/supabase-browser'
-import { 
-  ArrowUpRight, 
+import {
+  ArrowUpRight,
   DollarSign,
   Calendar,
   Clock,
@@ -133,7 +133,7 @@ export default function DashboardPage() {
   return (
     <div className="animate-fade-in">
       {/* Greeting */}
-      <div className="mb-8">
+      <div className="mb-4">
         <h1 className="text-[28px] font-normal text-gray-900">
           {getGreeting()}, {client?.apelido || client?.name?.split(' ')[0] || 'Usuário'}. <span className="font-semibold">É bom te ver!</span>
         </h1>
@@ -169,7 +169,7 @@ export default function DashboardPage() {
                   {statsLoading ? '...' : formatCurrency(stats?.total_income || 0)}
                 </p>
               </div>
-              
+
               <div className="p-5 rounded-xl bg-red-50">
                 <div className="flex items-center gap-1.5 text-sm text-gray-500 mb-2">
                   <TrendingDown className="w-4 h-4" />
@@ -179,7 +179,7 @@ export default function DashboardPage() {
                   {statsLoading ? '...' : formatCurrency(stats?.total_expense || 0)}
                 </p>
               </div>
-              
+
               <div className="p-5 rounded-xl bg-blue-50">
                 <div className="flex items-center gap-1.5 text-sm text-gray-500 mb-2">
                   <DollarSign className="w-4 h-4" />
@@ -210,12 +210,11 @@ export default function DashboardPage() {
                 transactions.slice(0, 4).map((transaction) => (
                   <div key={transaction.id} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
                     <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                        transaction.type === 'income' 
-                          ? 'bg-green-100 text-green-600' 
-                          : 'bg-red-100 text-red-600'
-                      }`}>
-                        {transaction.type === 'income' 
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${transaction.type === 'income'
+                        ? 'bg-green-100 text-green-600'
+                        : 'bg-red-100 text-red-600'
+                        }`}>
+                        {transaction.type === 'income'
                           ? <TrendingUp className="w-5 h-5" />
                           : <TrendingDown className="w-5 h-5" />
                         }
@@ -227,9 +226,8 @@ export default function DashboardPage() {
                         </p>
                       </div>
                     </div>
-                    <span className={`text-sm font-semibold ${
-                      transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
-                    }`}>
+                    <span className={`text-sm font-semibold ${transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
+                      }`}>
                       {transaction.type === 'income' ? '+' : '-'} {formatCurrency(transaction.amount)}
                     </span>
                   </div>
@@ -361,7 +359,7 @@ export default function DashboardPage() {
               <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
                 Lembretes de Hoje
               </h4>
-              
+
               {remindersLoading ? (
                 <div className="flex justify-center py-4">
                   <div className="spinner w-5 h-5" />
@@ -378,15 +376,13 @@ export default function DashboardPage() {
               ) : (
                 <div className="space-y-2">
                   {sortedTodayReminders.map((reminder) => (
-                    <div 
-                      key={reminder.id} 
-                      className={`flex gap-3 p-3 rounded-lg ${
-                        reminder.priority === 'alta' ? 'bg-red-50 border border-red-100' : 'bg-gray-50'
-                      }`}
+                    <div
+                      key={reminder.id}
+                      className={`flex gap-3 p-3 rounded-lg ${reminder.priority === 'alta' ? 'bg-red-50 border border-red-100' : 'bg-gray-50'
+                        }`}
                     >
-                      <span className={`text-xs font-semibold min-w-[45px] ${
-                        reminder.priority === 'alta' ? 'text-red-600' : 'text-blue-500'
-                      }`}>
+                      <span className={`text-xs font-semibold min-w-[45px] ${reminder.priority === 'alta' ? 'text-red-600' : 'text-blue-500'
+                        }`}>
                         {format(parseISO(reminder.remind_at), 'HH:mm')}
                       </span>
                       <div className="flex-1 min-w-0">
@@ -399,9 +395,9 @@ export default function DashboardPage() {
                       </div>
                     </div>
                   ))}
-                  
+
                   {todayReminders.length > 3 && (
-                    <Link 
+                    <Link
                       href="/dashboard/lembretes"
                       className="flex items-center justify-center gap-1 p-2 text-sm text-blue-500 hover:text-blue-600 font-medium"
                     >
@@ -418,7 +414,7 @@ export default function DashboardPage() {
               <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
                 Listas Pendentes
               </h4>
-              
+
               {listsLoading ? (
                 <div className="flex justify-center py-4">
                   <div className="spinner w-5 h-5" />
@@ -435,7 +431,7 @@ export default function DashboardPage() {
               ) : (
                 <div className="space-y-2">
                   {pendingLists.map((list) => (
-                    <Link 
+                    <Link
                       key={list.id}
                       href="/dashboard/listas"
                       className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
@@ -449,8 +445,8 @@ export default function DashboardPage() {
                       </span>
                     </Link>
                   ))}
-                  
-                  <Link 
+
+                  <Link
                     href="/dashboard/listas"
                     className="flex items-center justify-center gap-1 p-2 text-sm text-blue-500 hover:text-blue-600 font-medium"
                   >
@@ -514,11 +510,6 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Feedback Button */}
-      <button className="fixed bottom-6 right-6 flex items-center gap-2 px-5 py-3 bg-gray-900 text-white rounded-full text-sm font-medium hover:bg-gray-800 transition-colors shadow-lg hover:shadow-xl hover:-translate-y-0.5 transform duration-200">
-        <Star className="w-4 h-4" />
-        Feedback
-      </button>
     </div>
   )
 }

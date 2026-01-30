@@ -15,7 +15,8 @@ import {
   Calendar,
   DollarSign,
   ListTodo,
-  StickyNote
+  StickyNote,
+  Star
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -323,8 +324,8 @@ export default function Header() {
         </div>
 
         {/* Feedback */}
-        <Link href="/dashboard/feedback" className="p-2.5 hover:bg-gray-100 rounded-xl transition-colors">
-          <HelpCircle className="w-5 h-5 text-gray-500" />
+        <Link href="/dashboard/feedback" className="p-2.5 hover:bg-gray-100 rounded-xl transition-colors" title="Enviar feedback">
+          <Star className="w-5 h-5 text-gray-500" />
         </Link>
 
         {/* User Menu */}
