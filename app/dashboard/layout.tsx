@@ -11,7 +11,7 @@ export default function DashboardLayout({
     <div className="min-h-screen bg-sara-bg">
       <Sidebar />
       <Header />
-      <main className="ml-[72px] mt-16 p-8 min-h-[calc(100vh-64px)]">
+      <main className="ml-[72px] mt-16 p-6 min-h-[calc(100vh-64px)]">
         {children}
       </main>
       <ChatWidget />

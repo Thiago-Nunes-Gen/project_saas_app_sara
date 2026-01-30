@@ -3,10 +3,10 @@
 import { useState, useRef, useEffect } from 'react'
 import { createClient } from '@/lib/supabase-browser'
 import { useRouter } from 'next/navigation'
-import { 
-  Search, 
-  Bell, 
-  HelpCircle, 
+import {
+  Search,
+  Bell,
+  HelpCircle,
   User,
   Settings,
   LogOut,
@@ -38,7 +38,7 @@ export default function Header() {
   const [notifications, setNotifications] = useState<any[]>([])
   const [userName, setUserName] = useState('')
   const [userInitial, setUserInitial] = useState('U')
-  
+
   const searchRef = useRef<HTMLDivElement>(null)
   const userMenuRef = useRef<HTMLDivElement>(null)
   const notifRef = useRef<HTMLDivElement>(null)
@@ -65,14 +65,14 @@ export default function Header() {
     async function loadUser() {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
-      
+
       if (user) {
         const { data: client } = await supabase
           .from('saas_clients')
           .select('name, apelido')
           .eq('auth_user_id', user.id)
           .single()
-        
+
         if (client) {
           setUserName(client.apelido || client.name || 'Usuário')
           setUserInitial((client.apelido || client.name || 'U').charAt(0).toUpperCase())
@@ -87,7 +87,7 @@ export default function Header() {
     async function loadNotifications() {
       const supabase = createClient()
       const today = new Date().toISOString().split('T')[0]
-      
+
       const { data } = await supabase
         .from('saas_reminders')
         .select('id, title, remind_at')
@@ -96,7 +96,7 @@ export default function Header() {
         .lte('remind_at', today + 'T23:59:59')
         .order('remind_at', { ascending: true })
         .limit(5)
-      
+
       if (data) setNotifications(data)
     }
     loadNotifications()
@@ -205,8 +205,8 @@ export default function Header() {
 
   return (
     <header className="h-16 bg-white border-b border-gray-200 px-6 flex items-center justify-between sticky top-0 z-30">
-      {/* Search - Alinhado corretamente */}
-      <div ref={searchRef} className="relative flex-1 max-w-xl ml-4">
+      {/* Search - Centralizado */}
+      <div ref={searchRef} className="relative flex-1 max-w-lg mx-auto">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
           <input
@@ -220,7 +220,7 @@ export default function Header() {
             lang="pt-BR"
           />
           {searchQuery && (
-            <button 
+            <button
               onClick={() => { setSearchQuery(''); setSearchResults([]); }}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
             >
@@ -270,7 +270,7 @@ export default function Header() {
       <div className="flex items-center gap-2 ml-4">
         {/* Notifications */}
         <div ref={notifRef} className="relative">
-          <button 
+          <button
             onClick={() => setShowNotifications(!showNotifications)}
             className="relative p-2.5 hover:bg-gray-100 rounded-xl transition-colors"
           >
@@ -311,7 +311,7 @@ export default function Header() {
                   ))}
                 </div>
               )}
-              <Link 
+              <Link
                 href="/dashboard/lembretes"
                 onClick={() => setShowNotifications(false)}
                 className="block p-3 text-center text-sm text-blue-500 hover:bg-gray-50 border-t border-gray-100"
@@ -322,14 +322,14 @@ export default function Header() {
           )}
         </div>
 
-        {/* Help */}
-        <button className="p-2.5 hover:bg-gray-100 rounded-xl transition-colors">
+        {/* Feedback */}
+        <Link href="/dashboard/feedback" className="p-2.5 hover:bg-gray-100 rounded-xl transition-colors">
           <HelpCircle className="w-5 h-5 text-gray-500" />
-        </button>
+        </Link>
 
         {/* User Menu */}
         <div ref={userMenuRef} className="relative">
-          <button 
+          <button
             onClick={() => setShowUserMenu(!showUserMenu)}
             className="w-9 h-9 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-sm hover:opacity-90 transition-opacity"
           >
