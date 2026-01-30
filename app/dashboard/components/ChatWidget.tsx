@@ -89,17 +89,17 @@ export default function ChatWidget() {
 
     return (
         <>
-            {/* Botão flutuante */}
+            {/* Botão flutuante - ajustado para bottom nav no mobile */}
             <button
                 onClick={() => setIsOpen(true)}
-                className={`fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-full shadow-lg flex items-center justify-center text-white hover:scale-110 transition-all duration-300 z-50 ${isOpen ? 'hidden' : ''}`}
+                className={`fixed bottom-20 md:bottom-6 right-4 md:right-6 w-12 h-12 md:w-14 md:h-14 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-full shadow-lg flex items-center justify-center text-white hover:scale-110 transition-all duration-300 z-40 ${isOpen ? 'hidden' : ''}`}
             >
-                <MessageCircle size={24} />
+                <MessageCircle size={22} />
             </button>
 
             {/* Chat Window */}
             {isOpen && (
-                <div className="fixed bottom-6 right-6 w-96 h-[500px] bg-slate-900 rounded-2xl shadow-2xl flex flex-col overflow-hidden z-50 border border-slate-700">
+                <div className="fixed inset-0 md:inset-auto md:bottom-6 md:right-6 w-full md:w-96 h-full md:h-[500px] bg-slate-900 md:rounded-2xl shadow-2xl flex flex-col overflow-hidden z-50 border-0 md:border border-slate-700">
                     {/* Header */}
                     <div className="bg-gradient-to-r from-purple-600 to-indigo-600 p-4 flex items-center justify-between">
                         <div className="flex items-center gap-3">

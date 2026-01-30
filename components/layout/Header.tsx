@@ -205,9 +205,14 @@ export default function Header() {
   }
 
   return (
-    <header className="h-16 bg-white border-b border-gray-200 px-6 flex items-center justify-between sticky top-0 z-30">
-      {/* Search - Centralizado */}
-      <div ref={searchRef} className="relative flex-1 max-w-lg mx-auto">
+    <header className="h-14 md:h-16 bg-white border-b border-gray-200 px-4 md:px-6 flex items-center justify-between sticky top-0 z-30">
+      {/* Mobile Logo */}
+      <Link href="/dashboard" className="md:hidden w-9 h-9 bg-gradient-to-br from-primary-500 to-primary-400 rounded-lg flex items-center justify-center">
+        <span className="text-white font-bold text-base">S</span>
+      </Link>
+
+      {/* Search - Hidden on mobile, visible on desktop */}
+      <div ref={searchRef} className="hidden md:block relative flex-1 max-w-lg mx-auto">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
           <input
