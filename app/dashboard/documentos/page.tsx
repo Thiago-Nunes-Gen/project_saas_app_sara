@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase-browser'
-import { 
+import {
   Search,
   FileText,
   File,
@@ -39,7 +39,7 @@ export default function DocumentosPage() {
   async function fetchDocuments() {
     setLoading(true)
     const supabase = createClient()
-    
+
     const { data, error } = await supabase
       .from('saas_documents')
       .select('*')
@@ -53,13 +53,13 @@ export default function DocumentosPage() {
 
   async function deleteDocument(id: string) {
     if (!confirm('Tem certeza que deseja excluir este documento?')) return
-    
+
     const supabase = createClient()
     await supabase
       .from('saas_documents')
       .delete()
       .eq('id', id)
-    
+
     fetchDocuments()
   }
 
@@ -71,13 +71,13 @@ export default function DocumentosPage() {
   }
 
   // Get unique categories (filtrando nulls)
-  const categories = [...new Set(documents.map(d => d.categoria).filter((c): c is string => c !== null && c !== ''))]
+  const categories = Array.from(new Set(documents.map(d => d.categoria).filter((c): c is string => c !== null && c !== '')))
 
   const filteredDocuments = documents.filter(doc => {
     const titulo = doc.titulo || ''
     const conteudo = doc.conteudo || ''
     const matchesSearch = titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         conteudo.toLowerCase().includes(searchTerm.toLowerCase())
+      conteudo.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesCategory = !selectedCategory || doc.categoria === selectedCategory
     return matchesSearch && matchesCategory
   })
@@ -101,7 +101,7 @@ export default function DocumentosPage() {
           <div>
             <h3 className="font-medium text-blue-900 mb-1">Envio de documentos via WhatsApp</h3>
             <p className="text-sm text-blue-700">
-              Para enviar novos documentos, mande o arquivo pelo WhatsApp para a SARA. 
+              Para enviar novos documentos, mande o arquivo pelo WhatsApp para a SARA.
               Ela irá processar e armazenar automaticamente para consulta.
             </p>
           </div>
@@ -201,7 +201,7 @@ export default function DocumentosPage() {
                   </td>
                   <td className="py-3 px-4">
                     <div className="flex items-center justify-end gap-1">
-                      <button 
+                      <button
                         onClick={() => deleteDocument(doc.id)}
                         className="p-2 hover:bg-red-50 rounded-lg text-gray-400 hover:text-red-500"
                         title="Excluir"
