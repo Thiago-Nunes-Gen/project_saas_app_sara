@@ -132,27 +132,27 @@ export default function DashboardPage() {
 
   return (
     <div className="animate-fade-in">
-      {/* Mobile Date Card - Aparece primeiro no celular */}
-      <div className="md:hidden card mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-100 shadow-sm">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-white rounded-lg shadow-sm text-blue-600">
-            <Calendar className="w-5 h-5" />
-          </div>
-          <div>
-            <p className="text-base font-semibold text-gray-900 capitalize leading-tight">{dayOfWeek}</p>
-            <p className="text-xs text-gray-500">{fullDate}</p>
-          </div>
-        </div>
-      </div>
-
       {/* Greeting - Adaptado para Mobile/Desktop */}
-      <div className="mb-6 md:mb-8">
+      <div className="mb-4 md:mb-8">
         <h1 className="text-2xl md:text-[28px] font-normal text-gray-900">
           <span className="hidden md:inline">{getGreeting()}, </span>
           <span className="md:hidden">Olá, </span>
           {client?.apelido || client?.name?.split(' ')[0] || 'Usuário'}.
           <span className="font-semibold block md:inline md:ml-1 mt-1 md:mt-0">É bom te ver!</span>
         </h1>
+      </div>
+
+      {/* Mobile Date Card - Agora depois da saudação */}
+      <div className="md:hidden card mb-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-100 shadow-sm">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-white rounded-lg shadow-sm text-blue-600">
+            <Calendar className="w-5 h-5" />
+          </div>
+          <div>
+            <p className="text-base font-semibold text-gray-900 leading-tight">{getGreeting()}!</p>
+            <p className="text-sm text-gray-600 capitalize">{dayOfWeek}, {fullDate}</p>
+          </div>
+        </div>
       </div>
 
       <div className="md:hidden grid grid-cols-2 gap-3 mb-6">
