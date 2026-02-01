@@ -1,0 +1,1738 @@
+{
+  "name": "SARA SaaS - Assinatura v2.0",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM processar_etapa_assinatura(\n  '{{ $json.whatsapp_id }}',\n  '{{ $json[\"mensagem\"] }}'\n);",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -304,
+        48
+      ],
+      "id": "ef7639b0-ebde-4b91-bc23-54c16c3fab15",
+      "name": "Processar Etapa",
+      "credentials": {
+        "postgres": {
+          "id": "2xQBC6Q6FS0TLYyI",
+          "name": "Postgres_Zero"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const resultado = $input.first().json;\nconst trigger = $('Execute Workflow Trigger').first().json;\n\n// Parse do JSON que veio do banco\nlet dados;\ntry {\n  dados = typeof resultado.processar_etapa_assinatura === 'string' \n    ? JSON.parse(resultado.processar_etapa_assinatura)\n    : resultado.processar_etapa_assinatura;\n} catch(e) {\n  dados = resultado;\n}\n\nconst criarAssinatura = dados.status === 'concluido';\nconst buscarCep = dados.status === 'buscar_cep';\n\n// Status de cancelamento\nconst cancelarConfirmado = dados.status === 'cancelar_confirmado';\nconst cancelarDesistiu = dados.status === 'cancelar_desistiu';\n\n// Corrige o \\\\n para \\n na mensagem\nlet mensagem = dados.msg || dados.mensagem || '';\nmensagem = mensagem.replace(/\\\\n/g, '\\n');\n\nreturn [{\n  json: {\n    whatsapp_id: trigger.whatsapp_id,\n    telefone: trigger.telefone,\n    instancia: trigger.instancia,\n    mensagem_resposta: mensagem,\n    criar_assinatura: criarAssinatura,\n    buscar_cep: buscarCep,\n    cep: dados.cep || null,\n    status: dados.status,\n    step: dados.step,\n    client_id: dados.client_id || trigger.client_id,\n    // Dados do plano solicitado\n    plano_id: dados.plano?.id || null,\n    plano_nome: dados.plano?.nome || null,\n    plano_preco: dados.plano?.preco || null,\n    // Novos campos\n    plano_atual: dados.plano_atual || null,\n    asaas_customer_id: dados.asaas_customer_id || null,\n    asaas_subscription_id: dados.asaas_subscription_id || null,\n    // Dados de billing\n    billing_nome: dados.billing?.nome || null,\n    billing_cpf: dados.billing?.cpf || null,\n    billing_email: dados.billing?.email || null,\n    billing_cep: dados.billing?.cep || null,\n    billing_endereco: dados.billing?.endereco || null,\n    billing_numero: dados.billing?.numero || null,\n    billing_bairro: dados.billing?.bairro || null,\n    billing_cidade: dados.billing?.cidade || null,\n    billing_estado: dados.billing?.estado || null,\n    // Cancelamento\n    cancelar_confirmado: cancelarConfirmado,\n    cancelar_desistiu: cancelarDesistiu,\n    asaas_subscription_id_cancelar: dados.asaas_subscription_id || null\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -128,
+        48
+      ],
+      "id": "9d0de2d9-7d64-424f-b76a-9f7185871d1b",
+      "name": "Parser Resposta"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "358ad540-4eec-4133-b04f-576a3d5a6b7e",
+              "leftValue": "={{ $json.criar_assinatura }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        336,
+        304
+      ],
+      "id": "ce40e353-c498-4f63-a862-076a1d021fc3",
+      "name": "Criar Assinatura"
+    },
+    {
+      "parameters": {
+        "resource": "messages-api",
+        "instanceName": "={{ $('Execute Workflow Trigger').item.json.instancia }}",
+        "remoteJid": "={{ $('Execute Workflow Trigger').item.json.telefone }}",
+        "messageText": "={{ $json.mensagem_resposta }}",
+        "options_message": {
+          "delay": "={{ Math.floor(Math.random() * 2001) + 3000 }}"
+        }
+      },
+      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "typeVersion": 1,
+      "position": [
+        576,
+        416
+      ],
+      "id": "d3703d8c-43f2-4b1a-9380-cb7d382baaa8",
+      "name": "Enviar texto",
+      "credentials": {
+        "evolutionApi": {
+          "id": "U78J5QaTvwO0ynKA",
+          "name": "Evolution SARA_SaaS"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "whatsapp_id"
+            },
+            {
+              "name": "telefone"
+            },
+            {
+              "name": "instancia"
+            },
+            {
+              "name": "mensagem"
+            },
+            {
+              "name": "client_id"
+            },
+            {
+              "name": "subscription_flow_step"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -896,
+        -416
+      ],
+      "id": "1bbd1826-edb4-49b6-8cdf-3713306bebad",
+      "name": "Execute Workflow Trigger"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://sandbox.asaas.com/api/v3/customers",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"name\": \"{{ $json.billing_nome }}\",\n  \"cpfCnpj\": \"{{ $json.billing_cpf }}\",\n  \"email\": \"{{ $json.billing_email }}\",\n  \"mobilePhone\": \"{{ $json.whatsapp_id }}\",\n  \"postalCode\": \"{{ $json.billing_cep }}\",\n  \"address\": \"{{ $json.billing_endereco }}\",\n  \"addressNumber\": \"{{ $json.billing_numero }}\",\n  \"province\": \"{{ $json.billing_bairro }}\",\n  \"externalReference\": \"{{ $json.client_id }}\",\n  \"notificationDisabled\": false\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1344,
+        144
+      ],
+      "id": "dfaac7c3-367d-4306-ad91-467450a97782",
+      "name": "Criar Customer Asaas",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "cEiYCnzVNzSJDABB",
+          "name": "asaas_saas_sara"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE saas_clients \nSET asaas_customer_id = '{{ $json.id }}'\nWHERE id = '{{ $('Parser Resposta').item.json.client_id }}'::uuid;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1552,
+        144
+      ],
+      "id": "e979c81b-4efa-45af-a7c5-7f9a12e5a5a1",
+      "name": "Salvar Customer ID",
+      "credentials": {
+        "postgres": {
+          "id": "2xQBC6Q6FS0TLYyI",
+          "name": "Postgres_Zero"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE saas_clients \nSET \n  asaas_subscription_id = '{{ $json.data[0].subscription }}',\n  subscription_flow_step = NULL,\n  subscription_flow_plan = NULL,\n  subscription_flow_started_at = NULL\nWHERE asaas_customer_id = '{{ $('Criar Customer Asaas').item.json.id }}';",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2272,
+        32
+      ],
+      "id": "5566c75d-64f1-4958-944b-82a00e4f5f5e",
+      "name": "Salvar Subscription ID",
+      "credentials": {
+        "postgres": {
+          "id": "2xQBC6Q6FS0TLYyI",
+          "name": "Postgres_Zero"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://sandbox.asaas.com/api/v3/subscriptions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"customer\": \"{{ $('Criar Customer Asaas').item.json.id }}\",\n    \"billingType\": \"CREDIT_CARD\",\n  \"value\": {{ $('Parser Resposta').item.json.plano_preco }},\n  \"nextDueDate\": \"{{ $now.toFormat('yyyy-MM-dd') }}\",\n  \"cycle\": \"MONTHLY\",\n  \"description\": \"SARA - Plano {{ $('Parser Resposta').item.json.plano_nome }}\",\n  \"externalReference\": \"{{ $('Parser Resposta').item.json.plano_id }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1776,
+        144
+      ],
+      "id": "e48f8504-1910-4807-84c1-df568ed6eb80",
+      "name": "Criar Assinatura Asaas",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "cEiYCnzVNzSJDABB",
+          "name": "asaas_saas_sara"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM iniciar_fluxo_assinatura(\n  '{{ $json.whatsapp_id }}',\n  '{{ $json.plano_escolhido }}'\n);",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        272,
+        -352
+      ],
+      "id": "c9fe1c3a-9a51-4a34-a3c5-d05e82e1876a",
+      "name": "Iniciar Fluxo",
+      "credentials": {
+        "postgres": {
+          "id": "2xQBC6Q6FS0TLYyI",
+          "name": "Postgres_Zero"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const resultado = $input.first().json;\nconst trigger = $('Execute Workflow Trigger').first().json;\n\nlet dados = resultado.iniciar_fluxo_assinatura;\nif (typeof dados === 'string') {\n  dados = JSON.parse(dados);\n}\n\nlet mensagem = '';\n\nif (dados.status === 'erro') {\n  mensagem = `❌ ${dados.msg}`;\n} else if (dados.status === 'dados_completos') {\n  // Já tem dados, pode ir direto pro Asaas\n  mensagem = `✅ Seus dados já estão cadastrados!\\n\\n`;\n  mensagem += `📦 Plano: *${dados.plano.nome.toUpperCase()}*\\n`;\n  mensagem += `💰 Valor: *R$ ${dados.plano.preco.toFixed(2).replace('.', ',')}*/mês\\n\\n`;\n  mensagem += `Deseja continuar com a assinatura?\\n`;\n  mensagem += `Digite *SIM* para confirmar ou *#cancelar* para desistir.`;\n} else if (dados.status === 'iniciar_coleta') {\n  mensagem = `🎉 *Ótima escolha!*\\n\\n`;\n  mensagem += `📦 Plano: *${dados.plano.nome.toUpperCase()}*\\n`;\n  mensagem += `💰 Valor: *R$ ${dados.plano.preco.toFixed(2).replace('.', ',')}*/mês\\n\\n`;\n  mensagem += `━━━━━━━━━━━━━━━━━━━━━\\n\\n`;\n  mensagem += `Para finalizar, preciso de alguns dados.\\n\\n`;\n  mensagem += `Qual seu *nome completo*?\\n\\n`;\n  mensagem += `_Digite #cancelar a qualquer momento para sair._`;\n}\n\nreturn [{\n  json: {\n    telefone: trigger.telefone,\n    instancia: trigger.instancia,\n    mensagem: mensagem,\n    dados_completos: dados.status === 'dados_completos',\n    billing: dados.billing || null,\n    plano: dados.plano || null,\n    client_id: dados.client_id || trigger.client_id\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        464,
+        -352
+      ],
+      "id": "940c42ac-7384-4144-bf23-f3638bcc9f9d",
+      "name": "Parser Início"
+    },
+    {
+      "parameters": {
+        "jsCode": "const mensagem = $input.first().json.mensagem.toLowerCase().trim();\n\nconst partes = mensagem.split(' ');\nconst planosValidos = ['starter', 'pro', 'enterprise'];\n\n// Se não informou plano ou plano inválido\nif (partes.length === 1 || !planosValidos.includes(partes[1])) {\n  return [{\n    json: {\n      ...$input.first().json,\n      plano_escolhido: null,\n      mostrar_opcoes: true\n    }\n  }];\n}\n\nreturn [{\n  json: {\n    ...$input.first().json,\n    plano_escolhido: partes[1],\n    mostrar_opcoes: false\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -160,
+        -432
+      ],
+      "id": "98595f9e-a318-410a-9ed5-15d3877bdfce",
+      "name": "Extrair Plano"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "58b210d3-55a1-4787-bbc5-0aec1a876976",
+              "leftValue": "={{ $json.mostrar_opcoes }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        32,
+        -432
+      ],
+      "id": "dc59d3b4-96d3-4dad-b843-f563b93e6247",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id, name, price_monthly, max_reminders, max_lists, max_list_items, \n       max_transactions_month, max_web_searches_month, max_rag_queries_month, max_documents\nFROM saas_plans \nWHERE is_active = true AND id != 'free'\nORDER BY price_monthly ASC;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        272,
+        -528
+      ],
+      "id": "af8242a7-299a-4342-8ba1-a96e9dd76ef0",
+      "name": "Buscar Planos",
+      "credentials": {
+        "postgres": {
+          "id": "2xQBC6Q6FS0TLYyI",
+          "name": "Postgres_Zero"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://sandbox.asaas.com/api/v3/payments",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "subscription",
+              "value": "={{ $json.id }}"
+            },
+            {
+              "name": "status",
+              "value": "PENDING"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2064,
+        32
+      ],
+      "id": "647c048c-45c4-4419-8aef-eb789862b171",
+      "name": "HTTP Request",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "cEiYCnzVNzSJDABB",
+          "name": "asaas_saas_sara"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Pega a cobrança do HTTP Request (não do input direto!)\nconst cobrancaResponse = $('HTTP Request').first().json;\nconst cobranca = cobrancaResponse.data?.[0] || cobrancaResponse;\n\nconst parser = $('Parser Resposta').first().json;\n\n// Pega o link de pagamento da cobrança\nconst invoiceUrl = cobranca.invoiceUrl || \n  cobranca.bankSlipUrl || \n  `https://sandbox.asaas.com/i/${cobranca.id}`;\n\nconst planoNome = parser.plano_nome || 'Seu plano';\nconst planoPreco = parser.plano_preco || 0;\n\nlet msg = `🎉 *Link de pagamento gerado!*\\n\\n`;\nmsg += `📦 Plano: *${planoNome.toUpperCase()}*\\n`;\nmsg += `💰 Valor: *R$ ${Number(planoPreco).toFixed(2).replace('.', ',')}*/mês\\n\\n`;\nmsg += `━━━━━━━━━━━━━━━━━━━━━\\n\\n`;\nmsg += `👉 *Clique para pagar:*\\n`;\nmsg += `${invoiceUrl}\\n\\n`;\nmsg += `━━━━━━━━━━━━━━━━━━━━━\\n\\n`;\nmsg += `_Assim que efetuar o pagamento, seu plano será ativado!_ ✅`;\n\nreturn [{\n  json: {\n    telefone: parser.telefone,\n    instancia: parser.instancia,\n    mensagem: msg\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2464,
+        32
+      ],
+      "id": "246fc209-699f-4fe0-a946-9820ca02c473",
+      "name": "Formatar Projetos"
+    },
+    {
+      "parameters": {
+        "jsCode": "const dados = $input.first().json;\n// Hierarquia de planos para determinar upgrade/downgrade\nconst hierarquia = {\n  'free': 0,\n  'starter': 1,\n  'pro': 2,\n  'enterprise': 3\n};\n// Valores dos planos\nconst valores = {\n  'free': 0,\n  'starter': 19.90,\n  'pro': 49.90,\n  'enterprise': 99.90\n};\n// Buscar dados do cliente do Parser Resposta\nconst planoSolicitado = dados.plano_id || 'starter';\nconst asaasSubscriptionId = dados.asaas_subscription_id || null;\nconst planoAtual = dados.plano_atual || 'free';\nconst nivelAtual = hierarquia[planoAtual] || 0;\nconst nivelSolicitado = hierarquia[planoSolicitado] || 0;\nlet tipoOperacao = 'nova_assinatura';\nif (asaasSubscriptionId) {\n  // Já tem assinatura\n  if (planoSolicitado === planoAtual) {\n    tipoOperacao = 'plano_igual';\n  } else if (nivelSolicitado > nivelAtual) {\n    tipoOperacao = 'upgrade';\n  } else {\n    tipoOperacao = 'downgrade';\n  }\n}\nreturn [{\n  json: {\n    ...dados,\n    tipo_operacao: tipoOperacao,\n    plano_solicitado: planoSolicitado,\n    plano_solicitado_valor: valores[planoSolicitado] || 0,\n    asaas_subscription_id: asaasSubscriptionId,\n    is_upgrade: nivelSolicitado > nivelAtual,\n    is_downgrade: nivelSolicitado < nivelAtual\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        576,
+        176
+      ],
+      "id": "1e35a744-a2b7-4f07-9658-47a524393eec",
+      "name": "Verificar Assinatura Existente"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.tipo_operacao }}",
+                    "rightValue": "nova_assinatura",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "4caccbf7-c158-47f3-940c-cf703b1538fa"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "nova_assinatura"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "db965689-9860-4120-ad3b-7a3170369e4c",
+                    "leftValue": "={{ $json.tipo_operacao }}",
+                    "rightValue": "upgrade",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "upgrade"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "da96b1c1-1140-4796-951a-f927c655db13",
+                    "leftValue": "={{ $json.tipo_operacao }}",
+                    "rightValue": "downgrade",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "downgrade"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "77d537cc-dfd5-4b19-8d7f-ecf428c61851",
+                    "leftValue": "={{ $json.tipo_operacao }}",
+                    "rightValue": "plano_igual",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "plano_igual"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        752,
+        144
+      ],
+      "id": "aeb2b7b8-d95d-47d3-9dad-7d057d40d4e6",
+      "name": "Switch Tipo Operação"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE saas_clients \nSET \n  plan = '{{ $('Verificar Assinatura Existente').item.json.plano_solicitado }}',\n  status = 'active',\n  updated_at = NOW()\nWHERE whatsapp_id = '{{ $('Execute Workflow Trigger').item.json.whatsapp_id }}';",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1296,
+        368
+      ],
+      "id": "fb7e028f-1103-43c0-b11a-06eb777c0fdf",
+      "name": "Atualizar Plano no Banco",
+      "credentials": {
+        "postgres": {
+          "id": "2xQBC6Q6FS0TLYyI",
+          "name": "Postgres_Zero"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const dados = $('Verificar Assinatura Existente').first().json;\nconst trigger = $('Execute Workflow Trigger').first().json;\nlet msg = '';\nif (dados.is_upgrade) {\n  msg = `🚀 *Upgrade realizado!*\\n\\n`;\n  msg += `Você agora está no plano *${dados.plano_solicitado.toUpperCase()}*!\\n\\n`;\n  msg += `💡 Seus novos recursos já estão disponíveis.\\n`;\n  msg += `💳 Novo valor: R$ ${dados.plano_solicitado_valor.toFixed(2).replace('.', ',')}/mês\\n\\n`;\n  msg += `_Será cobrado na próxima fatura._ ✨`;\n} else {\n  msg = `✅ *Plano alterado*\\n\\n`;\n  msg += `Você agora está no plano *${dados.plano_solicitado.toUpperCase()}*.\\n\\n`;\n  msg += `💳 Novo valor: R$ ${dados.plano_solicitado_valor.toFixed(2).replace('.', ',')}/mês\\n\\n`;\n  msg += `_Será cobrado na próxima fatura._`;\n}\nreturn [{\n  json: {\n    telefone: trigger.telefone,\n    instancia: trigger.instancia,\n    mensagem: msg\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1536,
+        368
+      ],
+      "id": "6fe80ee3-0335-4ec4-b9d7-61917ec60f3f",
+      "name": "Mensagem Upgrade/Downgrade"
+    },
+    {
+      "parameters": {
+        "jsCode": "const dados = $('Verificar Assinatura Existente').first().json;\nconst trigger = $('Execute Workflow Trigger').first().json;\nconst msg = `ℹ️ Você já está no plano *${dados.plano_atual.toUpperCase()}*!\\n\\n` +\n  `Para ver outros planos, digite *#meuplano*`;\nreturn [{\n  json: {\n    telefone: trigger.telefone,\n    instancia: trigger.instancia,\n    mensagem: msg\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1088,
+        544
+      ],
+      "id": "30210321-087e-464e-9125-af8cd6f28176",
+      "name": "Mensagem Plano Igual"
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "=https://sandbox.asaas.com/api/v3/subscriptions/{{ $json.asaas_subscription_id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"value\": {{ $json.plano_solicitado_valor }},\n  \"externalReference\": \"{{ $json.plano_solicitado }}\",\n  \"description\": \"SARA - Plano {{ $json.plano_nome }}\",\n  \"updatePendingPayments\": false\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1088,
+        368
+      ],
+      "id": "04d92b6b-1c6d-4af9-9f4a-9eedb60e3f5f",
+      "name": "Atualizar Assinatura Asaas",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "cEiYCnzVNzSJDABB",
+          "name": "asaas_saas_sara"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://viacep.com.br/ws/{{ $json.cep }}/json/",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        432,
+        -160
+      ],
+      "id": "edebc335-1ede-45b0-b3da-96a326a0a95c",
+      "name": "Consultar ViaCEP"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM atualizar_endereco_cep(\n  '{{ $('Parser Resposta').item.json.client_id }}'::uuid,\n  '{{ $json.logradouro || '' }}',\n  '{{ $json.bairro || '' }}',\n  '{{ $json.localidade || '' }}',\n  '{{ $json.uf || '' }}',\n  {{ $json.erro ? 'false' : 'true' }}\n);",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        656,
+        -160
+      ],
+      "id": "345af5f8-55e1-491f-b4a8-ba46f50b27ff",
+      "name": "Atualizar Endereço",
+      "credentials": {
+        "postgres": {
+          "id": "2xQBC6Q6FS0TLYyI",
+          "name": "Postgres_Zero"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const resultado = $input.first().json;\nconst trigger = $('Execute Workflow Trigger').first().json;\n\nlet dados = resultado.atualizar_endereco_cep;\nif (typeof dados === 'string') {\n  dados = JSON.parse(dados);\n}\n\nlet mensagem = dados.msg || '';\nmensagem = mensagem.replace(/\\\\n/g, '\\n');\n\nreturn [{\n  json: {\n    telefone: trigger.telefone,\n    instancia: trigger.instancia,\n    mensagem: mensagem\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        864,
+        -160
+      ],
+      "id": "806aaf8d-7fe2-4f11-a738-a57590987f8e",
+      "name": "Parser CEP"
+    },
+    {
+      "parameters": {
+        "resource": "messages-api",
+        "instanceName": "={{ $('Execute Workflow Trigger').item.json.instancia }}",
+        "remoteJid": "={{ $('Execute Workflow Trigger').item.json.telefone }}",
+        "messageText": "={{ $json.mensagem }}",
+        "options_message": {}
+      },
+      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "typeVersion": 1,
+      "position": [
+        1056,
+        -160
+      ],
+      "id": "947a3bf9-8dff-4868-8b56-cc91a61dcc22",
+      "name": "Enviar CEP",
+      "credentials": {
+        "evolutionApi": {
+          "id": "U78J5QaTvwO0ynKA",
+          "name": "Evolution SARA_SaaS"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "3114b145-839c-4b5d-a0c1-52f442df3e28",
+              "leftValue": "={{ $json.asaas_customer_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1088,
+        48
+      ],
+      "id": "9c29b9e7-eeef-463b-aa21-a824f475575e",
+      "name": "Customer Existe?"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://sandbox.asaas.com/api/v3/subscriptions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"customer\": \"{{ $json.asaas_customer_id }}\",\n    \"billingType\": \"CREDIT_CARD\",\n  \"value\": {{ $('Parser Resposta').item.json.plano_preco }},\n  \"nextDueDate\": \"{{ $now.toFormat('yyyy-MM-dd') }}\",\n  \"cycle\": \"MONTHLY\",\n  \"description\": \"SARA - Plano {{ $('Parser Resposta').item.json.plano_nome }}\",\n  \"externalReference\": \"{{ $('Parser Resposta').item.json.plano_id }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1552,
+        -64
+      ],
+      "id": "fef4a63f-637b-466c-969f-c9326ab08123",
+      "name": "Criar Assinatura Asaas1",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "cEiYCnzVNzSJDABB",
+          "name": "asaas_saas_sara"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const planos = $input.all().map(item => item.json);\nconst trigger = $('Execute Workflow Trigger').first().json;\n\nlet msg = `📦 *Escolha seu plano:*\\n\\n`;\n\n// STARTER\nconst starter = planos.find(p => p.id === 'starter');\nif (starter) {\n  msg += `━━━━━━━━━━━━━━━━━━━━━\\n\\n`;\n  msg += `1️⃣ *STARTER* - R$ ${Number(starter.price_monthly).toFixed(2).replace('.', ',')}/mês\\n`;\n  msg += `   • ${starter.max_reminders} lembretes ativos\\n`;\n  msg += `   • ${starter.max_lists} listas\\n`;\n  msg += `   • ${starter.max_transactions_month} transações/mês\\n`;\n  msg += `   • ${starter.max_web_searches_month} pesquisas web/mês\\n\\n`;\n}\n\n// PRO\nconst pro = planos.find(p => p.id === 'pro');\nif (pro) {\n  msg += `━━━━━━━━━━━━━━━━━━━━━\\n\\n`;\n  msg += `2️⃣ *PRO* - R$ ${Number(pro.price_monthly).toFixed(2).replace('.', ',')}*/mês ⭐ popular\\n`;\n  msg += `   • ${pro.max_reminders} lembretes ativos\\n`;\n  msg += `   • ${pro.max_lists} listas\\n`;\n  msg += `   • ${pro.max_transactions_month} transações/mês\\n`;\n  msg += `   • ${pro.max_web_searches_month} pesquisas web/mês\\n\\n`;\n}\n\n// ENTERPRISE\nconst enterprise = planos.find(p => p.id === 'enterprise');\nif (enterprise) {\n  msg += `━━━━━━━━━━━━━━━━━━━━━\\n\\n`;\n  msg += `3️⃣ *ENTERPRISE* - R$ ${Number(enterprise.price_monthly).toFixed(2).replace('.', ',')}/mês\\n`;\n  msg += `   • Tudo ilimitado\\n`;\n  msg += `   • Suporte 24/7\\n`;\n  msg += `   • API dedicada\\n\\n`;\n}\n\nmsg += `━━━━━━━━━━━━━━━━━━━━━\\n\\n`;\nmsg += `_Digite *1*, *2* ou *3* para escolher!_`;\n\nreturn [{\n  json: {\n    telefone: trigger.telefone,\n    instancia: trigger.instancia,\n    mensagem: msg\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        464,
+        -528
+      ],
+      "id": "d7a6d372-f0b3-477c-ab4b-42a7bef39184",
+      "name": "Parser Planos"
+    },
+    {
+      "parameters": {
+        "resource": "messages-api",
+        "instanceName": "={{ $item(\"0\").$node[\"Execute Workflow Trigger\"].json[\"instancia\"] }}",
+        "remoteJid": "={{ $item(\"0\").$node[\"Execute Workflow Trigger\"].json[\"telefone\"] }}",
+        "messageText": "={{ $json.mensagem }}",
+        "options_message": {
+          "delay": "={{ Math.floor(Math.random() * 2001) + 3000 }}"
+        }
+      },
+      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "typeVersion": 1,
+      "position": [
+        656,
+        -528
+      ],
+      "id": "f3a87a4c-faa2-4a39-b417-c46f20eaf5a3",
+      "name": "Enviar Planos",
+      "credentials": {
+        "evolutionApi": {
+          "id": "U78J5QaTvwO0ynKA",
+          "name": "Evolution SARA_SaaS"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "messages-api",
+        "instanceName": "={{ $('Execute Workflow Trigger').item.json.instancia }}",
+        "remoteJid": "={{ $('Execute Workflow Trigger').item.json.telefone }}",
+        "messageText": "={{ $json.mensagem }}",
+        "options_message": {
+          "delay": "={{ Math.floor(Math.random() * 2001) + 3000 }}"
+        }
+      },
+      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "typeVersion": 1,
+      "position": [
+        656,
+        -352
+      ],
+      "id": "b78c5f0f-5cab-4ff1-9fe2-e33b02470468",
+      "name": "Enviar Inicio Fluxo",
+      "credentials": {
+        "evolutionApi": {
+          "id": "U78J5QaTvwO0ynKA",
+          "name": "Evolution SARA_SaaS"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "messages-api",
+        "instanceName": "={{ $('Execute Workflow Trigger').item.json.instancia }}",
+        "remoteJid": "={{ $json.telefone }}",
+        "messageText": "={{ $json.mensagem }}",
+        "options_message": {
+          "delay": "={{ Math.floor(Math.random() * 2001) + 3000 }}"
+        }
+      },
+      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "typeVersion": 1,
+      "position": [
+        1296,
+        544
+      ],
+      "id": "8c12893b-92ef-4b26-9738-db3766c336f3",
+      "name": "Enviar Cancelamento",
+      "credentials": {
+        "evolutionApi": {
+          "id": "U78J5QaTvwO0ynKA",
+          "name": "Evolution SARA_SaaS"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "messages-api",
+        "instanceName": "={{ $('Execute Workflow Trigger').item.json.instancia }}",
+        "remoteJid": "={{ $json.telefone }}",
+        "messageText": "={{ $json.mensagem }}",
+        "options_message": {
+          "delay": "={{ Math.floor(Math.random() * 2001) + 3000 }}"
+        }
+      },
+      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "typeVersion": 1,
+      "position": [
+        1744,
+        368
+      ],
+      "id": "2d06ab9f-e8a9-41eb-b56e-11e4de64bb6b",
+      "name": "Enviar Atualização",
+      "credentials": {
+        "evolutionApi": {
+          "id": "U78J5QaTvwO0ynKA",
+          "name": "Evolution SARA_SaaS"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "messages-api",
+        "instanceName": "={{ $('Execute Workflow Trigger').item.json.instancia }}",
+        "remoteJid": "={{ $json.telefone }}",
+        "messageText": "={{ $json.mensagem }}",
+        "options_message": {
+          "delay": "={{ Math.floor(Math.random() * 2001) + 3000 }}"
+        }
+      },
+      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "typeVersion": 1,
+      "position": [
+        2656,
+        32
+      ],
+      "id": "fc3664d9-7a20-4e29-9c8e-c056c87b8380",
+      "name": "Enviar Confirmação",
+      "credentials": {
+        "evolutionApi": {
+          "id": "U78J5QaTvwO0ynKA",
+          "name": "Evolution SARA_SaaS"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.mensagem.toLowerCase().trim() === '#cancelarplano' }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    },
+                    "id": "7112e8c3-98b6-4367-a2cc-0f68e3feb9bd"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "#cancelarplano"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "187deb86-0a41-43b1-ab90-3933ed6a8a0f",
+                    "leftValue": "={{ $json.mensagem?.toLowerCase().trim().startsWith('#assinar') }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "#assinar"
+            }
+          ]
+        },
+        "looseTypeValidation": true,
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -704,
+        -432
+      ],
+      "id": "632c54ec-ccce-4b87-bc6c-0fda7b7294e3",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id, name, plan, billing_email, asaas_subscription_id, asaas_customer_id\nFROM saas_clients \nWHERE whatsapp_id = '{{ $('Execute Workflow Trigger').first().json.whatsapp_id }}';",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -160,
+        -816
+      ],
+      "id": "94a28db6-0aa0-4bb6-8c8f-f9a4aa8704cc",
+      "name": "Buscar Cliente Para Cancelar",
+      "credentials": {
+        "postgres": {
+          "id": "2xQBC6Q6FS0TLYyI",
+          "name": "Postgres_Zero"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "5a97caa6-85ff-4018-bd67-0891d579f1f6",
+              "leftValue": "={{ $json.asaas_subscription_id && $json.plan !== 'free' }}",
+              "rightValue": "=free",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        48,
+        -816
+      ],
+      "id": "838c35bf-bceb-43ab-88df-d6e1be7b3ded",
+      "name": "Tem Assinatura Ativa"
+    },
+    {
+      "parameters": {
+        "jsCode": "const cliente = $input.first().json;\nconst trigger = $('Execute Workflow Trigger').first().json;\n\nlet msg = `😢 *Poxa, que pena saber disso...*\\n\\n`;\nmsg += `Vi aqui que você está no plano *${cliente.plan.toUpperCase()}*.\\n\\n`;\nmsg += `Antes de cancelar, me confirma:\\n`;\nmsg += `👤 *${cliente.name}*\\n`;\nif (cliente.billing_email) {\n  msg += `📧 ${cliente.billing_email}\\n`;\n}\nmsg += `\\n`;\nmsg += `Ao cancelar você voltará para o plano *FREE*.\\n`;\nmsg += `Seus dados serão mantidos! 💜\\n\\n`;\nmsg += `Digite *CONFIRMAR* para cancelar\\n`;\nmsg += `Ou *NÃO* para manter seu plano.`;\n\nreturn [{\n  json: {\n    telefone: trigger.telefone,\n    instancia: trigger.instancia,\n    mensagem: msg,\n    client_id: cliente.id\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        256,
+        -912
+      ],
+      "id": "673308e8-41fe-4dc9-8f14-5b607586676f",
+      "name": "Montar Msg Confirmação"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE saas_clients \nSET \n  subscription_flow_step = 'cancelar_plano',\n  updated_at = NOW()\nWHERE whatsapp_id = '{{ $('Execute Workflow Trigger').first().json.whatsapp_id }}';",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        464,
+        -912
+      ],
+      "id": "df2f6526-2d6b-4a7c-b636-723a025e902d",
+      "name": "Setar Step Cancelar",
+      "credentials": {
+        "postgres": {
+          "id": "2xQBC6Q6FS0TLYyI",
+          "name": "Postgres_Zero"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const trigger = $('Execute Workflow Trigger').first().json;\n\nlet msg = `ℹ️ *Você já está no plano FREE!*\\n\\n`;\nmsg += `Não há assinatura ativa para cancelar.\\n\\n`;\nmsg += `Para ver os planos disponíveis, digite *#assinar*`;\n\nreturn [{\n  json: {\n    telefone: trigger.telefone,\n    instancia: trigger.instancia,\n    mensagem: msg\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        256,
+        -720
+      ],
+      "id": "05a1da8b-09a2-470d-824a-4f50dcbf044b",
+      "name": "Montar Msg Já Free"
+    },
+    {
+      "parameters": {
+        "resource": "messages-api",
+        "instanceName": "={{ $json.instancia }}",
+        "remoteJid": "={{ $json.telefone }}",
+        "messageText": "={{ $json.mensagem }}",
+        "options_message": {
+          "delay": "={{ Math.floor(Math.random() * 2001) + 3000 }}"
+        }
+      },
+      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "typeVersion": 1,
+      "position": [
+        464,
+        -720
+      ],
+      "id": "9e68c573-6994-42c5-b459-8c85bbde52a6",
+      "name": "Enviar Msg Free",
+      "credentials": {
+        "evolutionApi": {
+          "id": "U78J5QaTvwO0ynKA",
+          "name": "Evolution SARA_SaaS"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "messages-api",
+        "instanceName": "={{ $('Montar Msg Confirmação').first().json.instancia }}",
+        "remoteJid": "={{ $('Montar Msg Confirmação').first().json.telefone }}",
+        "messageText": "={{ $('Montar Msg Confirmação').first().json.mensagem }}",
+        "options_message": {
+          "delay": "={{ Math.floor(Math.random() * 2001) + 3000 }}"
+        }
+      },
+      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "typeVersion": 1,
+      "position": [
+        688,
+        -912
+      ],
+      "id": "66a2c8bb-228c-476d-8045-9221b7b941c0",
+      "name": "Enviar Msg Cancelar",
+      "credentials": {
+        "evolutionApi": {
+          "id": "U78J5QaTvwO0ynKA",
+          "name": "Evolution SARA_SaaS"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "9f814082-e0be-411b-8832-0d39dce744f2",
+                    "leftValue": "={{ $json.buscar_cep }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "buscar_cep"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "23706ad5-c12a-454f-b4de-6e06eafcf46c",
+                    "leftValue": "={{ $json.criar_assinatura }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "assinatura"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.cancelar_confirmado }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    },
+                    "id": "d591619b-0387-492d-b9ea-ab5636c26932"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "cancelar"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        48,
+        16
+      ],
+      "id": "ed5f08c7-2c6c-402a-bd26-3337ea9e3cbc",
+      "name": "Switch1"
+    },
+    {
+      "parameters": {
+        "url": "=https://sandbox.asaas.com/api/v3/subscriptions/{{ $json.asaas_subscription_id_cancelar }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        400,
+        768
+      ],
+      "id": "72e980e2-13b1-4089-b0dd-b4518cf10f83",
+      "name": "Cancelar Assinatura Asaas",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "cEiYCnzVNzSJDABB",
+          "name": "asaas_saas_sara"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE saas_clients \nSET \n  plan = 'free',\n  status = 'active',\n  asaas_subscription_id = NULL,\n  subscription_flow_step = NULL,\n  subscription_flow_plan = NULL,\n  subscription_flow_data = NULL,\n  first_payment_confirmed = FALSE,\n  updated_at = NOW()\nWHERE whatsapp_id = '{{ $('Execute Workflow Trigger').first().json.whatsapp_id }}';",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        608,
+        768
+      ],
+      "id": "d543d35a-6321-4a0d-9715-edf29ca5895a",
+      "name": "Atualizar Banco Free",
+      "credentials": {
+        "postgres": {
+          "id": "2xQBC6Q6FS0TLYyI",
+          "name": "Postgres_Zero"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE saas_clients \nSET \n  subscription_flow_step = 'escolher_plano',\n  subscription_flow_started_at = NOW(),\n  updated_at = NOW()\nWHERE whatsapp_id = '{{ $('Execute Workflow Trigger').first().json.whatsapp_id }}';",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        848,
+        -528
+      ],
+      "id": "c818de7b-fd5d-43cf-bd60-440511087de8",
+      "name": "Setar Step Escolher Plano",
+      "credentials": {
+        "postgres": {
+          "id": "2xQBC6Q6FS0TLYyI",
+          "name": "Postgres_Zero"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Execute Workflow Trigger": [
+      {
+        "json": {
+          "whatsapp_id": "5516997515087",
+          "telefone": "5516997515087@s.whatsapp.net",
+          "instancia": "SARA_SaaS",
+          "mensagem": "1",
+          "client_id": "40e65486-70f8-447e-ac2a-33a6e8ef9c14",
+          "subscription_flow_step": "escolher_plano"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Processar Etapa": {
+      "main": [
+        [
+          {
+            "node": "Parser Resposta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parser Resposta": {
+      "main": [
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Criar Assinatura": {
+      "main": [
+        [
+          {
+            "node": "Verificar Assinatura Existente",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Enviar texto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Criar Customer Asaas": {
+      "main": [
+        [
+          {
+            "node": "Salvar Customer ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Salvar Customer ID": {
+      "main": [
+        [
+          {
+            "node": "Criar Assinatura Asaas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Criar Assinatura Asaas": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Salvar Subscription ID": {
+      "main": [
+        [
+          {
+            "node": "Formatar Projetos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Iniciar Fluxo": {
+      "main": [
+        [
+          {
+            "node": "Parser Início",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parser Início": {
+      "main": [
+        [
+          {
+            "node": "Enviar Inicio Fluxo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extrair Plano": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Buscar Planos",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Iniciar Fluxo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Planos": {
+      "main": [
+        [
+          {
+            "node": "Parser Planos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Salvar Subscription ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Formatar Projetos": {
+      "main": [
+        [
+          {
+            "node": "Enviar Confirmação",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verificar Assinatura Existente": {
+      "main": [
+        [
+          {
+            "node": "Switch Tipo Operação",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch Tipo Operação": {
+      "main": [
+        [
+          {
+            "node": "Customer Existe?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Atualizar Assinatura Asaas",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Atualizar Assinatura Asaas",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Mensagem Plano Igual",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Atualizar Plano no Banco": {
+      "main": [
+        [
+          {
+            "node": "Mensagem Upgrade/Downgrade",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mensagem Upgrade/Downgrade": {
+      "main": [
+        [
+          {
+            "node": "Enviar Atualização",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mensagem Plano Igual": {
+      "main": [
+        [
+          {
+            "node": "Enviar Cancelamento",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Atualizar Assinatura Asaas": {
+      "main": [
+        [
+          {
+            "node": "Atualizar Plano no Banco",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consultar ViaCEP": {
+      "main": [
+        [
+          {
+            "node": "Atualizar Endereço",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Atualizar Endereço": {
+      "main": [
+        [
+          {
+            "node": "Parser CEP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parser CEP": {
+      "main": [
+        [
+          {
+            "node": "Enviar CEP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Customer Existe?": {
+      "main": [
+        [
+          {
+            "node": "Criar Assinatura Asaas1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Criar Customer Asaas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Criar Assinatura Asaas1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parser Planos": {
+      "main": [
+        [
+          {
+            "node": "Enviar Planos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar Planos": {
+      "main": [
+        [
+          {
+            "node": "Setar Step Escolher Plano",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Buscar Cliente Para Cancelar",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Extrair Plano",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Processar Etapa",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Cliente Para Cancelar": {
+      "main": [
+        [
+          {
+            "node": "Tem Assinatura Ativa",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tem Assinatura Ativa": {
+      "main": [
+        [
+          {
+            "node": "Montar Msg Confirmação",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Montar Msg Já Free",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Montar Msg Confirmação": {
+      "main": [
+        [
+          {
+            "node": "Setar Step Cancelar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Setar Step Cancelar": {
+      "main": [
+        [
+          {
+            "node": "Enviar Msg Cancelar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Montar Msg Já Free": {
+      "main": [
+        [
+          {
+            "node": "Enviar Msg Free",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch1": {
+      "main": [
+        [
+          {
+            "node": "Consultar ViaCEP",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Criar Assinatura",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Cancelar Assinatura Asaas",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Criar Assinatura",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cancelar Assinatura Asaas": {
+      "main": [
+        [
+          {
+            "node": "Atualizar Banco Free",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "66b1b104-722b-40ee-8c28-cd74e770cc0e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2162172325255cd265a19f3178f77abb9ab7ec9c7a1d869ba2d2925c11389625"
+  },
+  "id": "FRpGwR9ztyaEqKBPPw__1",
+  "tags": []
+}
