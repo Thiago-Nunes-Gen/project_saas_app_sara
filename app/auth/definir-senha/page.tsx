@@ -23,16 +23,15 @@ function DefinirSenhaContent() {
   useEffect(() => {
     async function validateToken() {
       const supabase = createClient()
-      
+
       // Verifica se há sessão ativa (usuário veio do link mágico)
       const { data: { session } } = await supabase.auth.getSession()
-      
+
       if (session?.user) {
         setTokenValid(true)
         setUserEmail(session.user.email || '')
-        
-        // Verifica se o usuário já tem senha definida
-        // Se veio do link mágico, ainda não tem
+
+        // Verifica se o usuário já tem conta vinculada
         const { data: client } = await supabase
           .from('saas_clients')
           .select('id, auth_user_id')
@@ -41,29 +40,65 @@ function DefinirSenhaContent() {
 
         if (!client) {
           // Precisa vincular o auth_user_id ao cliente existente
-          // Busca cliente pelo email
-          const { data: existingClient } = await supabase
-            .from('saas_clients')
-            .select('id')
-            .eq('email', session.user.email)
-            .single()
+          // Obtém client_id do parâmetro da URL (enviado pelo bot do WhatsApp)
+          const clientIdParam = searchParams.get('client_id')
+
+          let existingClient = null
+
+          // Prioridade 1: Busca pelo client_id passado no link (mais confiável)
+          if (clientIdParam) {
+            const { data: clientById } = await supabase
+              .from('saas_clients')
+              .select('id, whatsapp_id')
+              .eq('id', clientIdParam)
+              .is('auth_user_id', null) // Apenas se ainda não vinculado
+              .single()
+
+            if (clientById) {
+              existingClient = clientById
+              console.log('[Portal] Vinculando por client_id:', clientIdParam)
+            }
+          }
+
+          // Prioridade 2: Fallback - busca pelo email (compatibilidade)
+          if (!existingClient && session.user.email) {
+            const { data: clientByEmail } = await supabase
+              .from('saas_clients')
+              .select('id, whatsapp_id')
+              .eq('email', session.user.email)
+              .is('auth_user_id', null) // Apenas se ainda não vinculado
+              .single()
+
+            if (clientByEmail) {
+              existingClient = clientByEmail
+              console.log('[Portal] Vinculando por email:', session.user.email)
+            }
+          }
 
           if (existingClient) {
-            // Vincula o auth_user_id
-            await supabase
+            // Vincula o auth_user_id ao cliente do WhatsApp
+            const { error: updateError } = await supabase
               .from('saas_clients')
               .update({ auth_user_id: session.user.id })
               .eq('id', existingClient.id)
+
+            if (updateError) {
+              console.error('[Portal] Erro ao vincular conta:', updateError)
+            } else {
+              console.log('[Portal] WhatsApp vinculado com sucesso! whatsapp_id:', existingClient.whatsapp_id)
+            }
+          } else {
+            console.warn('[Portal] Nenhum cliente encontrado para vincular. client_id:', clientIdParam, 'email:', session.user.email)
           }
         }
       } else {
         setTokenValid(false)
         setError('Link inválido ou expirado. Solicite um novo link pelo WhatsApp.')
       }
-      
+
       setValidatingToken(false)
     }
-    
+
     validateToken()
   }, [searchParams])
 
