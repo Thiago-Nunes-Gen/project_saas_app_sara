@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase-browser'
 import { Eye, EyeOff, Loader2, Check } from 'lucide-react'
 
-export default function CadastroPage() {
+function CadastroForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const clientIdParam = searchParams.get('client_id')
@@ -104,7 +104,7 @@ export default function CadastroPage() {
 
     try {
       const supabase = createClient()
-      
+
       const { data, error: authError } = await supabase.auth.signUp({
         email,
         password,
@@ -173,13 +173,13 @@ export default function CadastroPage() {
         </div>
         <h1 className="text-2xl font-bold text-sara-text mb-2">Quase lá!</h1>
         <p className="text-sara-muted mb-6">
-          Enviamos um link de confirmação para <strong>{email}</strong>. 
+          Enviamos um link de confirmação para <strong>{email}</strong>.
           Clique no link para ativar sua conta.
         </p>
         <p className="text-sm text-sara-light">
           Não recebeu o email? Verifique sua pasta de spam ou{' '}
-          <button 
-            onClick={() => setSuccess(false)} 
+          <button
+            onClick={() => setSuccess(false)}
             className="text-primary-500 hover:text-primary-600 font-medium"
           >
             tente novamente
@@ -280,7 +280,7 @@ export default function CadastroPage() {
               {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
             </button>
           </div>
-          
+
           {/* Password Requirements */}
           {password && (
             <div className="mt-3 space-y-1.5">
@@ -330,11 +330,11 @@ export default function CadastroPage() {
         </div>
 
         <div className="flex items-start gap-2">
-          <input 
-            type="checkbox" 
+          <input
+            type="checkbox"
             id="terms"
             required
-            className="w-4 h-4 mt-0.5 rounded border-sara-border text-primary-500 focus:ring-primary-500" 
+            className="w-4 h-4 mt-0.5 rounded border-sara-border text-primary-500 focus:ring-primary-500"
           />
           <label htmlFor="terms" className="text-sm text-sara-muted">
             Concordo com os{' '}
@@ -367,5 +367,17 @@ export default function CadastroPage() {
         </Link>
       </p>
     </div>
+  )
+}
+
+export default function CadastroPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex justify-center py-12">
+        <Loader2 className="w-8 h-8 animate-spin text-primary-500" />
+      </div>
+    }>
+      <CadastroForm />
+    </Suspense>
   )
 }
