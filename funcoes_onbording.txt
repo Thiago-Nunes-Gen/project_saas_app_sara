@@ -259,16 +259,16 @@ BEGIN
       -- Capitaliza a cidade
       v_cidade := initcap(v_cidade);
       
-      UPDATE saas_clients 
+      UPDATE saas_clients
       SET cidade = v_cidade,
           uf = COALESCE(v_uf, uf),
-          onboarding_step = 'plans',
+          onboarding_step = 'email',
           updated_at = NOW()
       WHERE id = v_client_id;
-      
+
       RETURN jsonb_build_object(
         'status', 'sucesso',
-        'step', 'plans',
+        'step', 'email',
         'client_id', v_client_id,
         'cidade', v_cidade,
         'uf', v_uf,
@@ -276,7 +276,34 @@ BEGIN
       );
     END;
   END IF;
-  
+
+  -- ========================================
+  -- A��O: salvar_email (NOVA!)
+  -- ========================================
+  IF p_acao = 'salvar_email' THEN
+    IF v_client_id IS NULL THEN
+      RETURN jsonb_build_object('status', 'erro', 'msg', 'Usu�rio n�o encontrado');
+    END IF;
+
+    IF p_valor IS NULL OR trim(p_valor) = '' THEN
+      RETURN jsonb_build_object('status', 'erro', 'msg', 'Email n�o informado');
+    END IF;
+
+    UPDATE saas_clients
+    SET email = lower(trim(p_valor)),
+        onboarding_step = 'plans',
+        updated_at = NOW()
+    WHERE id = v_client_id;
+
+    RETURN jsonb_build_object(
+      'status', 'sucesso',
+      'step', 'plans',
+      'client_id', v_client_id,
+      'email', lower(trim(p_valor)),
+      'msg', 'Email salvo com sucesso'
+    );
+  END IF;
+
   -- ========================================
   -- A��O: finalizar_onboarding
   -- ========================================
