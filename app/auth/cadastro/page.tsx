@@ -23,11 +23,21 @@ export default function CadastroPage() {
 
   // Buscar dados do cliente se client_id estiver presente
   useEffect(() => {
+    console.log('[Cadastro] useEffect executado!')
+    console.log('[Cadastro] client_id da URL:', clientIdParam)
+
     const fetchClientData = async () => {
-      if (!clientIdParam) return
+      if (!clientIdParam) {
+        console.warn('[Cadastro] client_id não encontrado na URL')
+        return
+      }
+
+      console.log('[Cadastro] Iniciando busca do cliente...')
 
       try {
         const supabase = createClient()
+        console.log('[Cadastro] Supabase client criado')
+
         const { data: client, error: clientError } = await supabase
           .from('saas_clients')
           .select('id, name, email, whatsapp_id')
@@ -35,17 +45,25 @@ export default function CadastroPage() {
           .is('auth_user_id', null)
           .single()
 
+        console.log('[Cadastro] Resposta da query:', { client, clientError })
+
         if (clientError) {
           console.error('[Cadastro] Erro ao buscar cliente:', clientError)
           return
         }
 
         if (client) {
-          console.log('[Cadastro] Cliente encontrado via client_id:', client)
+          console.log('[Cadastro] ✅ Cliente encontrado via client_id:', client)
           setClientData(client)
           // Pré-preencher dados se disponíveis
-          if (client.name) setName(client.name)
-          if (client.email) setEmail(client.email)
+          if (client.name) {
+            console.log('[Cadastro] Preenchendo nome:', client.name)
+            setName(client.name)
+          }
+          if (client.email) {
+            console.log('[Cadastro] Preenchendo email:', client.email)
+            setEmail(client.email)
+          }
         } else {
           console.warn('[Cadastro] Cliente não encontrado ou já vinculado:', clientIdParam)
         }
