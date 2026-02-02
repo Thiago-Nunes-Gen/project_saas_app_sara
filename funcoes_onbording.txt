@@ -1,4 +1,4 @@
-Funções Onbording_Supabase
+Funï¿½ï¿½es Onbording_Supabase
 ======================================================================
 saas_onboarding
 
@@ -13,12 +13,12 @@ BEGIN
   FROM saas_clients 
   WHERE whatsapp_id = p_whatsapp_id;
   
-  -- Se não existe, cria novo
+  -- Se nï¿½o existe, cria novo
   IF v_client_record IS NULL THEN
     INSERT INTO saas_clients (whatsapp_id, name, first_interaction_at)
     VALUES (
       p_whatsapp_id,
-      COALESCE(p_name, 'Usuário'),
+      COALESCE(p_name, 'Usuï¿½rio'),
       now()
     )
     RETURNING * INTO v_client_record;
@@ -85,23 +85,23 @@ BEGIN
   WHERE whatsapp_id = p_whatsapp_id;
   
   -- ========================================
-  -- AÇÃO: verificar_status
+  -- Aï¿½ï¿½O: verificar_status
   -- ========================================
   IF p_acao = 'verificar_status' THEN
     IF v_client_id IS NULL THEN
-      -- Novo usuário - começa em 'welcome'
+      -- Novo usuï¿½rio - comeï¿½a em 'welcome'
       INSERT INTO saas_clients (whatsapp_id, name, status, plan, onboarding_step)
-      VALUES (p_whatsapp_id, 'Novo Usuário', 'trial', 'free', 'welcome')
+      VALUES (p_whatsapp_id, 'Novo Usuï¿½rio', 'trial', 'free', 'welcome')
       RETURNING id, onboarding_step INTO v_client_id, v_step;
       
       RETURN jsonb_build_object(
         'status', 'novo_usuario',
         'step', 'welcome',
         'client_id', v_client_id,
-        'msg', 'Usuário criado, mostrando boas-vindas'
+        'msg', 'Usuï¿½rio criado, mostrando boas-vindas'
       );
     ELSE
-      -- Usuário existente
+      -- Usuï¿½rio existente
       RETURN jsonb_build_object(
         'status', CASE WHEN v_step = 'completed' THEN 'ativo' ELSE 'onboarding' END,
         'step', v_step,
@@ -110,17 +110,17 @@ BEGIN
         'apelido', v_apelido,
         'subscription_flow_step', v_subscription_step,
         'subscription_flow_plan', v_subscription_plan,
-        'msg', CASE WHEN v_step = 'completed' THEN 'Usuário ativo' ELSE 'Onboarding em andamento' END
+        'msg', CASE WHEN v_step = 'completed' THEN 'Usuï¿½rio ativo' ELSE 'Onboarding em andamento' END
       );
     END IF;
   END IF;
   
   -- ========================================
-  -- AÇÃO: avancar_para_lgpd (após welcome)
+  -- Aï¿½ï¿½O: avancar_para_lgpd (apï¿½s welcome)
   -- ========================================
   IF p_acao = 'avancar_para_lgpd' THEN
     IF v_client_id IS NULL THEN
-      RETURN jsonb_build_object('status', 'erro', 'msg', 'Usuário não encontrado');
+      RETURN jsonb_build_object('status', 'erro', 'msg', 'Usuï¿½rio nï¿½o encontrado');
     END IF;
     
     UPDATE saas_clients 
@@ -131,16 +131,17 @@ BEGIN
     RETURN jsonb_build_object(
       'status', 'sucesso',
       'step', 'lgpd',
-      'msg', 'Avançou para etapa de LGPD'
+      'client_id', v_client_id,
+      'msg', 'Avanï¿½ou para etapa de LGPD'
     );
   END IF;
   
   -- ========================================
-  -- AÇÃO: aceitar_lgpd
+  -- Aï¿½ï¿½O: aceitar_lgpd
   -- ========================================
   IF p_acao = 'aceitar_lgpd' THEN
     IF v_client_id IS NULL THEN
-      RETURN jsonb_build_object('status', 'erro', 'msg', 'Usuário não encontrado');
+      RETURN jsonb_build_object('status', 'erro', 'msg', 'Usuï¿½rio nï¿½o encontrado');
     END IF;
     
     UPDATE saas_clients 
@@ -152,16 +153,17 @@ BEGIN
     RETURN jsonb_build_object(
       'status', 'sucesso',
       'step', 'name',
+      'client_id', v_client_id,
       'msg', 'LGPD aceita com sucesso'
     );
   END IF;
   
   -- ========================================
-  -- AÇÃO: avancar_welcome (mantida para compatibilidade)
+  -- Aï¿½ï¿½O: avancar_welcome (mantida para compatibilidade)
   -- ========================================
   IF p_acao = 'avancar_welcome' THEN
     IF v_client_id IS NULL THEN
-      RETURN jsonb_build_object('status', 'erro', 'msg', 'Usuário não encontrado');
+      RETURN jsonb_build_object('status', 'erro', 'msg', 'Usuï¿½rio nï¿½o encontrado');
     END IF;
     
     UPDATE saas_clients 
@@ -172,20 +174,21 @@ BEGIN
     RETURN jsonb_build_object(
       'status', 'sucesso',
       'step', 'name',
-      'msg', 'Avançou para etapa de nome'
+      'client_id', v_client_id,
+      'msg', 'Avanï¿½ou para etapa de nome'
     );
   END IF;
   
   -- ========================================
-  -- AÇÃO: salvar_nome
+  -- Aï¿½ï¿½O: salvar_nome
   -- ========================================
   IF p_acao = 'salvar_nome' THEN
     IF v_client_id IS NULL THEN
-      RETURN jsonb_build_object('status', 'erro', 'msg', 'Usuário não encontrado');
+      RETURN jsonb_build_object('status', 'erro', 'msg', 'Usuï¿½rio nï¿½o encontrado');
     END IF;
     
     IF p_valor IS NULL OR trim(p_valor) = '' THEN
-      RETURN jsonb_build_object('status', 'erro', 'msg', 'Nome não informado');
+      RETURN jsonb_build_object('status', 'erro', 'msg', 'Nome nï¿½o informado');
     END IF;
     
     UPDATE saas_clients 
@@ -197,44 +200,46 @@ BEGIN
     RETURN jsonb_build_object(
       'status', 'sucesso',
       'step', 'apelido',
+      'client_id', v_client_id,
       'name', trim(p_valor),
       'msg', 'Nome salvo com sucesso'
     );
   END IF;
   
   -- ========================================
-  -- AÇÃO: salvar_apelido (MODIFICADO - agora vai para 'cidade')
+  -- Aï¿½ï¿½O: salvar_apelido (MODIFICADO - agora vai para 'cidade')
   -- ========================================
   IF p_acao = 'salvar_apelido' THEN
     IF v_client_id IS NULL THEN
-      RETURN jsonb_build_object('status', 'erro', 'msg', 'Usuário não encontrado');
+      RETURN jsonb_build_object('status', 'erro', 'msg', 'Usuï¿½rio nï¿½o encontrado');
     END IF;
     
-    -- Se não informar apelido, usa primeiro nome
-    IF p_valor IS NULL OR trim(p_valor) = '' OR lower(trim(p_valor)) IN ('não', 'nao', 'n', 'pular', 'nenhum') THEN
+    -- Se nï¿½o informar apelido, usa primeiro nome
+    IF p_valor IS NULL OR trim(p_valor) = '' OR lower(trim(p_valor)) IN ('nï¿½o', 'nao', 'n', 'pular', 'nenhum') THEN
       SELECT split_part(name, ' ', 1) INTO p_valor FROM saas_clients WHERE id = v_client_id;
     END IF;
     
     UPDATE saas_clients 
     SET apelido = trim(p_valor),
-        onboarding_step = 'cidade',  -- MUDANÇA: agora vai para cidade
+        onboarding_step = 'cidade',  -- MUDANï¿½A: agora vai para cidade
         updated_at = NOW()
     WHERE id = v_client_id;
     
     RETURN jsonb_build_object(
       'status', 'sucesso',
-      'step', 'cidade',  -- MUDANÇA
+      'step', 'cidade',  -- MUDANï¿½A
+      'client_id', v_client_id,
       'apelido', trim(p_valor),
       'msg', 'Apelido salvo com sucesso'
     );
   END IF;
   
   -- ========================================
-  -- AÇÃO: salvar_cidade (NOVA!)
+  -- Aï¿½ï¿½O: salvar_cidade (NOVA!)
   -- ========================================
   IF p_acao = 'salvar_cidade' THEN
     IF v_client_id IS NULL THEN
-      RETURN jsonb_build_object('status', 'erro', 'msg', 'Usuário não encontrado');
+      RETURN jsonb_build_object('status', 'erro', 'msg', 'Usuï¿½rio nï¿½o encontrado');
     END IF;
     
     -- Extrai cidade e UF se informado no formato "Cidade - UF" ou "Cidade/UF"
@@ -254,29 +259,57 @@ BEGIN
       -- Capitaliza a cidade
       v_cidade := initcap(v_cidade);
       
-      UPDATE saas_clients 
+      UPDATE saas_clients
       SET cidade = v_cidade,
           uf = COALESCE(v_uf, uf),
-          onboarding_step = 'plans',
+          onboarding_step = 'email',
           updated_at = NOW()
       WHERE id = v_client_id;
-      
+
       RETURN jsonb_build_object(
         'status', 'sucesso',
-        'step', 'plans',
+        'step', 'email',
+        'client_id', v_client_id,
         'cidade', v_cidade,
         'uf', v_uf,
         'msg', 'Cidade salva com sucesso'
       );
     END;
   END IF;
-  
+
   -- ========================================
-  -- AÇÃO: finalizar_onboarding
+  -- Aï¿½ï¿½O: salvar_email (NOVA!)
+  -- ========================================
+  IF p_acao = 'salvar_email' THEN
+    IF v_client_id IS NULL THEN
+      RETURN jsonb_build_object('status', 'erro', 'msg', 'Usuï¿½rio nï¿½o encontrado');
+    END IF;
+
+    IF p_valor IS NULL OR trim(p_valor) = '' THEN
+      RETURN jsonb_build_object('status', 'erro', 'msg', 'Email nï¿½o informado');
+    END IF;
+
+    UPDATE saas_clients
+    SET email = lower(trim(p_valor)),
+        onboarding_step = 'plans',
+        updated_at = NOW()
+    WHERE id = v_client_id;
+
+    RETURN jsonb_build_object(
+      'status', 'sucesso',
+      'step', 'plans',
+      'client_id', v_client_id,
+      'email', lower(trim(p_valor)),
+      'msg', 'Email salvo com sucesso'
+    );
+  END IF;
+
+  -- ========================================
+  -- Aï¿½ï¿½O: finalizar_onboarding
   -- ========================================
   IF p_acao = 'finalizar_onboarding' THEN
     IF v_client_id IS NULL THEN
-      RETURN jsonb_build_object('status', 'erro', 'msg', 'Usuário não encontrado');
+      RETURN jsonb_build_object('status', 'erro', 'msg', 'Usuï¿½rio nï¿½o encontrado');
     END IF;
     
     UPDATE saas_clients 
@@ -292,6 +325,7 @@ BEGIN
     RETURN jsonb_build_object(
       'status', 'sucesso',
       'step', 'completed',
+      'client_id', v_client_id,
       'name', v_name,
       'apelido', v_apelido,
       'trial_days', 7,
@@ -300,11 +334,11 @@ BEGIN
   END IF;
   
   -- ========================================
-  -- AÇÃO: obter_dados_cliente
+  -- Aï¿½ï¿½O: obter_dados_cliente
   -- ========================================
   IF p_acao = 'obter_dados_cliente' THEN
     IF v_client_id IS NULL THEN
-      RETURN jsonb_build_object('status', 'erro', 'msg', 'Usuário não encontrado');
+      RETURN jsonb_build_object('status', 'erro', 'msg', 'Usuï¿½rio nï¿½o encontrado');
     END IF;
     
     SELECT jsonb_build_object(
@@ -334,10 +368,10 @@ BEGIN
     RETURN v_result;
   END IF;
   
-  -- Ação não reconhecida
+  -- Aï¿½ï¿½o nï¿½o reconhecida
   RETURN jsonb_build_object(
     'status', 'erro',
-    'msg', 'Ação não reconhecida: ' || p_acao
+    'msg', 'Aï¿½ï¿½o nï¿½o reconhecida: ' || p_acao
   );
   
 END;
