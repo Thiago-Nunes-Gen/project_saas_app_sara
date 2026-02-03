@@ -1,10 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
 import { useClient } from '@/hooks/useClient'
-import { 
-  Check, 
+import {
+  Check,
   Star,
   Zap,
   Crown,
@@ -43,6 +44,7 @@ const planColors: Record<string, { bg: string; border: string; text: string; bad
 }
 
 export default function PlanosPage() {
+  const router = useRouter()
   const { client } = useClient()
   const [plans, setPlans] = useState<Plan[]>([])
   const [loading, setLoading] = useState(true)
@@ -70,7 +72,7 @@ export default function PlanosPage() {
   }, [])
 
   const formatPrice = (price: number) => {
-    if (price === 0) return 'Grátis'
+    if (price === 0) return 'Gratis'
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL'
@@ -78,9 +80,12 @@ export default function PlanosPage() {
   }
 
   const handleSelectPlan = (planId: string) => {
-    // Abre WhatsApp com mensagem para contratar o plano
-    const message = encodeURIComponent(`Olá SARA! Quero contratar o plano ${planId.toUpperCase()}. Pode me ajudar?`)
-    window.open(`https://wa.me/5516997515087?text=${message}`, '_blank')
+    if (planId === 'free') {
+      // Free plan - no checkout needed
+      return
+    }
+    // Redirect to checkout page
+    router.push(`/dashboard/checkout?plano=${planId}`)
   }
 
   const currentPlanId = client?.plan?.toLowerCase() || 'free'
@@ -191,18 +196,20 @@ export default function PlanosPage() {
       {/* FAQ / Help */}
       <div className="bg-gray-50 rounded-2xl p-8 text-center">
         <h2 className="text-xl font-bold text-gray-900 mb-2">
-          Dúvidas sobre qual plano escolher?
+          Duvidas sobre qual plano escolher?
         </h2>
         <p className="text-gray-500 mb-6">
           Converse com a SARA pelo WhatsApp e ela te ajuda a escolher o melhor plano!
         </p>
-        <button
-          onClick={() => handleSelectPlan('ajuda')}
+        <a
+          href="https://wa.me/5516997515087?text=Ol%C3%A1%20SARA!%20Preciso%20de%20ajuda%20para%20escolher%20um%20plano."
+          target="_blank"
+          rel="noopener noreferrer"
           className="inline-flex items-center gap-2 px-6 py-3 bg-green-500 text-white rounded-xl font-medium hover:bg-green-600 transition-colors"
         >
           <MessageCircle className="w-5 h-5" />
           Falar com SARA
-        </button>
+        </a>
       </div>
 
       {/* Comparison Table */}
