@@ -16,7 +16,8 @@ import {
   DollarSign,
   ListTodo,
   StickyNote,
-  Star
+  Star,
+  Zap
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -279,6 +280,15 @@ export default function Header() {
 
       {/* Right Side */}
       <div className="flex items-center gap-2 ml-4">
+        {/* Upgrade Button */}
+        <Link
+          href="/dashboard/planos"
+          className="hidden md:flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-purple-500 to-blue-500 text-white text-sm font-medium rounded-lg hover:opacity-90 transition-opacity"
+        >
+          <Zap className="w-4 h-4" />
+          Upgrade
+        </Link>
+
         {/* Notifications */}
         <div ref={notifRef} className="relative">
           <button

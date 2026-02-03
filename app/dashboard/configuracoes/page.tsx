@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase-browser'
 import { useClient } from '@/hooks/useClient'
-import { 
+import {
   User,
   Phone,
   Mail,
@@ -13,8 +13,12 @@ import {
   Loader2,
   Check,
   AlertCircle,
-  ExternalLink
+  ExternalLink,
+  Zap,
+  XCircle,
+  ArrowRight
 } from 'lucide-react'
+import Link from 'next/link'
 
 export default function ConfiguracoesPage() {
   const { client, loading: clientLoading, refetch } = useClient()
@@ -323,7 +327,7 @@ export default function ConfiguracoesPage() {
           {activeTab === 'plano' && (
             <div className="card">
               <h2 className="text-lg font-medium text-gray-900 mb-6">Seu Plano</h2>
-              
+
               <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg mb-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -334,27 +338,53 @@ export default function ConfiguracoesPage() {
                 </div>
               </div>
 
+              {/* Botões de Ação do Plano */}
+              <div className="flex flex-col sm:flex-row gap-3 mb-8">
+                <Link
+                  href="/dashboard/planos"
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-xl font-medium hover:opacity-90 transition-opacity"
+                >
+                  <Zap className="w-5 h-5" />
+                  {client?.plan === 'enterprise' ? 'Ver Planos' : 'Fazer Upgrade'}
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+
+                {client?.plan && client.plan !== 'free' && (
+                  <button
+                    onClick={() => {
+                      // Abre WhatsApp para cancelar plano
+                      const msg = encodeURIComponent('#cancelarplano')
+                      window.open(`https://wa.me/5516997515087?text=${msg}`, '_blank')
+                    }}
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 border border-red-200 text-red-600 rounded-xl font-medium hover:bg-red-50 transition-colors"
+                  >
+                    <XCircle className="w-5 h-5" />
+                    Cancelar Plano
+                  </button>
+                )}
+              </div>
+
               <h3 className="font-medium text-gray-900 mb-4">Uso do plano</h3>
               <div className="space-y-4">
-                <UsageBar 
-                  label="Lembretes" 
-                  used={client?.reminders_count || 0} 
-                  max={client?.max_reminders || 50} 
+                <UsageBar
+                  label="Lembretes"
+                  used={client?.reminders_count || 0}
+                  max={client?.max_reminders || 50}
                 />
-                <UsageBar 
-                  label="Transações/mês" 
-                  used={client?.transactions_month || 0} 
-                  max={client?.max_transactions_month || 200} 
+                <UsageBar
+                  label="Transações/mês"
+                  used={client?.transactions_month || 0}
+                  max={client?.max_transactions_month || 200}
                 />
-                <UsageBar 
-                  label="Documentos" 
-                  used={client?.documents_count || 0} 
-                  max={client?.max_documents || 50} 
+                <UsageBar
+                  label="Documentos"
+                  used={client?.documents_count || 0}
+                  max={client?.max_documents || 50}
                 />
-                <UsageBar 
-                  label="Pesquisas IA/mês" 
-                  used={client?.web_searches_month || 0} 
-                  max={client?.max_web_searches_month || 10} 
+                <UsageBar
+                  label="Pesquisas IA/mês"
+                  used={client?.web_searches_month || 0}
+                  max={client?.max_web_searches_month || 10}
                 />
               </div>
             </div>
