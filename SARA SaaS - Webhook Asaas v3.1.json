@@ -1,0 +1,651 @@
+{
+  "name": "SARA SaaS - Webhook Asaas v3.1",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "saas_sara_asaas",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -160,
+        16
+      ],
+      "id": "0875c44f-f663-4553-8059-5e892b48c4b8",
+      "name": "Webhook",
+      "webhookId": "662e397f-a72d-4c23-a9ea-e551dd1c3a9d"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body || $input.first().json;\n\n// Pode vir em payment (cobranças) ou subscription (assinaturas)\nconst payment = body.payment || {};\nconst subscription = body.subscription || {};\n\nreturn [{\n  json: {\n    evento: body.event,\n    // Dados de payment\n    payment_id: payment.id || null,\n    payment_value: payment.value || null,\n    payment_status: payment.status || null,\n    payment_date: payment.paymentDate || null,\n    due_date: payment.dueDate || null,\n    billing_type: payment.billingType || subscription.billingType || null,\n    // Dados comuns (pode vir de payment ou subscription)\n    subscription_id: payment.subscription || subscription.id || null,\n    customer_id: payment.customer || subscription.customer || null,\n    external_reference: payment.externalReference || subscription.externalReference || null,\n    value: payment.value || subscription.value || null\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        64,
+        16
+      ],
+      "id": "6a0ae58d-043b-4303-ac8d-0bcadd175ed0",
+      "name": "Parser Evento"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "c101ebcc-a6e6-4a32-a28a-38e76aa969e4",
+                    "leftValue": "={{ $json.evento }}",
+                    "rightValue": "SUBSCRIPTION_CREATED",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "SUBSCRIPTION_CREATED"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "5f3b13c4-b3fc-473b-a13e-513a91a4d2e4",
+                    "leftValue": "={{ $json.evento }}",
+                    "rightValue": "PAYMENT_CONFIRMED",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "PAYMENT_CONFIRMED"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "3db8ff12-fbfb-49ad-bfd9-459999c43670",
+                    "leftValue": "={{ $json.evento }}",
+                    "rightValue": "PAYMENT_RECEIVED",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "PAYMENT_RECEIVED"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "65f5bb81-ef5a-4e04-8dc8-9100b6183571",
+                    "leftValue": "={{ $json.evento }}",
+                    "rightValue": "PAYMENT_OVERDUE",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "PAYMENT_OVERDUE"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "da6811a7-a4db-4ece-87a8-8ab8d68694f1",
+                    "leftValue": "={{ $json.evento }}",
+                    "rightValue": "SUBSCRIPTION_DELETED",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "SUBSCRIPTION_DELETED"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        272,
+        -32
+      ],
+      "id": "9cf1dd26-6f02-49ec-8221-f72a10adf442",
+      "name": "Switch Evento"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM confirmar_assinatura_asaas(\n  '{{ $('Parser Evento').item.json.customer_id }}',\n  '{{ $('Parser Evento').item.json.subscription_id }}',\n  '{{ $('Parser Evento').item.json.external_reference }}'\n);",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        544,
+        -96
+      ],
+      "id": "9c1147c3-9282-4382-8a42-b476eb35543c",
+      "name": "Confirmar Assinatura",
+      "credentials": {
+        "postgres": {
+          "id": "2xQBC6Q6FS0TLYyI",
+          "name": "Postgres_Zero"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT whatsapp_id, name, first_payment_confirmed \nFROM saas_clients \nWHERE asaas_customer_id = '{{ $('Parser Evento').item.json.customer_id }}';",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        736,
+        -96
+      ],
+      "id": "415a3f30-de70-486d-84ae-44604467467a",
+      "name": "Buscar Telefone",
+      "credentials": {
+        "postgres": {
+          "id": "2xQBC6Q6FS0TLYyI",
+          "name": "Postgres_Zero"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const cliente = $input.first().json;\nconst evento = $('Parser Evento').first().json;\nconst valor = Number(evento.value).toFixed(2).replace('.', ',');\n\nconst isPrimeiroPagamento = !cliente.first_payment_confirmed;\n\nlet msg;\n\nif (isPrimeiroPagamento) {\n  // 🎉 Primeiro pagamento - Boas-vindas\n  msg = `🎉 *Bem-vindo(a) ao plano pago!*\\n\\n`;\n  msg += `Olá, ${cliente.name}!\\n\\n`;\n  msg += `Seu pagamento de *R$ ${valor}* foi confirmado!\\n\\n`;\n  msg += `🚀 *Seu plano está ATIVO!*\\n\\n`;\n  msg += `Agora você tem acesso a:\\n`;\n  msg += `✅ Lembretes ilimitados\\n`;\n  msg += `✅ Controle financeiro completo\\n`;\n  msg += `✅ Pesquisas web\\n`;\n  msg += `✅ E muito mais!\\n\\n`;\n  msg += `_Dúvidas? Digite #ajuda_`;\n} else {\n  // ✅ Pagamento recorrente - Renovação\n  msg = `✅ *Renovação confirmada!*\\n\\n`;\n  msg += `Olá, ${cliente.name}!\\n\\n`;\n  msg += `Sua mensalidade de *R$ ${valor}* foi paga com sucesso.\\n\\n`;\n  msg += `📆 Próxima cobrança em 30 dias.\\n\\n`;\n  msg += `_Obrigado por continuar com a SARA!_ 💜`;\n}\n\nreturn [{\n  json: {\n    telefone: cliente.whatsapp_id + '@s.whatsapp.net',\n    instancia: 'SARA_SaaS',\n    mensagem: msg,\n    isPrimeiroPagamento: isPrimeiroPagamento\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        944,
+        -96
+      ],
+      "id": "ad12be30-0f4d-4798-b717-9f70d5f86b3e",
+      "name": "Montar Mensagem Confirmação"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT whatsapp_id, name \nFROM saas_clients \nWHERE asaas_customer_id = '{{ $('Parser Evento').item.json.customer_id }}';",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        544,
+        96
+      ],
+      "id": "9a251219-3056-4264-ad7a-a372a07b1e8c",
+      "name": "Buscar Cliente Atrasado",
+      "credentials": {
+        "postgres": {
+          "id": "2xQBC6Q6FS0TLYyI",
+          "name": "Postgres_Zero"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const cliente = $input.first().json;\nconst evento = $('Parser Evento').first().json;\n\nlet msg = `⚠️ *Pagamento pendente*\\n\\n`;\nmsg += `Olá, ${cliente.name}!\\n\\n`;\nmsg += `Identificamos que seu pagamento de *R$ ${Number(evento.value).toFixed(2).replace('.', ',')}* está pendente.\\n\\n`;\nmsg += `Para evitar a suspensão do serviço, regularize o quanto antes.\\n\\n`;\nmsg += `Dúvidas? Digite *#suporte*`;\n\nreturn [{\n  json: {\n    telefone: cliente.whatsapp_id + '@s.whatsapp.net',\n    instancia: 'SARA_SaaS',\n    mensagem: msg\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        736,
+        96
+      ],
+      "id": "5689e32f-5499-4858-85cc-2869d8a83703",
+      "name": "Montar Mensagem Atraso"
+    },
+    {
+      "parameters": {
+        "resource": "messages-api",
+        "instanceName": "=SARA_SaaS",
+        "remoteJid": "={{ $json.telefone }}",
+        "messageText": "={{ $json.mensagem }}",
+        "options_message": {
+          "delay": "={{ Math.floor(Math.random() * 2001) + 3000 }}"
+        }
+      },
+      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "typeVersion": 1,
+      "position": [
+        944,
+        96
+      ],
+      "id": "950248ec-c13f-4334-a40d-79701d75b187",
+      "name": "Enviar Aviso Atraso",
+      "credentials": {
+        "evolutionApi": {
+          "id": "U78J5QaTvwO0ynKA",
+          "name": "Evolution SARA_SaaS"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "messages-api",
+        "instanceName": "SARA_SaaS",
+        "remoteJid": "={{ $json.telefone }}",
+        "messageText": "={{ $json.mensagem }}",
+        "options_message": {
+          "delay": "={{ Math.floor(Math.random() * 2001) + 3000 }}"
+        }
+      },
+      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "typeVersion": 1,
+      "position": [
+        1152,
+        -96
+      ],
+      "id": "edc9ceb5-9041-4a65-a38a-c1beb980d2b8",
+      "name": "Enviar Confirmação",
+      "credentials": {
+        "evolutionApi": {
+          "id": "U78J5QaTvwO0ynKA",
+          "name": "Evolution SARA_SaaS"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE saas_clients \nSET \n  status = 'cancelled',\n  plan = 'free',\n  asaas_subscription_id = NULL\nWHERE asaas_customer_id = '{{ $('Parser Evento').item.json.customer_id }}'\nRETURNING whatsapp_id, name;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        544,
+        256
+      ],
+      "id": "babfacca-7757-4459-bbd4-50fb54c7e829",
+      "name": "Cancelar Cliente",
+      "credentials": {
+        "postgres": {
+          "id": "2xQBC6Q6FS0TLYyI",
+          "name": "Postgres_Zero"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const cliente = $input.first().json;\n\nlet msg = `😢 *Assinatura cancelada*\\n\\n`;\nmsg += `Olá, ${cliente.name}!\\n\\n`;\nmsg += `Sua assinatura foi cancelada com sucesso.\\n`;\nmsg += `Você voltou para o plano *FREE*.\\n\\n`;\nmsg += `📦 *Seus dados foram mantidos!*\\n`;\nmsg += `• Lembretes salvos ✅\\n`;\nmsg += `• Listas preservadas ✅\\n`;\nmsg += `• Histórico financeiro ✅\\n\\n`;\nmsg += `Quando quiser voltar, digite *#assinar*\\n\\n`;\nmsg += `_Obrigado por ter feito parte!_ 💜`;\n\nreturn [{\n  json: {\n    telefone: cliente.whatsapp_id + '@s.whatsapp.net',\n    instancia: 'SARA_SaaS',\n    mensagem: msg\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        736,
+        256
+      ],
+      "id": "652c5c2f-14ef-4592-bf14-5ba2d912ac1f",
+      "name": "Montar Mensagem Cancelamento"
+    },
+    {
+      "parameters": {
+        "resource": "messages-api",
+        "instanceName": "=SARA_SaaS",
+        "remoteJid": "={{ $json.telefone }}",
+        "messageText": "={{ $json.mensagem }}",
+        "options_message": {
+          "delay": "={{ Math.floor(Math.random() * 2001) + 3000 }}"
+        }
+      },
+      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "typeVersion": 1,
+      "position": [
+        944,
+        256
+      ],
+      "id": "23e89342-4d24-4b3b-a3c9-133daa4f7029",
+      "name": "Enviar Cancelamento",
+      "credentials": {
+        "evolutionApi": {
+          "id": "U78J5QaTvwO0ynKA",
+          "name": "Evolution SARA_SaaS"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const cliente = $input.first().json;\nconst evento = $('Parser Evento').first().json;\n\nlet msg = `🎉 *Assinatura criada com sucesso!*\\n\\n`;\nmsg += `Olá, ${cliente.name}!\\n\\n`;\nmsg += `Sua assinatura do plano foi criada.\\n`;\nmsg += `💰 Valor: *R$ ${Number(evento.value).toFixed(2).replace('.', ',')}*/mês\\n\\n`;\nmsg += `📧 Enviamos o link de pagamento por email.\\n`;\nmsg += `Assim que confirmar, seu plano será ativado! ✅`;\n\nreturn [{\n  json: {\n    telefone: cliente.whatsapp_id + '@s.whatsapp.net',\n    instancia: 'SARA_SaaS',\n    mensagem: msg\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        736,
+        -288
+      ],
+      "id": "aafae264-972b-416b-a9c9-06c77eadda15",
+      "name": "Montar Mensagem Assinatura Criada"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT whatsapp_id, name \nFROM saas_clients \nWHERE asaas_customer_id = '{{ $('Parser Evento').item.json.customer_id }}';",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        544,
+        -288
+      ],
+      "id": "a622fdba-313e-4032-b753-a9401ef67c74",
+      "name": "Buscar Cliente Assinatura",
+      "credentials": {
+        "postgres": {
+          "id": "2xQBC6Q6FS0TLYyI",
+          "name": "Postgres_Zero"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "messages-api",
+        "instanceName": "={{ $('Montar Mensagem Assinatura Criada').item.json.instancia }}",
+        "remoteJid": "={{ $('Montar Mensagem Assinatura Criada').item.json.telefone }}",
+        "messageText": "={{ $('Montar Mensagem Assinatura Criada').item.json.mensagem }}",
+        "options_message": {
+          "delay": "={{ Math.floor(Math.random() * 2001) + 3000 }}"
+        }
+      },
+      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "typeVersion": 1,
+      "position": [
+        944,
+        -288
+      ],
+      "id": "016bf39b-c2cc-4bfc-a2d6-d33390923ca5",
+      "name": "Enviar Confirmação1",
+      "credentials": {
+        "evolutionApi": {
+          "id": "U78J5QaTvwO0ynKA",
+          "name": "Evolution SARA_SaaS"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1584,
+        16
+      ],
+      "id": "d85d0b61-3775-4b2f-9390-6f2b15aeadd1",
+      "name": "Rebote Pagamento:"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE saas_clients \nSET first_payment_confirmed = TRUE \nWHERE asaas_customer_id = '{{ $('Parser Evento').item.json.customer_id }}'\n  AND first_payment_confirmed = FALSE;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1360,
+        -96
+      ],
+      "id": "54a2ac2b-f87e-45f5-bef7-d5481acf12c7",
+      "name": "Marcar Primeiro Pagamento",
+      "credentials": {
+        "postgres": {
+          "id": "2xQBC6Q6FS0TLYyI",
+          "name": "Postgres_Zero"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Parser Evento",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parser Evento": {
+      "main": [
+        [
+          {
+            "node": "Switch Evento",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch Evento": {
+      "main": [
+        [
+          {
+            "node": "Buscar Cliente Assinatura",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Confirmar Assinatura",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Rebote Pagamento:",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Buscar Cliente Atrasado",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Cancelar Cliente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Confirmar Assinatura": {
+      "main": [
+        [
+          {
+            "node": "Buscar Telefone",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Telefone": {
+      "main": [
+        [
+          {
+            "node": "Montar Mensagem Confirmação",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Montar Mensagem Confirmação": {
+      "main": [
+        [
+          {
+            "node": "Enviar Confirmação",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Cliente Atrasado": {
+      "main": [
+        [
+          {
+            "node": "Montar Mensagem Atraso",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Montar Mensagem Atraso": {
+      "main": [
+        [
+          {
+            "node": "Enviar Aviso Atraso",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cancelar Cliente": {
+      "main": [
+        [
+          {
+            "node": "Montar Mensagem Cancelamento",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Montar Mensagem Cancelamento": {
+      "main": [
+        [
+          {
+            "node": "Enviar Cancelamento",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Montar Mensagem Assinatura Criada": {
+      "main": [
+        [
+          {
+            "node": "Enviar Confirmação1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Cliente Assinatura": {
+      "main": [
+        [
+          {
+            "node": "Montar Mensagem Assinatura Criada",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar Confirmação": {
+      "main": [
+        [
+          {
+            "node": "Marcar Primeiro Pagamento",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "956e6270-7e9d-4c7e-8e86-a1fb3c71b6b8",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2162172325255cd265a19f3178f77abb9ab7ec9c7a1d869ba2d2925c11389625"
+  },
+  "id": "fFZncu7UKv29HBNYr0WXw",
+  "tags": []
+}
