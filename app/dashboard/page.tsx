@@ -5,6 +5,7 @@ import { useClient } from '@/hooks/useClient'
 import { useTransactions, useMonthlyStats } from '@/hooks/useTransactions'
 import { useReminders } from '@/hooks/useReminders'
 import { createClient } from '@/lib/supabase-browser'
+import WhatsAppSetupModal from '@/components/modals/WhatsAppSetupModal'
 import {
   ArrowUpRight,
   DollarSign,
@@ -21,7 +22,9 @@ import {
   EyeOff,
   ListTodo,
   AlertCircle,
-  ChevronRight
+  ChevronRight,
+  MessageCircle,
+  X
 } from 'lucide-react'
 import { format, isToday, isTomorrow, parseISO, isBefore, addHours } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -42,6 +45,53 @@ export default function DashboardPage() {
   const [hideValues, setHideValues] = useState(false)
   const [pendingLists, setPendingLists] = useState<PendingList[]>([])
   const [listsLoading, setListsLoading] = useState(true)
+  const [showWhatsAppModal, setShowWhatsAppModal] = useState(false)
+  const [showWhatsAppBanner, setShowWhatsAppBanner] = useState(true)
+
+  // Verifica se precisa mostrar modal do WhatsApp (primeiro acesso sem WhatsApp)
+  useEffect(() => {
+    // Debug logs
+    console.log('[Dashboard] clientLoading:', clientLoading)
+    console.log('[Dashboard] client:', client)
+    console.log('[Dashboard] client?.whatsapp_id:', client?.whatsapp_id)
+
+    // Mostra modal se:
+    // 1. Client não existe (novo usuário que ainda não conectou WhatsApp)
+    // 2. Client existe mas sem whatsapp_id
+    const needsSetup = !clientLoading && (!client || !client.whatsapp_id)
+    console.log('[Dashboard] needsSetup:', needsSetup)
+
+    if (needsSetup) {
+      // Verifica se já foi dispensado nesta sessão
+      const dismissed = sessionStorage.getItem('whatsapp_modal_dismissed')
+      console.log('[Dashboard] dismissed:', dismissed)
+
+      if (!dismissed) {
+        // Pequeno delay para garantir que a UI carregou
+        console.log('[Dashboard] Abrindo modal em 500ms...')
+        const timer = setTimeout(() => {
+          console.log('[Dashboard] Abrindo modal AGORA')
+          setShowWhatsAppModal(true)
+        }, 500)
+        return () => clearTimeout(timer)
+      } else {
+        console.log('[Dashboard] Modal foi dispensado, mostrando apenas banner')
+      }
+    } else if (!clientLoading && client?.whatsapp_id) {
+      // Se já tem WhatsApp configurado, limpa o dismissed para próxima vez
+      sessionStorage.removeItem('whatsapp_modal_dismissed')
+    }
+  }, [clientLoading, client])
+
+  const handleCloseWhatsAppModal = () => {
+    setShowWhatsAppModal(false)
+    sessionStorage.setItem('whatsapp_modal_dismissed', 'true')
+  }
+
+  const handleWhatsAppSuccess = () => {
+    // Atualiza os dados do cliente após conectar WhatsApp
+    window.location.reload()
+  }
 
   // Busca listas pendentes
   useEffect(() => {
@@ -130,8 +180,61 @@ export default function DashboardPage() {
     )
   }
 
+  // Verifica se deve mostrar banner de WhatsApp
+  // Mostra se: não tem client OU tem client sem whatsapp_id
+  const needsWhatsApp = !clientLoading && (!client || !client.whatsapp_id)
+
   return (
     <div className="animate-fade-in">
+      {/* Modal de Configuração WhatsApp */}
+      <WhatsAppSetupModal
+        isOpen={showWhatsAppModal}
+        onClose={handleCloseWhatsAppModal}
+        onSuccess={handleWhatsAppSuccess}
+      />
+
+      {/* Banner de WhatsApp não configurado */}
+      {needsWhatsApp && showWhatsAppBanner && (
+        <div className="mb-6 p-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl animate-fade-in">
+          <div className="flex items-start gap-4">
+            <div className="flex-shrink-0">
+              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                <MessageCircle className="w-6 h-6 text-green-600" />
+              </div>
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="text-base font-semibold text-green-900 mb-1">
+                Configure seu WhatsApp
+              </h3>
+              <p className="text-sm text-green-700 mb-3">
+                Conecte seu número para conversar com a SARA pelo WhatsApp e aproveitar todos os recursos!
+              </p>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setShowWhatsAppModal(true)}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors"
+                >
+                  <Phone className="w-4 h-4" />
+                  Conectar agora
+                </button>
+                <Link
+                  href="/dashboard/configurar-whatsapp"
+                  className="text-sm text-green-600 hover:text-green-700 font-medium"
+                >
+                  Saiba mais →
+                </Link>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowWhatsAppBanner(false)}
+              className="flex-shrink-0 p-1 text-green-400 hover:text-green-600 hover:bg-green-100 rounded transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Greeting - Adaptado para Mobile/Desktop */}
       <div className="mb-4 md:mb-8">
         <h1 className="text-2xl md:text-[28px] font-normal text-gray-900">
@@ -530,9 +633,12 @@ export default function DashboardPage() {
                 ) : (
                   <>
                     <p className="text-sm font-medium text-gray-900">Não vinculado</p>
-                    <Link href="/dashboard/configuracoes" className="text-xs text-amber-600 hover:underline">
+                    <button
+                      onClick={() => setShowWhatsAppModal(true)}
+                      className="text-xs text-amber-600 hover:text-amber-700 font-medium"
+                    >
                       Vincular agora →
-                    </Link>
+                    </button>
                   </>
                 )}
               </div>

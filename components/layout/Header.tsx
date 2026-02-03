@@ -72,11 +72,16 @@ export default function Header() {
           .from('saas_clients')
           .select('name, apelido')
           .eq('auth_user_id', user.id)
-          .single()
+          .maybeSingle()
 
         if (client) {
           setUserName(client.apelido || client.name || 'Usuário')
           setUserInitial((client.apelido || client.name || 'U').charAt(0).toUpperCase())
+        } else {
+          // Usuário novo sem saas_clients ainda
+          const name = user.user_metadata?.name || user.email?.split('@')[0] || 'Usuário'
+          setUserName(name)
+          setUserInitial(name.charAt(0).toUpperCase())
         }
       }
     }
