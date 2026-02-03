@@ -1,16 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase-browser'
 import { Eye, EyeOff, Loader2, Check } from 'lucide-react'
 
 export default function CadastroPage() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const clientIdParam = searchParams.get('client_id')
-
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -19,61 +14,6 @@ export default function CadastroPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
-  const [clientData, setClientData] = useState<any>(null)
-
-  // Buscar dados do cliente se client_id estiver presente
-  useEffect(() => {
-    console.log('[Cadastro] useEffect executado!')
-    console.log('[Cadastro] client_id da URL:', clientIdParam)
-
-    const fetchClientData = async () => {
-      if (!clientIdParam) {
-        console.warn('[Cadastro] client_id não encontrado na URL')
-        return
-      }
-
-      console.log('[Cadastro] Iniciando busca do cliente...')
-
-      try {
-        const supabase = createClient()
-        console.log('[Cadastro] Supabase client criado')
-
-        const { data: client, error: clientError } = await supabase
-          .from('saas_clients')
-          .select('id, name, email, whatsapp_id')
-          .eq('id', clientIdParam)
-          .is('auth_user_id', null)
-          .single()
-
-        console.log('[Cadastro] Resposta da query:', { client, clientError })
-
-        if (clientError) {
-          console.error('[Cadastro] Erro ao buscar cliente:', clientError)
-          return
-        }
-
-        if (client) {
-          console.log('[Cadastro] ✅ Cliente encontrado via client_id:', client)
-          setClientData(client)
-          // Pré-preencher dados se disponíveis
-          if (client.name) {
-            console.log('[Cadastro] Preenchendo nome:', client.name)
-            setName(client.name)
-          }
-          if (client.email) {
-            console.log('[Cadastro] Preenchendo email:', client.email)
-            setEmail(client.email)
-          }
-        } else {
-          console.warn('[Cadastro] Cliente não encontrado ou já vinculado:', clientIdParam)
-        }
-      } catch (err) {
-        console.error('[Cadastro] Erro ao buscar dados do cliente:', err)
-      }
-    }
-
-    fetchClientData()
-  }, [clientIdParam])
 
   // Validação de senha
   const passwordChecks = {
@@ -104,7 +44,7 @@ export default function CadastroPage() {
 
     try {
       const supabase = createClient()
-      
+
       const { data, error: authError } = await supabase.auth.signUp({
         email,
         password,
@@ -127,34 +67,6 @@ export default function CadastroPage() {
       }
 
       if (data.user) {
-        // Se temos um client_id do WhatsApp, vincular a conta
-        if (clientIdParam && clientData) {
-          console.log('[Cadastro] Vinculando conta ao cliente WhatsApp:', {
-            auth_user_id: data.user.id,
-            client_id: clientIdParam,
-            whatsapp_id: clientData.whatsapp_id
-          })
-
-          const { error: updateError } = await supabase
-            .from('saas_clients')
-            .update({
-              auth_user_id: data.user.id,
-              email: email, // Atualizar email com o usado no cadastro
-              name: name    // Atualizar nome com o usado no cadastro
-            })
-            .eq('id', clientIdParam)
-            .is('auth_user_id', null) // Garantir que ainda não foi vinculado
-
-          if (updateError) {
-            console.error('[Cadastro] Erro ao vincular cliente:', updateError)
-            // Não bloquear o cadastro, mas avisar
-            setError('Conta criada, mas houve erro na vinculação com WhatsApp. Entre em contato com o suporte.')
-            return
-          }
-
-          console.log('[Cadastro] ✅ Conta vinculada com sucesso ao WhatsApp!')
-        }
-
         setSuccess(true)
       }
     } catch (err) {
@@ -173,13 +85,13 @@ export default function CadastroPage() {
         </div>
         <h1 className="text-2xl font-bold text-sara-text mb-2">Quase lá!</h1>
         <p className="text-sara-muted mb-6">
-          Enviamos um link de confirmação para <strong>{email}</strong>. 
+          Enviamos um link de confirmação para <strong>{email}</strong>.
           Clique no link para ativar sua conta.
         </p>
         <p className="text-sm text-sara-light">
           Não recebeu o email? Verifique sua pasta de spam ou{' '}
-          <button 
-            onClick={() => setSuccess(false)} 
+          <button
+            onClick={() => setSuccess(false)}
             className="text-primary-500 hover:text-primary-600 font-medium"
           >
             tente novamente
@@ -201,28 +113,9 @@ export default function CadastroPage() {
       <div className="text-center mb-8">
         <h1 className="text-2xl font-bold text-sara-text mb-2">Criar sua conta</h1>
         <p className="text-sara-muted">
-          {clientIdParam ? 'Complete seu cadastro para acessar o portal' : 'Comece a usar a SARA gratuitamente'}
+          Comece a usar a SARA gratuitamente
         </p>
       </div>
-
-      {/* Banner quando vem do WhatsApp */}
-      {clientIdParam && clientData && (
-        <div className="mb-5 p-4 bg-green-50 border border-green-200 rounded-lg">
-          <div className="flex items-start gap-3">
-            <div className="flex-shrink-0 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-              <Check className="w-5 h-5 text-green-600" />
-            </div>
-            <div className="flex-1">
-              <h3 className="text-sm font-semibold text-green-900 mb-1">
-                Vinculado ao WhatsApp
-              </h3>
-              <p className="text-xs text-green-700">
-                Seus dados já estão pré-preenchidos. Complete o cadastro para acessar o portal da SARA!
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
 
       <form onSubmit={handleSignUp} className="space-y-5">
         {error && (
@@ -280,7 +173,7 @@ export default function CadastroPage() {
               {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
             </button>
           </div>
-          
+
           {/* Password Requirements */}
           {password && (
             <div className="mt-3 space-y-1.5">
@@ -330,11 +223,11 @@ export default function CadastroPage() {
         </div>
 
         <div className="flex items-start gap-2">
-          <input 
-            type="checkbox" 
+          <input
+            type="checkbox"
             id="terms"
             required
-            className="w-4 h-4 mt-0.5 rounded border-sara-border text-primary-500 focus:ring-primary-500" 
+            className="w-4 h-4 mt-0.5 rounded border-sara-border text-primary-500 focus:ring-primary-500"
           />
           <label htmlFor="terms" className="text-sm text-sara-muted">
             Concordo com os{' '}

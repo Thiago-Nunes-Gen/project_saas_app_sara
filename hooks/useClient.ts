@@ -31,8 +31,16 @@ export function useClient() {
           .single()
 
         if (clientError) {
-          setError('Erro ao carregar dados do cliente')
-          console.error(clientError)
+          // PGRST116 = no rows found - é um estado válido (usuário novo sem WhatsApp)
+          if (clientError.code === 'PGRST116') {
+            // Usuário autenticado mas sem saas_clients ainda
+            // Isso é normal no novo fluxo - precisa configurar WhatsApp
+            setClient(null)
+          } else {
+            // Outro erro real
+            setError('Erro ao carregar dados do cliente')
+            console.error(clientError)
+          }
         } else {
           setClient(data)
         }
