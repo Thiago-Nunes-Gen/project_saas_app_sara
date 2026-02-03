@@ -50,15 +50,36 @@ export default function DashboardPage() {
 
   // Verifica se precisa mostrar modal do WhatsApp (primeiro acesso sem WhatsApp)
   useEffect(() => {
+    // Debug logs
+    console.log('[Dashboard] clientLoading:', clientLoading)
+    console.log('[Dashboard] client:', client)
+    console.log('[Dashboard] client?.whatsapp_id:', client?.whatsapp_id)
+
     // Mostra modal se:
     // 1. Client não existe (novo usuário que ainda não conectou WhatsApp)
     // 2. Client existe mas sem whatsapp_id
-    if (!clientLoading && (!client || !client.whatsapp_id)) {
+    const needsSetup = !clientLoading && (!client || !client.whatsapp_id)
+    console.log('[Dashboard] needsSetup:', needsSetup)
+
+    if (needsSetup) {
       // Verifica se já foi dispensado nesta sessão
       const dismissed = sessionStorage.getItem('whatsapp_modal_dismissed')
+      console.log('[Dashboard] dismissed:', dismissed)
+
       if (!dismissed) {
-        setShowWhatsAppModal(true)
+        // Pequeno delay para garantir que a UI carregou
+        console.log('[Dashboard] Abrindo modal em 500ms...')
+        const timer = setTimeout(() => {
+          console.log('[Dashboard] Abrindo modal AGORA')
+          setShowWhatsAppModal(true)
+        }, 500)
+        return () => clearTimeout(timer)
+      } else {
+        console.log('[Dashboard] Modal foi dispensado, mostrando apenas banner')
       }
+    } else if (!clientLoading && client?.whatsapp_id) {
+      // Se já tem WhatsApp configurado, limpa o dismissed para próxima vez
+      sessionStorage.removeItem('whatsapp_modal_dismissed')
     }
   }, [clientLoading, client])
 
