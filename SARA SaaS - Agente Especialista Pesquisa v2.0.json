@@ -1,0 +1,317 @@
+{
+  "name": "SARA SaaS - Agente Especialista Pesquisa v2.0",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "query"
+            },
+            {
+              "name": "localizacao"
+            },
+            {
+              "name": "whatsapp_id"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -560,
+        640
+      ],
+      "id": "d33ef8f8-c978-48ab-b978-519b872e27e8",
+      "name": "Trigger Pesquisa"
+    },
+    {
+      "parameters": {
+        "content": "## 🔍 SARA SaaS - Agente Especialista Pesquisa v2.0\n\n### FLUXO:\n1. Recebe query + localização\n2. Detecta tipo de pesquisa automaticamente\n3. Monta prompt especializado\n4. Chama OpenAI Search\n5. Formata resposta para WhatsApp\n6. Retorna mensagem PRONTA\n\n### ENTRADA:\n- query: Pergunta do usuário\n- localizacao: Cidade/Estado (default: Araraquara, SP)\n\n### SAÍDA:\n```json\n{\n  \"mensagem_formatada\": \"Texto pronto para WhatsApp\",\n  \"tipo\": \"precos|locais|clima|cotacoes|geral\",\n  \"sucesso\": true\n}\n```\n\n**SARA só precisa repassar a mensagem_formatada!**",
+        "height": 640,
+        "width": 560,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -576,
+        -80
+      ],
+      "typeVersion": 1,
+      "id": "dbe61ae0-3948-4eeb-8bf8-8bfc9f1f3651",
+      "name": "Documentacao"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================\n// DETECTOR DE TIPO + MONTADOR DE PROMPT v3.0\n// SIMPLIFICADO: Pede só dados, formatação vai pro final\n// ============================================\n\nconst triggerData = $('Trigger Pesquisa').first().json;\nconst query = triggerData.query || '';\nconst localizacao = triggerData.localizacao || 'Araraquara, SP';\nconst msg = query.toLowerCase();\n\n// Detecta tipo de pesquisa\nlet tipo = 'geral';\nlet promptEspecifico = '';\n\n// PREÇOS\nif (/quanto\\s*custa|pre[çc]o|mais\\s*barato|onde\\s*comprar|comparar?\\s*pre[çc]o|valor\\s*(de|do|da)/.test(msg)) {\n  tipo = 'precos';\n  promptEspecifico = `Busque preços ATUAIS do produto/serviço em lojas e sites brasileiros.\nCompare entre 3-5 opções.\n\nRetorne em formato estruturado:\nPRODUTO: [nome completo do produto]\nMELHOR_PRECO: [valor] na [nome da loja] [link se tiver]\nOUTRAS_OPCOES:\n- [loja 1]: [preço]\n- [loja 2]: [preço]  \n- [loja 3]: [preço]\nDICA: [dica de economia ou observação relevante]`;\n}\n\n// LOCAIS (restaurantes, bares, sorveterias, etc)\nelse if (/restaurante|onde\\s*(jantar|almo[çc]ar|comer)|lugar\\s*para|bar\\s|cafeteria|farm[aá]cia|mercado|hotel|indica[çc][aã]o|sorveteri|pizzari|padari|lanchonete|hamburgue|sushi|comida|estabelecimento/i.test(msg)) {\n  tipo = 'locais';\n  promptEspecifico = `Busque os melhores estabelecimentos em ${localizacao}.\nListe até 5 opções com informações completas.\n\nPara cada local retorne:\nNOME: [nome do estabelecimento]\nNOTA: [avaliação] ([quantidade] avaliações)\nESPECIALIDADE: [tipo de comida/serviço]\nPRECO: [faixa de preço: $ a $$$]\nENDERECO: [endereço completo]\nTELEFONE: [telefone com DDD]\nHORARIO: [horário de funcionamento]\nDESTAQUE: [por que vale a pena ir]`;\n}\n\n// CLIMA\nelse if (/clima|temperatura|previs[aã]o|vai\\s*chover|tempo\\s*(em|hoje|amanh)/.test(msg)) {\n  tipo = 'clima';\n  const cidadeMatch = msg.match(/(?:em|de|para)\\s+([a-záéíóúàâêôãõç\\s]+)/i);\n  const cidade = cidadeMatch ? cidadeMatch[1].trim() : localizacao;\n  \n  promptEspecifico = `Busque clima ATUAL e previsão para ${cidade}.\n\nRetorne em formato estruturado:\nCIDADE: ${cidade}\nAGORA:\n- Temperatura: [X]°C\n- Sensacao: [Y]°C\n- Condicao: [sol/nublado/chuva/etc]\n- Umidade: [X]%\n- Vento: [X] km/h\n\nPROXIMAS_HORAS:\n- [HH:00]: [temp]°C | [condição] | [chance chuva]\n- [HH:00]: [temp]°C | [condição] | [chance chuva]\n\nPROXIMOS_DIAS:\n- [Dia da semana]: [min]° a [max]° | [condição]\n- [Dia da semana]: [min]° a [max]° | [condição]\n\nRECOMENDACAO: [dica prática baseada no clima]\n\nPara condições use: sol, parcialmente nublado, nublado, chuva, tempestade`;\n}\n\n// COTAÇÕES\nelse if (/dolar|d[oó]lar|euro|bitcoin|btc|ethereum|ibovespa|cota[çc][aã]o|c[aâ]mbio/.test(msg)) {\n  tipo = 'cotacoes';\n  promptEspecifico = `Busque cotações ATUAIS dos ativos solicitados.\n\nPara cada ativo retorne:\nATIVO: [nome do ativo]\nVALOR: R$ [valor atual]\nVARIACAO_DIA: [+/-][X]%\nVARIACAO_SEMANA: [+/-][X]%\nHORARIO: [horário da cotação]\nTENDENCIA: alta/baixa/estável\n\nANALISE: [breve contexto sobre o movimento do mercado]`;\n}\n\n// GERAL\nelse {\n  tipo = 'geral';\n  promptEspecifico = `Pesquise sobre: ${query}\n\nRetorne em formato estruturado:\nRESPOSTA: [resposta direta e clara]\n\nDETALHES:\n- [ponto importante 1]\n- [ponto importante 2]\n- [ponto importante 3]\n\nFONTE: [fonte da informação]`;\n}\n\nconst systemPrompt = `Você é um assistente de pesquisa especializado.\n\nCONSULTA: ${query}\nLOCALIZAÇÃO: ${localizacao}\n\nINSTRUÇÕES:\n${promptEspecifico}\n\nREGRAS CRÍTICAS:\n- Retorne APENAS os dados estruturados\n- NÃO use emojis, markdown ou formatação visual\n- Seja PRECISO com dados atuais\n- Use o formato estruturado exato que foi pedido\n- Responda em português do Brasil\n- A formatação visual será aplicada depois`;\n\nreturn {\n  query: query,\n  localizacao: localizacao,\n  tipo: tipo,\n  system_prompt: systemPrompt\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        64,
+        544
+      ],
+      "id": "526faa0e-6b1b-4637-a4fb-49db874b6ace",
+      "name": "Detecta Tipo e Monta Prompt"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini-search-preview-2025-03-11",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI-SEARCH-PREVIEW-2025-03-11"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "={{ $json.system_prompt }}",
+              "role": "system"
+            },
+            {
+              "content": "={{ $json.query }}"
+            }
+          ]
+        },
+        "options": {
+          "maxTokens": 1500
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        272,
+        544
+      ],
+      "id": "081a26c2-75c4-45d3-8253-6c8d4da875dd",
+      "name": "OpenAI Search",
+      "credentials": {
+        "openAiApi": {
+          "id": "rd7lfGY1RwqFs6Kg",
+          "name": "OpenAi Gênesis"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================\n// FORMATADOR PARA WHATSAPP v3.2 - SIMPLIFICADO\n// NÃO QUEBRA o conteúdo! Só adiciona cabeçalho e rodapé\n// ============================================\n\n// ✅ BUSCAR DO NODE CORRETO: OpenAI Search\nconst openaiResponse = $('OpenAI Search').first().json;\nconst anterior = $('Detecta Tipo e Monta Prompt').first().json;\nconst tipo = anterior.tipo;\n\n// Extrai o conteúdo da resposta da OpenAI\nlet conteudo = '';\nif (openaiResponse.message?.content) {\n  conteudo = openaiResponse.message.content;\n} else if (openaiResponse.text) {\n  conteudo = openaiResponse.text;\n} else if (openaiResponse.content) {\n  conteudo = openaiResponse.content;\n} else if (typeof openaiResponse === 'string') {\n  conteudo = openaiResponse;\n} else {\n  conteudo = JSON.stringify(openaiResponse, null, 2);\n}\n\n// Limpa APENAS links markdown e excesso de linhas\nconteudo = conteudo\n  .replace(/```json|```/g, '')\n  .replace(/\\[([^\\]]+)\\]\\([^)]+\\)/g, '$1') // Remove links [texto](url) → texto\n  .replace(/\\n{4,}/g, '\\n\\n') // Max 2 quebras\n  .trim();\n\n// ============================================\n// APLICAR TEMPLATES SIMPLES\n// Só cabeçalho + conteúdo + rodapé\n// SEM PARSERS! SEM QUEBRAR!\n// ============================================\n\nlet mensagem_formatada = '';\nlet icone = '🔍';\nlet titulo = 'RESULTADO';\nlet rodape = '💬 _Precisa de mais detalhes? É só perguntar!_';\n\nswitch(tipo) {\n  case 'precos':\n    icone = '💰';\n    titulo = 'COMPARATIVO DE PREÇOS';\n    rodape = '🕐 _Pesquisado agora_';\n    break;\n    \n  case 'locais':\n    icone = '📍';\n    titulo = 'MELHORES OPÇÕES';\n    rodape = '💡 _Sempre confirme disponibilidade antes de ir!_';\n    break;\n    \n  case 'clima':\n    icone = '🌤️';\n    titulo = 'PREVISÃO DO TEMPO';\n    rodape = '🕐 _Atualizado agora_';\n    break;\n    \n  case 'cotacoes':\n    icone = '📈';\n    titulo = 'COTAÇÕES';\n    rodape = '💹 _Valores em tempo real_';\n    break;\n    \n  default:\n    icone = '🔍';\n    titulo = 'RESULTADO DA PESQUISA';\n    rodape = '💬 _Precisa de mais detalhes? É só perguntar!_';\n}\n\n// Monta mensagem: cabeçalho + conteúdo TODO + rodapé\nmensagem_formatada = `${icone} *${titulo}*\n━━━━━━━━━━━━━━━━━━━━━\n\n${conteudo}\n\n━━━━━━━━━━━━━━━━━━━━━\n${rodape}`;\n\nreturn {\n  mensagem_formatada: mensagem_formatada,\n  tipo: tipo,\n  sucesso: true,\n  conteudo_original: conteudo\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        816,
+        544
+      ],
+      "id": "f1f60917-ebb9-4b06-861e-19b5a093463e",
+      "name": "Formata para WhatsApp"
+    },
+    {
+      "parameters": {
+        "content": "## 💡 Como usar\n\n**No agente SARA, chame este workflow:**\n```\nagente_especialista_pesquisa(\n  query: \"mensagem do usuário\",\n  localizacao: \"Araraquara, SP\"\n)\n```\n\n**Retorno:**\n```json\n{\n  \"mensagem_formatada\": \"Texto pronto!\",\n  \"tipo\": \"precos\",\n  \"sucesso\": true\n}\n```\n\n**SARA só precisa fazer:**\n`resultado.mensagem_formatada`\n\nNada mais! A mensagem já vem formatada.",
+        "height": 504,
+        "width": 540,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1072,
+        368
+      ],
+      "typeVersion": 1,
+      "id": "c260cc6f-6cbd-473d-9eb8-48683171ea4f",
+      "name": "Como Usar"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT verificar_limite_pesquisa('{{ $json.whatsapp_id }}') as resultado;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -368,
+        640
+      ],
+      "id": "053d22e7-6ee7-49ba-a257-4407069dac07",
+      "name": "Verificar Limite Pesquisa",
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "2xQBC6Q6FS0TLYyI",
+          "name": "Postgres_Zero"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "f548b670-c4aa-4ce6-b10f-311cb3e1ad32",
+              "leftValue": "={{ $json.resultado.permitido }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -192,
+        640
+      ],
+      "id": "09908d25-7d33-4746-80ea-3e78521de47f",
+      "name": "Pode Pesquisar?"
+    },
+    {
+      "parameters": {
+        "jsCode": "const limite = $('Verificar Limite Pesquisa').first().json.resultado;\nconst triggerData = $('Trigger Pesquisa').first().json;\n\nreturn [{\n  json: {\n    whatsapp_id: triggerData.whatsapp_id,\n    mensagem_formatada: `🚫 *LIMITE DE PESQUISAS ATINGIDO!*\\n\\n` +\n                       `Você atingiu o limite de ${limite.limite} pesquisas web/mês.\\n\\n` +\n                       `Para continuar pesquisando:\\n` +\n                       `Digite *#planos* para fazer upgrade! 🚀`,\n    tipo: 'erro_limite',\n    sucesso: false\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        64,
+        752
+      ],
+      "id": "a13059bf-2b4e-4322-a9f7-53ba219c87f9",
+      "name": "Erro Limite Pesquisa"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT incrementar_pesquisa('{{ $('Trigger Pesquisa').first().json.whatsapp_id }}') as resultado;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        608,
+        544
+      ],
+      "id": "1a88685f-925e-4291-bf94-5c7623b5ca4c",
+      "name": "Incrementar Contador Pesquisa",
+      "credentials": {
+        "postgres": {
+          "id": "2xQBC6Q6FS0TLYyI",
+          "name": "Postgres_Zero"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Trigger Pesquisa": [
+      {
+        "json": {
+          "query": "previsão do tempo para hoje",
+          "localizacao": "Araraquara, SP",
+          "whatsapp_id": "5516997515087"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Trigger Pesquisa": {
+      "main": [
+        [
+          {
+            "node": "Verificar Limite Pesquisa",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Detecta Tipo e Monta Prompt": {
+      "main": [
+        [
+          {
+            "node": "OpenAI Search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Search": {
+      "main": [
+        [
+          {
+            "node": "Incrementar Contador Pesquisa",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verificar Limite Pesquisa": {
+      "main": [
+        [
+          {
+            "node": "Pode Pesquisar?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pode Pesquisar?": {
+      "main": [
+        [
+          {
+            "node": "Detecta Tipo e Monta Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Erro Limite Pesquisa",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Incrementar Contador Pesquisa": {
+      "main": [
+        [
+          {
+            "node": "Formata para WhatsApp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "22a3cb6e-a57e-46f9-b7a7-b69fe5940ab4",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2162172325255cd265a19f3178f77abb9ab7ec9c7a1d869ba2d2925c11389625"
+  },
+  "id": "FHY1oY-4L1wHKc-DJ9mX7",
+  "tags": []
+}
