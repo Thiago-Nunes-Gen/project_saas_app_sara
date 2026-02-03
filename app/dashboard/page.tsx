@@ -626,7 +626,7 @@ export default function DashboardPage() {
                 {client?.whatsapp_id ? (
                   <>
                     <p className="text-sm font-medium text-gray-900">
-                      +{client.whatsapp_id.replace('@s.whatsapp.net', '').replace(/(\d{2})(\d{2})(\d{5})(\d{4})/, '$1 $2 $3-$4')}
+                      +{client.whatsapp_id.replace(/(\d{2})(\d{2})(\d{5})(\d{4})/, '$1 $2 $3-$4')}
                     </p>
                     <p className="text-xs text-green-600">● Conectado</p>
                   </>

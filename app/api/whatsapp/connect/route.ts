@@ -62,8 +62,9 @@ export async function POST(request: Request) {
       )
     }
 
-    // Formata o whatsapp_id no padrão do WhatsApp
-    const whatsapp_id = `${cleanNumber}@s.whatsapp.net`
+    // Guarda apenas o número limpo (sem @s.whatsapp.net)
+    // O sufixo @s.whatsapp.net é adicionado apenas quando necessário para API do WhatsApp
+    const whatsapp_id = cleanNumber
 
     // Verifica se já existe um cliente com este auth_user_id
     const { data: existingClient, error: checkError } = await supabase

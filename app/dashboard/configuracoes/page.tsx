@@ -226,7 +226,7 @@ export default function ConfiguracoesPage() {
                     <div>
                       <p className="font-medium text-green-900">WhatsApp conectado</p>
                       <p className="text-sm text-green-700">
-                        +{client.whatsapp_id.replace('@s.whatsapp.net', '').replace(/(\d{2})(\d{2})(\d{5})(\d{4})/, '$1 $2 $3-$4')}
+                        +{client.whatsapp_id.replace(/(\d{2})(\d{2})(\d{5})(\d{4})/, '$1 $2 $3-$4')}
                       </p>
                     </div>
                   </div>
