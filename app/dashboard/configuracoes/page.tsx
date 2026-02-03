@@ -20,11 +20,28 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 
+interface PlanLimits {
+  max_reminders: number
+  max_lists: number
+  max_transactions_month: number
+  max_documents: number
+  max_web_searches_month: number
+}
+
+const DEFAULT_FREE_LIMITS: PlanLimits = {
+  max_reminders: 5,
+  max_lists: 2,
+  max_transactions_month: 20,
+  max_documents: 5,
+  max_web_searches_month: 3
+}
+
 export default function ConfiguracoesPage() {
   const { client, loading: clientLoading, refetch } = useClient()
   const [activeTab, setActiveTab] = useState('perfil')
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
+  const [planLimits, setPlanLimits] = useState<PlanLimits>(DEFAULT_FREE_LIMITS)
 
   // Profile form
   const [name, setName] = useState('')
@@ -44,6 +61,33 @@ export default function ConfiguracoesPage() {
       setBotName(client.bot_name || 'SARA')
     }
   }, [client])
+
+  // Busca os limites do plano atual
+  useEffect(() => {
+    async function fetchPlanLimits() {
+      if (!client?.plan) {
+        setPlanLimits(DEFAULT_FREE_LIMITS)
+        return
+      }
+
+      const supabase = createClient()
+      const { data, error } = await supabase
+        .from('saas_plans')
+        .select('max_reminders, max_lists, max_transactions_month, max_documents, max_web_searches_month')
+        .eq('id', client.plan)
+        .single()
+
+      if (!error && data) {
+        setPlanLimits(data)
+      } else {
+        setPlanLimits(DEFAULT_FREE_LIMITS)
+      }
+    }
+
+    if (!clientLoading) {
+      fetchPlanLimits()
+    }
+  }, [client?.plan, clientLoading])
 
   const saveProfile = async () => {
     setSaving(true)
@@ -369,22 +413,22 @@ export default function ConfiguracoesPage() {
                 <UsageBar
                   label="Lembretes"
                   used={client?.reminders_count || 0}
-                  max={client?.max_reminders || 50}
+                  max={planLimits.max_reminders}
                 />
                 <UsageBar
                   label="Transações/mês"
                   used={client?.transactions_month || 0}
-                  max={client?.max_transactions_month || 200}
+                  max={planLimits.max_transactions_month}
                 />
                 <UsageBar
                   label="Documentos"
                   used={client?.documents_count || 0}
-                  max={client?.max_documents || 50}
+                  max={planLimits.max_documents}
                 />
                 <UsageBar
                   label="Pesquisas IA/mês"
                   used={client?.web_searches_month || 0}
-                  max={client?.max_web_searches_month || 10}
+                  max={planLimits.max_web_searches_month}
                 />
               </div>
             </div>

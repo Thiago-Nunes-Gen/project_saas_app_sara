@@ -37,6 +37,23 @@ interface PendingList {
   updated_at: string
 }
 
+interface PlanLimits {
+  max_reminders: number
+  max_lists: number
+  max_transactions_month: number
+  max_documents: number
+  max_web_searches_month: number
+}
+
+// Limites padrão do plano FREE
+const DEFAULT_FREE_LIMITS: PlanLimits = {
+  max_reminders: 5,
+  max_lists: 2,
+  max_transactions_month: 20,
+  max_documents: 5,
+  max_web_searches_month: 3
+}
+
 export default function DashboardPage() {
   const { client, loading: clientLoading } = useClient()
   const { stats, loading: statsLoading } = useMonthlyStats()
@@ -47,6 +64,35 @@ export default function DashboardPage() {
   const [listsLoading, setListsLoading] = useState(true)
   const [showWhatsAppModal, setShowWhatsAppModal] = useState(false)
   const [showWhatsAppBanner, setShowWhatsAppBanner] = useState(true)
+  const [planLimits, setPlanLimits] = useState<PlanLimits>(DEFAULT_FREE_LIMITS)
+
+  // Busca os limites do plano atual
+  useEffect(() => {
+    async function fetchPlanLimits() {
+      if (!client?.plan) {
+        setPlanLimits(DEFAULT_FREE_LIMITS)
+        return
+      }
+
+      const supabase = createClient()
+      const { data, error } = await supabase
+        .from('saas_plans')
+        .select('max_reminders, max_lists, max_transactions_month, max_documents, max_web_searches_month')
+        .eq('id', client.plan)
+        .single()
+
+      if (!error && data) {
+        setPlanLimits(data)
+      } else {
+        // Fallback para limites FREE se não encontrar o plano
+        setPlanLimits(DEFAULT_FREE_LIMITS)
+      }
+    }
+
+    if (!clientLoading) {
+      fetchPlanLimits()
+    }
+  }, [client?.plan, clientLoading])
 
   // Verifica se precisa mostrar modal do WhatsApp (primeiro acesso sem WhatsApp)
   useEffect(() => {
@@ -454,25 +500,25 @@ export default function DashboardPage() {
               <div className="p-4 bg-gray-50 rounded-xl">
                 <p className="text-xs text-gray-500 mb-1">Lembretes</p>
                 <p className="text-lg font-semibold text-gray-900">
-                  {client?.reminders_count || 0} / {client?.max_reminders || 50}
+                  {client?.reminders_count || 0} / {planLimits.max_reminders}
                 </p>
               </div>
               <div className="p-4 bg-gray-50 rounded-xl">
                 <p className="text-xs text-gray-500 mb-1">Transações/mês</p>
                 <p className="text-lg font-semibold text-gray-900">
-                  {client?.transactions_month || 0} / {client?.max_transactions_month || 200}
+                  {client?.transactions_month || 0} / {planLimits.max_transactions_month}
                 </p>
               </div>
               <div className="p-4 bg-gray-50 rounded-xl">
                 <p className="text-xs text-gray-500 mb-1">Documentos</p>
                 <p className="text-lg font-semibold text-gray-900">
-                  {client?.documents_count || 0} / {client?.max_documents || 50}
+                  {client?.documents_count || 0} / {planLimits.max_documents}
                 </p>
               </div>
               <div className="p-4 bg-gray-50 rounded-xl">
                 <p className="text-xs text-gray-500 mb-1">Pesquisas IA</p>
                 <p className="text-lg font-semibold text-gray-900">
-                  {client?.web_searches_month || 0} / {client?.max_web_searches_month || 10}
+                  {client?.web_searches_month || 0} / {planLimits.max_web_searches_month}
                 </p>
               </div>
             </div>
