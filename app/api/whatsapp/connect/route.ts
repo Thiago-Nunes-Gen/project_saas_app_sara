@@ -70,9 +70,9 @@ export async function POST(request: Request) {
       .from('saas_clients')
       .select('id, whatsapp_id')
       .eq('auth_user_id', user.id)
-      .single()
+      .maybeSingle()
 
-    if (checkError && checkError.code !== 'PGRST116') {
+    if (checkError) {
       console.error('Erro ao verificar cliente existente:', checkError)
       return NextResponse.json(
         { error: 'Erro ao verificar conta' },
@@ -81,12 +81,12 @@ export async function POST(request: Request) {
     }
 
     // Verifica se este número de WhatsApp já está em uso por outro usuário
-    const { data: duplicateWhatsApp, error: duplicateError } = await supabase
+    const { data: duplicateWhatsApp } = await supabase
       .from('saas_clients')
       .select('id')
       .eq('whatsapp_id', whatsapp_id)
       .neq('auth_user_id', user.id)
-      .single()
+      .maybeSingle()
 
     if (duplicateWhatsApp) {
       return NextResponse.json(
@@ -94,6 +94,10 @@ export async function POST(request: Request) {
         { status: 409 }
       )
     }
+
+    console.log('[API whatsapp/connect] existingClient:', existingClient)
+    console.log('[API whatsapp/connect] user.id:', user.id)
+    console.log('[API whatsapp/connect] whatsapp_id:', whatsapp_id)
 
     if (existingClient) {
       // Atualiza o cliente existente com o WhatsApp
@@ -122,48 +126,34 @@ export async function POST(request: Request) {
       })
     } else {
       // Cria novo cliente
+      console.log('[API whatsapp/connect] Criando novo cliente...')
+
+      const insertData = {
+        auth_user_id: user.id,
+        whatsapp_id: whatsapp_id,
+        email: user.email,
+        name: user.user_metadata?.name || user.user_metadata?.full_name || 'Usuário',
+        status: 'active',
+        plan: 'free'
+      }
+
+      console.log('[API whatsapp/connect] Insert data:', insertData)
+
       const { data: newClient, error: insertError } = await supabase
         .from('saas_clients')
-        .insert({
-          auth_user_id: user.id,
-          whatsapp_id: whatsapp_id,
-          email: user.email,
-          name: user.user_metadata?.name || user.user_metadata?.full_name || 'Usuário',
-          status: 'active',
-          plan: 'free',
-          // Limites padrão do plano free
-          max_reminders: 50,
-          max_lists: 10,
-          max_list_items: 50,
-          max_transactions_month: 200,
-          max_rag_queries_month: 50,
-          max_documents: 50,
-          max_web_searches_month: 10,
-          // Contadores zerados
-          reminders_count: 0,
-          lists_count: 0,
-          transactions_month: 0,
-          rag_queries_month: 0,
-          documents_count: 0,
-          web_searches_month: 0,
-          // Configurações padrão
-          timezone: 'America/Sao_Paulo',
-          bot_name: 'SARA',
-          bot_personality: 'amigável e prestativa',
-          morning_summary_enabled: true,
-          onboarding_completed: true,
-          onboarding_step: 'completed'
-        })
+        .insert(insertData)
         .select('id')
         .single()
 
       if (insertError) {
-        console.error('Erro ao criar cliente:', insertError)
+        console.error('[API whatsapp/connect] Erro ao criar cliente:', insertError)
         return NextResponse.json(
-          { error: 'Erro ao criar conta' },
+          { error: `Erro ao criar conta: ${insertError.message}` },
           { status: 500 }
         )
       }
+
+      console.log('[API whatsapp/connect] Cliente criado:', newClient)
 
       return NextResponse.json({
         success: true,
