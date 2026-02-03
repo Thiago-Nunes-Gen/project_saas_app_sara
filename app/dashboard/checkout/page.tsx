@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useClient } from '@/hooks/useClient'
@@ -33,7 +33,7 @@ const planIcons: Record<string, any> = {
   enterprise: Building2
 }
 
-export default function CheckoutPage() {
+function CheckoutContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const planId = searchParams.get('plano') || 'starter'
@@ -463,5 +463,17 @@ export default function CheckoutPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function CheckoutPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="spinner w-8 h-8" />
+      </div>
+    }>
+      <CheckoutContent />
+    </Suspense>
   )
 }
