@@ -102,7 +102,8 @@ export default function CadastroPage() {
             max_transactions_month: planLimits.max_transactions_month,
             max_rag_queries_month: planLimits.max_rag_queries_month,
             max_documents: planLimits.max_documents,
-            max_web_searches_month: planLimits.max_web_searches_month
+            max_web_searches_month: planLimits.max_web_searches_month,
+            lgpd_accepted_at: new Date().toISOString()
           })
 
         if (clientError) {
