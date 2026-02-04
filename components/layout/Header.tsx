@@ -17,7 +17,8 @@ import {
   ListTodo,
   StickyNote,
   Star,
-  Zap
+  Zap,
+  MessageCircle
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -288,6 +289,18 @@ export default function Header() {
           <Zap className="w-4 h-4" />
           Upgrade
         </Link>
+
+        {/* WhatsApp SARA Button */}
+        <a
+          href="https://wa.me/5516992706593?text=Ol%C3%A1%20SARA!"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="hidden md:flex items-center gap-1.5 px-3 py-1.5 bg-green-500 text-white text-sm font-medium rounded-lg hover:bg-green-600 transition-colors"
+          title="Falar com SARA no WhatsApp"
+        >
+          <MessageCircle className="w-4 h-4" />
+          WhatsApp SARA
+        </a>
 
         {/* Notifications */}
         <div ref={notifRef} className="relative">
