@@ -1,0 +1,312 @@
+{
+  "name": "SARA SaaS - Disparador Lembretes v1.1",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 1
+            }
+          ]
+        }
+      },
+      "id": "4c1444c7-f428-4b72-95c5-6bd11962b3b0",
+      "name": "A cada 1 minuto",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1648,
+        32
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT saas_buscar_pendentes() as resultado;",
+        "options": {}
+      },
+      "id": "3aaafb74-f6ef-4e2b-8810-89e78c506956",
+      "name": "Busca Pendentes no Banco",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -1424,
+        32
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "2xQBC6Q6FS0TLYyI",
+          "name": "Postgres_Zero"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "tem-dados",
+              "leftValue": "={{ $json.resultado.status }}",
+              "rightValue": "sucesso",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "87f33793-5a7c-48c7-97c2-a5be473ded06",
+      "name": "Tem Lembrete?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1200,
+        32
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Pega o array de lembretes que veio dentro do JSON do banco\n// e retorna cada um como um item separado para o n8n processar\n\nconst input = $input.first().json;\nconst resultado = input.resultado || input;\n\nif (resultado && resultado.dados) {\n  const dados = resultado.dados;\n  \n  // Se for string JSON, faz parse\n  const dadosArray = typeof dados === 'string' ? JSON.parse(dados) : dados;\n  \n  if (Array.isArray(dadosArray) && dadosArray.length > 0) {\n    // Retorna cada item do array - formato correto para n8n\n    const items = [];\n    for (const item of dadosArray) {\n      items.push({ json: item });\n    }\n    \n    return items;\n  }\n}\n\nreturn [];"
+      },
+      "id": "ce31303f-48fb-44b0-b70a-a404043f7fbc",
+      "name": "Separa Itens (Split)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -976,
+        -112
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "messages-api",
+        "instanceName": "SARA_SaaS",
+        "remoteJid": "={{ $json.whatsapp_id }}",
+        "messageText": "={{\n`┏━━━━━━━━━━━━━━━━━━━┓\n   ⏰  *LEMBRETE*${$json.tipo !== 'unico' ? ' 🔁' : ''}\n┗━━━━━━━━━━━━━━━━━━━┛\n\n📌 *${$json.titulo}*\n${$json.descricao ? '└ ' + $json.descricao + '\\n' : ''}\n🕐 *${$json.hora}*${$json.prioridade === 'alta' ? '\\n🔴 Prioridade Alta!' : ''}${$json.tipo !== 'unico' ? '\\n📆 ' + ($json.tipo === 'diario' ? 'Repete todo dia' : $json.tipo === 'semanal' ? 'Repete toda semana' : 'Repete todo mês') : ''}\n\n━━━━━━━━━━━━━━━━━━━\n•${$json.bot_nome}• Sempre ao seu lado 💫`\n}}",
+        "options_message": {
+          "delay": "={{ Math.floor(Math.random() * 2001) + 3000 }}"
+        }
+      },
+      "id": "8cd535e9-e5ea-42c4-a0d8-0a2262f523bd",
+      "name": "Envia WhatsApp",
+      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "typeVersion": 1,
+      "position": [
+        -784,
+        -112
+      ],
+      "credentials": {
+        "evolutionApi": {
+          "id": "U78J5QaTvwO0ynKA",
+          "name": "Evolution SARA_SaaS"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "{{ $json.query }}",
+        "options": {}
+      },
+      "id": "8e7780dc-f290-4838-9a55-12b83f254269",
+      "name": "Marca Acao",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -48,
+        -112
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "2xQBC6Q6FS0TLYyI",
+          "name": "Postgres_Zero"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $('Separa Itens (Split)').item.json;\nconst id = item.id;\nconst tipo = item.tipo || 'unico';\n\nlet query = '';\n\nif (tipo === 'unico') {\n  query = `UPDATE saas_reminders SET status = 'sent' WHERE id = ${id};`;\n} else if (tipo === 'diario') {\n  query = `UPDATE saas_reminders SET remind_at = remind_at + INTERVAL '1 day' WHERE id = ${id};`;\n} else if (tipo === 'semanal') {\n  query = `UPDATE saas_reminders SET remind_at = remind_at + INTERVAL '7 days' WHERE id = ${id};`;\n} else if (tipo === 'mensal') {\n  query = `UPDATE saas_reminders SET remind_at = remind_at + INTERVAL '1 month' WHERE id = ${id};`;\n} else if (tipo === 'anual') {\n  query = `UPDATE saas_reminders SET remind_at = remind_at + INTERVAL '1 year' WHERE id = ${id};`;\n}\n\nreturn { json: { query, id, tipo, acao: tipo === 'unico' ? 'marcado_enviado' : 'reagendado' } };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        -112
+      ],
+      "id": "8f08bbbe-4568-49ae-8b52-a267eee77639",
+      "name": "Definir Acao Lembretes"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $('Separa Itens (Split)').item.json;\n\nreturn {\n  json: {\n    session_id: item.whatsapp_id.replace('@s.whatsapp.net', ''),\n    message: {\n      type: 'ai',\n      content: `⏰ LEMBRETE - ${item.titulo}`,\n      additional_kwargs: {\n        lembrete_id: item.id,\n        lembrete_titulo: item.titulo,\n        tipo: 'lembrete_enviado'\n      },\n      response_metadata: {}\n    }\n  }\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -592,
+        -112
+      ],
+      "id": "cee3341a-bd20-4ae9-85a8-c5591b8331ed",
+      "name": "Prepara Histórico"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT saas_log_lembrete_enviado(\n  '{{ $json.session_id }}',\n  {{ $json.message.additional_kwargs.lembrete_id }},\n  '{{ $json.message.additional_kwargs.lembrete_titulo }}'\n);",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -432,
+        -112
+      ],
+      "id": "1a965e17-2457-4075-8a77-8afebcd87f89",
+      "name": "Registra no Histórico",
+      "credentials": {
+        "postgres": {
+          "id": "2xQBC6Q6FS0TLYyI",
+          "name": "Postgres_Zero"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "A cada 1 minuto": [
+      {
+        "json": {
+          "timestamp": "2026-01-11T08:44:01.003-03:00",
+          "Readable date": "January 11th 2026, 8:44:01 am",
+          "Readable time": "8:44:01 am",
+          "Day of week": "Sunday",
+          "Year": "2026",
+          "Month": "January",
+          "Day of month": "11",
+          "Hour": "08",
+          "Minute": "44",
+          "Second": "01",
+          "Timezone": "America/Sao_Paulo (UTC-03:00)"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "A cada 1 minuto": {
+      "main": [
+        [
+          {
+            "node": "Busca Pendentes no Banco",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Busca Pendentes no Banco": {
+      "main": [
+        [
+          {
+            "node": "Tem Lembrete?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tem Lembrete?": {
+      "main": [
+        [
+          {
+            "node": "Separa Itens (Split)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Separa Itens (Split)": {
+      "main": [
+        [
+          {
+            "node": "Envia WhatsApp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Envia WhatsApp": {
+      "main": [
+        [
+          {
+            "node": "Prepara Histórico",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Definir Acao Lembretes": {
+      "main": [
+        [
+          {
+            "node": "Marca Acao",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepara Histórico": {
+      "main": [
+        [
+          {
+            "node": "Registra no Histórico",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registra no Histórico": {
+      "main": [
+        [
+          {
+            "node": "Definir Acao Lembretes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "timezone": "America/Sao_Paulo",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "5bea4ec1-d115-4847-82e7-2adb3a7972da",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2162172325255cd265a19f3178f77abb9ab7ec9c7a1d869ba2d2925c11389625"
+  },
+  "id": "YKGBwUrCUqupzhUA",
+  "tags": []
+}

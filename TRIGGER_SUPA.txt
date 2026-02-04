@@ -1,0 +1,23 @@
+| trigger_name                          | event  | table_name                | timing | action_statement                                        |
+| ------------------------------------- | ------ | ------------------------- | ------ | ------------------------------------------------------- |
+| check_appointments_before_insert      | INSERT | saas_appointments         | BEFORE | EXECUTE FUNCTION check_appointments_limit()             |
+| on_appointment_created                | INSERT | saas_appointments         | AFTER  | EXECUTE FUNCTION increment_appointments_count()         |
+| trigger_update_appointments_timestamp | UPDATE | saas_appointments         | BEFORE | EXECUTE FUNCTION update_appointments_timestamp()        |
+| trg_client_notes_updated              | UPDATE | saas_client_notes         | BEFORE | EXECUTE FUNCTION update_client_notes_updated_at()       |
+| trg_client_preferences_updated        | UPDATE | saas_client_preferences   | BEFORE | EXECUTE FUNCTION update_client_preferences_updated_at() |
+| trg_sincronizar_limites               | UPDATE | saas_clients              | AFTER  | EXECUTE FUNCTION sincronizar_limites_plano()            |
+| extrair_metadados_trigger             | INSERT | saas_documents            | BEFORE | EXECUTE FUNCTION saas_extrair_metadados()               |
+| extrair_metadados_trigger             | UPDATE | saas_documents            | BEFORE | EXECUTE FUNCTION saas_extrair_metadados()               |
+| set_updated_at                        | UPDATE | saas_documents            | BEFORE | EXECUTE FUNCTION update_saas_documents_updated_at()     |
+| trg_sincronizar_metadados             | INSERT | saas_documents            | BEFORE | EXECUTE FUNCTION sincronizar_metadados_saas_documents() |
+| trg_sincronizar_metadados             | UPDATE | saas_documents            | BEFORE | EXECUTE FUNCTION sincronizar_metadados_saas_documents() |
+| trg_atualizar_saldo                   | DELETE | saas_finance_transactions | AFTER  | EXECUTE FUNCTION trigger_atualizar_saldo()              |
+| trg_atualizar_saldo                   | UPDATE | saas_finance_transactions | AFTER  | EXECUTE FUNCTION trigger_atualizar_saldo()              |
+| trg_atualizar_saldo                   | INSERT | saas_finance_transactions | AFTER  | EXECUTE FUNCTION trigger_atualizar_saldo()              |
+| trg_invalidar_cache_mensal            | DELETE | saas_finance_transactions | AFTER  | EXECUTE FUNCTION trigger_invalidar_cache_mensal()       |
+| trg_invalidar_cache_mensal            | UPDATE | saas_finance_transactions | AFTER  | EXECUTE FUNCTION trigger_invalidar_cache_mensal()       |
+| trg_invalidar_cache_mensal            | INSERT | saas_finance_transactions | AFTER  | EXECUTE FUNCTION trigger_invalidar_cache_mensal()       |
+| trg_limpar_historico_deleted          | DELETE | saas_finance_transactions | AFTER  | EXECUTE FUNCTION limpar_historico_deleted()             |
+| trg_manter_historico_recente          | INSERT | saas_finance_transactions | AFTER  | EXECUTE FUNCTION manter_historico_recente()             |
+| trg_manter_historico_recente          | UPDATE | saas_finance_transactions | AFTER  | EXECUTE FUNCTION manter_historico_recente()             |
+| trg_fill_client_id                    | INSERT | saas_n8n_chat_histories   | BEFORE | EXECUTE FUNCTION fill_client_id_on_chat_history()       |

@@ -172,7 +172,7 @@ export default function PrivacidadePage() {
                     </section>
 
                     {/* Direitos LGPD */}
-                    <section>
+                    <section id="lgpd">
                         <h2 className="text-lg font-semibold text-gray-900 mb-4">Seus Direitos (LGPD)</h2>
                         <p className="text-gray-700 mb-4">Você tem os seguintes direitos garantidos por lei:</p>
 
@@ -209,8 +209,8 @@ export default function PrivacidadePage() {
 
                         <p className="text-gray-700 mt-4">
                             Para exercer qualquer direito, envie um email para{' '}
-                            <a href="mailto:privacidade@sara.app.br" className="text-blue-600 hover:underline">
-                                privacidade@sara.app.br
+                            <a href="mailto:suporte@iagenes.com.br" className="text-blue-600 hover:underline">
+                                suporte@iagenes.com.br
                             </a>
                             {' '}com o assunto "Direitos LGPD" e responderemos em até 15 dias úteis.
                         </p>
@@ -249,12 +249,15 @@ export default function PrivacidadePage() {
                             <Mail className="w-6 h-6 text-blue-600" />
                             <h2 className="text-lg font-semibold text-blue-900">Contato</h2>
                         </div>
-                        <p className="text-blue-800">
-                            Para dúvidas sobre privacidade ou para exercer seus direitos:
+                        <p className="text-blue-800 mb-4">
+                            Em caso de dúvidas sobre privacidade ou para exercer seus direitos, entre em contato:
                         </p>
-                        <p className="text-blue-900 font-medium mt-2">
-                            📧 Email: <a href="mailto:privacidade@sara.app.br" className="underline">privacidade@sara.app.br</a>
-                        </p>
+                        <div className="bg-white rounded-lg p-4 space-y-2">
+                            <p className="text-gray-700"><strong>Email:</strong> <a href="mailto:suporte@iagenes.com.br" className="text-blue-600 hover:underline">suporte@iagenes.com.br</a></p>
+                            <p className="text-gray-700"><strong>Empresa:</strong> GENESIS SOLUÇÕES EM IA LTDA</p>
+                            <p className="text-gray-700"><strong>CNPJ:</strong> 62.525.916/0001-12</p>
+                            <p className="text-gray-700"><strong>Endereço:</strong> Al. Rio Negro, nº 967 - Alphaville Centro Industrial e Empresarial - Barueri/SP</p>
+                        </div>
                     </section>
 
                     {/* Botão voltar */}

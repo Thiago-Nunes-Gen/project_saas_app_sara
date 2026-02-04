@@ -159,16 +159,22 @@ export default function TermosPage() {
                         <h2 className="text-lg font-semibold text-gray-900 mb-3">11. Foro</h2>
                         <p className="text-gray-700 leading-relaxed">
                             Este contrato é regido pelas leis brasileiras. Qualquer disputa será resolvida
-                            no foro da comarca de Araraquara/SP, com exclusão de qualquer outro.
+                            no foro da comarca de Barueri/SP, com exclusão de qualquer outro.
                         </p>
                     </section>
 
                     {/* Contato */}
                     <section className="pt-6 border-t border-gray-200">
                         <h2 className="text-lg font-semibold text-gray-900 mb-3">Dúvidas?</h2>
-                        <p className="text-gray-700 leading-relaxed">
-                            Entre em contato conosco pelo email: <a href="mailto:contato@sara.app.br" className="text-blue-600 hover:underline">contato@sara.app.br</a>
+                        <p className="text-gray-700 leading-relaxed mb-4">
+                            Em caso de dúvidas ou para maiores esclarecimentos, entre em contato:
                         </p>
+                        <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                            <p className="text-gray-700"><strong>Email:</strong> <a href="mailto:suporte@iagenes.com.br" className="text-blue-600 hover:underline">suporte@iagenes.com.br</a></p>
+                            <p className="text-gray-700"><strong>Empresa:</strong> GENESIS SOLUÇÕES EM IA LTDA</p>
+                            <p className="text-gray-700"><strong>CNPJ:</strong> 62.525.916/0001-12</p>
+                            <p className="text-gray-700"><strong>Endereço:</strong> Al. Rio Negro, nº 967 - Alphaville Centro Industrial e Empresarial - Barueri/SP</p>
+                        </div>
                     </section>
 
                     {/* Botão voltar */}

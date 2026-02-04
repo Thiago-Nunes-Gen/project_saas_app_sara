@@ -266,19 +266,27 @@ export default function CadastroPage() {
           )}
         </div>
 
-        <div className="flex items-start gap-2">
-          <input
-            type="checkbox"
-            id="terms"
-            required
-            className="w-4 h-4 mt-0.5 rounded border-sara-border text-primary-500 focus:ring-primary-500"
-          />
-          <label htmlFor="terms" className="text-sm text-sara-muted">
-            Concordo com os{' '}
-            <Link href="/termos" className="text-primary-500 hover:text-primary-600">Termos de Uso</Link>
-            {' '}e{' '}
-            <Link href="/privacidade" className="text-primary-500 hover:text-primary-600">Política de Privacidade</Link>
-          </label>
+        <div className="flex flex-col gap-2">
+          <div className="flex items-start gap-2">
+            <input
+              type="checkbox"
+              id="terms"
+              required
+              className="w-4 h-4 mt-0.5 rounded border-sara-border text-primary-500 focus:ring-primary-500"
+            />
+            <label htmlFor="terms" className="text-sm text-sara-muted">
+              Li e aceito os{' '}
+              <Link href="/termos" className="text-primary-500 hover:text-primary-600">Termos de Uso</Link>
+              {' '}e{' '}
+              <Link href="/privacidade" className="text-primary-500 hover:text-primary-600">Política de Privacidade</Link>
+            </label>
+          </div>
+          <p className="text-xs text-sara-light ml-6">
+            Dúvidas sobre seus dados?{' '}
+            <Link href="/privacidade#lgpd" className="text-primary-500 hover:text-primary-600 underline">
+              Entenda seus direitos (LGPD)
+            </Link>
+          </p>
         </div>
 
         <button
