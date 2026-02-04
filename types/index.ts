@@ -13,7 +13,7 @@ export interface Client {
   apelido: string | null;
   status: 'active' | 'inactive' | 'pending_whatsapp' | 'suspended';
   plan: string;
-  
+
   // Limites do plano
   max_reminders: number;
   max_lists: number;
@@ -22,7 +22,8 @@ export interface Client {
   max_rag_queries_month: number;
   max_documents: number;
   max_web_searches_month: number;
-  
+  max_appointments_month: number;
+
   // Contadores de uso
   reminders_count: number;
   lists_count: number;
@@ -30,17 +31,18 @@ export interface Client {
   rag_queries_month: number;
   documents_count: number;
   web_searches_month: number;
-  
+  appointments_month: number;
+
   // Financeiro
   current_balance: number;
   balance_updated_at: string;
-  
+
   // Configurações
   timezone: string;
   bot_name: string;
   bot_personality: string;
   morning_summary_enabled: boolean;
-  
+
   // Onboarding
   onboarding_completed: boolean;
   onboarding_step: string;
@@ -160,6 +162,7 @@ export interface Plan {
   max_rag_queries_month: number;
   max_documents: number;
   max_web_searches_month: number;
+  max_appointments_month: number;
   features: string[];
   is_active: boolean;
 }

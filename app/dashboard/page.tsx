@@ -43,6 +43,7 @@ interface PlanLimits {
   max_transactions_month: number
   max_documents: number
   max_web_searches_month: number
+  max_appointments_month: number
 }
 
 // Limites padrão do plano FREE (valores reais do banco)
@@ -51,7 +52,8 @@ const DEFAULT_FREE_LIMITS: PlanLimits = {
   max_lists: 3,
   max_transactions_month: 15,
   max_documents: 0,
-  max_web_searches_month: 2
+  max_web_searches_month: 2,
+  max_appointments_month: 3
 }
 
 export default function DashboardPage() {
@@ -81,7 +83,7 @@ export default function DashboardPage() {
       // client.plan contém o nome do plano (ex: "free", "starter"), não o UUID
       const { data, error } = await supabase
         .from('saas_plans')
-        .select('max_reminders, max_lists, max_transactions_month, max_documents, max_web_searches_month')
+        .select('max_reminders, max_lists, max_transactions_month, max_documents, max_web_searches_month, max_appointments_month')
         .ilike('name', client.plan)
         .single()
 
@@ -526,6 +528,12 @@ export default function DashboardPage() {
                 <p className="text-xs text-gray-500 mb-1">Pesquisas IA</p>
                 <p className="text-lg font-semibold text-gray-900">
                   {client?.web_searches_month || 0} / {planLimits.max_web_searches_month}
+                </p>
+              </div>
+              <div className="p-4 bg-gray-50 rounded-xl">
+                <p className="text-xs text-gray-500 mb-1">Agendamentos</p>
+                <p className="text-lg font-semibold text-gray-900">
+                  {client?.appointments_month || 0} / {planLimits.max_appointments_month === -1 ? '∞' : planLimits.max_appointments_month}
                 </p>
               </div>
             </div>

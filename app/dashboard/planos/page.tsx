@@ -27,6 +27,7 @@ interface Plan {
   max_transactions_month: number
   max_documents: number
   max_web_searches_month: number
+  max_appointments_month: number
 }
 
 const planIcons: Record<string, any> = {
@@ -106,7 +107,7 @@ export default function PlanosPage() {
           Escolha o plano ideal para você
         </h1>
         <p className="text-lg text-gray-500 max-w-2xl mx-auto">
-          Comece grátis e faça upgrade conforme suas necessidades. 
+          Comece grátis e faça upgrade conforme suas necessidades.
           Todos os planos incluem acesso à SARA pelo WhatsApp e Portal.
         </p>
       </div>
@@ -120,11 +121,10 @@ export default function PlanosPage() {
           const isPro = plan.id === 'pro'
 
           return (
-            <div 
+            <div
               key={plan.id}
-              className={`relative rounded-2xl border-2 ${
-                isPro ? 'border-purple-500 shadow-lg shadow-purple-100' : colors.border
-              } bg-white overflow-hidden flex flex-col`}
+              className={`relative rounded-2xl border-2 ${isPro ? 'border-purple-500 shadow-lg shadow-purple-100' : colors.border
+                } bg-white overflow-hidden flex flex-col`}
             >
               {/* Popular Badge */}
               {isPro && (
@@ -140,7 +140,7 @@ export default function PlanosPage() {
                 </div>
                 <h3 className="text-xl font-bold text-gray-900">{plan.name}</h3>
                 <p className="text-sm text-gray-500 mt-1">{plan.description}</p>
-                
+
                 <div className="mt-4">
                   <span className="text-3xl font-bold text-gray-900">
                     {formatPrice(plan.price_monthly)}
@@ -166,22 +166,21 @@ export default function PlanosPage() {
               {/* CTA */}
               <div className="p-6 pt-0">
                 {isCurrentPlan ? (
-                  <button 
+                  <button
                     disabled
                     className="w-full py-3 px-4 bg-gray-100 text-gray-500 rounded-xl font-medium cursor-not-allowed"
                   >
                     Plano Atual
                   </button>
                 ) : (
-                  <button 
+                  <button
                     onClick={() => handleSelectPlan(plan.id)}
-                    className={`w-full py-3 px-4 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ${
-                      isPro 
-                        ? 'bg-purple-500 text-white hover:bg-purple-600' 
+                    className={`w-full py-3 px-4 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ${isPro
+                        ? 'bg-purple-500 text-white hover:bg-purple-600'
                         : plan.id === 'free'
-                        ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        : 'bg-blue-500 text-white hover:bg-blue-600'
-                    }`}
+                          ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          : 'bg-blue-500 text-white hover:bg-blue-600'
+                      }`}
                   >
                     {plan.id === 'free' ? 'Começar Grátis' : 'Assinar Agora'}
                     <ArrowRight className="w-4 h-4" />
@@ -264,6 +263,14 @@ export default function PlanosPage() {
               {plans.map(plan => (
                 <td key={plan.id} className="text-center py-4 px-4 text-sm text-gray-900">
                   {plan.max_web_searches_month === -1 ? 'Ilimitado' : plan.max_web_searches_month}
+                </td>
+              ))}
+            </tr>
+            <tr className="border-b border-gray-100">
+              <td className="py-4 px-4 text-sm text-gray-600">Agendamentos/mês</td>
+              {plans.map(plan => (
+                <td key={plan.id} className="text-center py-4 px-4 text-sm text-gray-900">
+                  {plan.max_appointments_month === -1 ? 'Ilimitado' : plan.max_appointments_month}
                 </td>
               ))}
             </tr>
