@@ -45,13 +45,13 @@ interface PlanLimits {
   max_web_searches_month: number
 }
 
-// Limites padrão do plano FREE
+// Limites padrão do plano FREE (valores reais do banco)
 const DEFAULT_FREE_LIMITS: PlanLimits = {
-  max_reminders: 5,
-  max_lists: 2,
-  max_transactions_month: 20,
-  max_documents: 5,
-  max_web_searches_month: 3
+  max_reminders: 10,
+  max_lists: 3,
+  max_transactions_month: 15,
+  max_documents: 0,
+  max_web_searches_month: 2
 }
 
 export default function DashboardPage() {
@@ -70,21 +70,28 @@ export default function DashboardPage() {
   useEffect(() => {
     async function fetchPlanLimits() {
       if (!client?.plan) {
+        console.log('[Dashboard] Sem plano, usando limites FREE')
         setPlanLimits(DEFAULT_FREE_LIMITS)
         return
       }
 
+      console.log('[Dashboard] Buscando limites do plano:', client.plan)
       const supabase = createClient()
+
+      // client.plan contém o nome do plano (ex: "free", "starter"), não o UUID
       const { data, error } = await supabase
         .from('saas_plans')
         .select('max_reminders, max_lists, max_transactions_month, max_documents, max_web_searches_month')
-        .eq('id', client.plan)
+        .ilike('name', client.plan)
         .single()
+
+      console.log('[Dashboard] Resultado saas_plans:', { data, error })
 
       if (!error && data) {
         setPlanLimits(data)
       } else {
         // Fallback para limites FREE se não encontrar o plano
+        console.log('[Dashboard] Usando limites DEFAULT_FREE_LIMITS')
         setPlanLimits(DEFAULT_FREE_LIMITS)
       }
     }

@@ -28,12 +28,13 @@ interface PlanLimits {
   max_web_searches_month: number
 }
 
+// Limites padrão do plano FREE (valores reais do banco)
 const DEFAULT_FREE_LIMITS: PlanLimits = {
-  max_reminders: 5,
-  max_lists: 2,
-  max_transactions_month: 20,
-  max_documents: 5,
-  max_web_searches_month: 3
+  max_reminders: 10,
+  max_lists: 3,
+  max_transactions_month: 15,
+  max_documents: 0,
+  max_web_searches_month: 2
 }
 
 export default function ConfiguracoesPage() {
@@ -71,10 +72,11 @@ export default function ConfiguracoesPage() {
       }
 
       const supabase = createClient()
+      // client.plan contém o nome do plano (ex: "free", "starter"), não o UUID
       const { data, error } = await supabase
         .from('saas_plans')
         .select('max_reminders, max_lists, max_transactions_month, max_documents, max_web_searches_month')
-        .eq('id', client.plan)
+        .ilike('name', client.plan)
         .single()
 
       if (!error && data) {
@@ -485,21 +487,23 @@ export default function ConfiguracoesPage() {
 }
 
 function UsageBar({ label, used, max }: { label: string, used: number, max: number }) {
-  const percentage = Math.min((used / max) * 100, 100)
-  const isHigh = percentage > 80
-  
+  // Se max é 0, recurso não disponível no plano
+  const percentage = max > 0 ? Math.min((used / max) * 100, 100) : 0
+  const isHigh = max > 0 && percentage > 80
+  const isDisabled = max === 0
+
   return (
     <div>
       <div className="flex items-center justify-between mb-1">
-        <span className="text-sm text-gray-600">{label}</span>
-        <span className={`text-sm font-medium ${isHigh ? 'text-amber-600' : 'text-gray-900'}`}>
-          {used} / {max}
+        <span className={`text-sm ${isDisabled ? 'text-gray-400' : 'text-gray-600'}`}>{label}</span>
+        <span className={`text-sm font-medium ${isDisabled ? 'text-gray-400' : isHigh ? 'text-amber-600' : 'text-gray-900'}`}>
+          {isDisabled ? 'Não disponível' : `${used} / ${max}`}
         </span>
       </div>
       <div className="w-full bg-gray-100 rounded-full h-2">
-        <div 
-          className={`h-2 rounded-full transition-all ${isHigh ? 'bg-amber-500' : 'bg-blue-500'}`}
-          style={{ width: `${percentage}%` }}
+        <div
+          className={`h-2 rounded-full transition-all ${isDisabled ? 'bg-gray-300' : isHigh ? 'bg-amber-500' : 'bg-blue-500'}`}
+          style={{ width: isDisabled ? '100%' : `${percentage}%` }}
         />
       </div>
     </div>
