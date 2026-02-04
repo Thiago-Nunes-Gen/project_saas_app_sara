@@ -1,6 +1,7 @@
 import Sidebar from '@/components/layout/Sidebar'
 import Header from '@/components/layout/Header'
 import ChatWidget from './components/ChatWidget'
+import WhatsAppFloatingButton from '@/components/ui/WhatsAppFloatingButton'
 
 export default function DashboardLayout({
   children,
@@ -15,6 +16,7 @@ export default function DashboardLayout({
         {children}
       </main>
       <ChatWidget />
+      <WhatsAppFloatingButton />
     </div>
   )
 }
