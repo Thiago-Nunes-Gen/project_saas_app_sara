@@ -37,6 +37,23 @@ interface PendingList {
   updated_at: string
 }
 
+interface PlanLimits {
+  max_reminders: number
+  max_lists: number
+  max_transactions_month: number
+  max_documents: number
+  max_web_searches_month: number
+}
+
+// Limites padrão do plano FREE (valores reais do banco)
+const DEFAULT_FREE_LIMITS: PlanLimits = {
+  max_reminders: 10,
+  max_lists: 3,
+  max_transactions_month: 15,
+  max_documents: 0,
+  max_web_searches_month: 2
+}
+
 export default function DashboardPage() {
   const { client, loading: clientLoading } = useClient()
   const { stats, loading: statsLoading } = useMonthlyStats()
@@ -47,6 +64,42 @@ export default function DashboardPage() {
   const [listsLoading, setListsLoading] = useState(true)
   const [showWhatsAppModal, setShowWhatsAppModal] = useState(false)
   const [showWhatsAppBanner, setShowWhatsAppBanner] = useState(true)
+  const [planLimits, setPlanLimits] = useState<PlanLimits>(DEFAULT_FREE_LIMITS)
+
+  // Busca os limites do plano atual
+  useEffect(() => {
+    async function fetchPlanLimits() {
+      if (!client?.plan) {
+        console.log('[Dashboard] Sem plano, usando limites FREE')
+        setPlanLimits(DEFAULT_FREE_LIMITS)
+        return
+      }
+
+      console.log('[Dashboard] Buscando limites do plano:', client.plan)
+      const supabase = createClient()
+
+      // client.plan contém o nome do plano (ex: "free", "starter"), não o UUID
+      const { data, error } = await supabase
+        .from('saas_plans')
+        .select('max_reminders, max_lists, max_transactions_month, max_documents, max_web_searches_month')
+        .ilike('name', client.plan)
+        .single()
+
+      console.log('[Dashboard] Resultado saas_plans:', { data, error })
+
+      if (!error && data) {
+        setPlanLimits(data)
+      } else {
+        // Fallback para limites FREE se não encontrar o plano
+        console.log('[Dashboard] Usando limites DEFAULT_FREE_LIMITS')
+        setPlanLimits(DEFAULT_FREE_LIMITS)
+      }
+    }
+
+    if (!clientLoading) {
+      fetchPlanLimits()
+    }
+  }, [client?.plan, clientLoading])
 
   // Verifica se precisa mostrar modal do WhatsApp (primeiro acesso sem WhatsApp)
   useEffect(() => {
@@ -454,25 +507,25 @@ export default function DashboardPage() {
               <div className="p-4 bg-gray-50 rounded-xl">
                 <p className="text-xs text-gray-500 mb-1">Lembretes</p>
                 <p className="text-lg font-semibold text-gray-900">
-                  {client?.reminders_count || 0} / {client?.max_reminders || 50}
+                  {client?.reminders_count || 0} / {planLimits.max_reminders}
                 </p>
               </div>
               <div className="p-4 bg-gray-50 rounded-xl">
                 <p className="text-xs text-gray-500 mb-1">Transações/mês</p>
                 <p className="text-lg font-semibold text-gray-900">
-                  {client?.transactions_month || 0} / {client?.max_transactions_month || 200}
+                  {client?.transactions_month || 0} / {planLimits.max_transactions_month}
                 </p>
               </div>
               <div className="p-4 bg-gray-50 rounded-xl">
                 <p className="text-xs text-gray-500 mb-1">Documentos</p>
                 <p className="text-lg font-semibold text-gray-900">
-                  {client?.documents_count || 0} / {client?.max_documents || 50}
+                  {client?.documents_count || 0} / {planLimits.max_documents}
                 </p>
               </div>
               <div className="p-4 bg-gray-50 rounded-xl">
                 <p className="text-xs text-gray-500 mb-1">Pesquisas IA</p>
                 <p className="text-lg font-semibold text-gray-900">
-                  {client?.web_searches_month || 0} / {client?.max_web_searches_month || 10}
+                  {client?.web_searches_month || 0} / {planLimits.max_web_searches_month}
                 </p>
               </div>
             </div>

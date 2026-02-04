@@ -20,11 +20,29 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 
+interface PlanLimits {
+  max_reminders: number
+  max_lists: number
+  max_transactions_month: number
+  max_documents: number
+  max_web_searches_month: number
+}
+
+// Limites padrão do plano FREE (valores reais do banco)
+const DEFAULT_FREE_LIMITS: PlanLimits = {
+  max_reminders: 10,
+  max_lists: 3,
+  max_transactions_month: 15,
+  max_documents: 0,
+  max_web_searches_month: 2
+}
+
 export default function ConfiguracoesPage() {
   const { client, loading: clientLoading, refetch } = useClient()
   const [activeTab, setActiveTab] = useState('perfil')
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
+  const [planLimits, setPlanLimits] = useState<PlanLimits>(DEFAULT_FREE_LIMITS)
 
   // Profile form
   const [name, setName] = useState('')
@@ -44,6 +62,34 @@ export default function ConfiguracoesPage() {
       setBotName(client.bot_name || 'SARA')
     }
   }, [client])
+
+  // Busca os limites do plano atual
+  useEffect(() => {
+    async function fetchPlanLimits() {
+      if (!client?.plan) {
+        setPlanLimits(DEFAULT_FREE_LIMITS)
+        return
+      }
+
+      const supabase = createClient()
+      // client.plan contém o nome do plano (ex: "free", "starter"), não o UUID
+      const { data, error } = await supabase
+        .from('saas_plans')
+        .select('max_reminders, max_lists, max_transactions_month, max_documents, max_web_searches_month')
+        .ilike('name', client.plan)
+        .single()
+
+      if (!error && data) {
+        setPlanLimits(data)
+      } else {
+        setPlanLimits(DEFAULT_FREE_LIMITS)
+      }
+    }
+
+    if (!clientLoading) {
+      fetchPlanLimits()
+    }
+  }, [client?.plan, clientLoading])
 
   const saveProfile = async () => {
     setSaving(true)
@@ -369,22 +415,22 @@ export default function ConfiguracoesPage() {
                 <UsageBar
                   label="Lembretes"
                   used={client?.reminders_count || 0}
-                  max={client?.max_reminders || 50}
+                  max={planLimits.max_reminders}
                 />
                 <UsageBar
                   label="Transações/mês"
                   used={client?.transactions_month || 0}
-                  max={client?.max_transactions_month || 200}
+                  max={planLimits.max_transactions_month}
                 />
                 <UsageBar
                   label="Documentos"
                   used={client?.documents_count || 0}
-                  max={client?.max_documents || 50}
+                  max={planLimits.max_documents}
                 />
                 <UsageBar
                   label="Pesquisas IA/mês"
                   used={client?.web_searches_month || 0}
-                  max={client?.max_web_searches_month || 10}
+                  max={planLimits.max_web_searches_month}
                 />
               </div>
             </div>
@@ -441,21 +487,23 @@ export default function ConfiguracoesPage() {
 }
 
 function UsageBar({ label, used, max }: { label: string, used: number, max: number }) {
-  const percentage = Math.min((used / max) * 100, 100)
-  const isHigh = percentage > 80
-  
+  // Se max é 0, recurso não disponível no plano
+  const percentage = max > 0 ? Math.min((used / max) * 100, 100) : 0
+  const isHigh = max > 0 && percentage > 80
+  const isDisabled = max === 0
+
   return (
     <div>
       <div className="flex items-center justify-between mb-1">
-        <span className="text-sm text-gray-600">{label}</span>
-        <span className={`text-sm font-medium ${isHigh ? 'text-amber-600' : 'text-gray-900'}`}>
-          {used} / {max}
+        <span className={`text-sm ${isDisabled ? 'text-gray-400' : 'text-gray-600'}`}>{label}</span>
+        <span className={`text-sm font-medium ${isDisabled ? 'text-gray-400' : isHigh ? 'text-amber-600' : 'text-gray-900'}`}>
+          {isDisabled ? 'Não disponível' : `${used} / ${max}`}
         </span>
       </div>
       <div className="w-full bg-gray-100 rounded-full h-2">
-        <div 
-          className={`h-2 rounded-full transition-all ${isHigh ? 'bg-amber-500' : 'bg-blue-500'}`}
-          style={{ width: `${percentage}%` }}
+        <div
+          className={`h-2 rounded-full transition-all ${isDisabled ? 'bg-gray-300' : isHigh ? 'bg-amber-500' : 'bg-blue-500'}`}
+          style={{ width: isDisabled ? '100%' : `${percentage}%` }}
         />
       </div>
     </div>

@@ -129,13 +129,45 @@ export async function POST(request: Request) {
       // Cria novo cliente
       console.log('[API whatsapp/connect] Criando novo cliente...')
 
+      // Busca os limites do plano FREE
+      const { data: freePlan, error: planError } = await supabase
+        .from('saas_plans')
+        .select('max_reminders, max_lists, max_list_items, max_transactions_month, max_rag_queries_month, max_documents, max_web_searches_month')
+        .ilike('name', 'free')
+        .single()
+
+      if (planError) {
+        console.error('[API whatsapp/connect] Erro ao buscar plano FREE:', planError)
+      }
+
+      // Valores padrão do plano FREE (caso a busca falhe)
+      const defaultFreeLimits = {
+        max_reminders: 10,
+        max_lists: 3,
+        max_list_items: 10,
+        max_transactions_month: 15,
+        max_rag_queries_month: 5,
+        max_documents: 0,
+        max_web_searches_month: 2
+      }
+
+      const planLimits = freePlan || defaultFreeLimits
+
       const insertData = {
         auth_user_id: user.id,
         whatsapp_id: whatsapp_id,
         email: user.email,
         name: user.user_metadata?.name || user.user_metadata?.full_name || 'Usuário',
         status: 'active',
-        plan: 'free'
+        plan: 'free',
+        // Limites do plano FREE
+        max_reminders: planLimits.max_reminders,
+        max_lists: planLimits.max_lists,
+        max_list_items: planLimits.max_list_items,
+        max_transactions_month: planLimits.max_transactions_month,
+        max_rag_queries_month: planLimits.max_rag_queries_month,
+        max_documents: planLimits.max_documents,
+        max_web_searches_month: planLimits.max_web_searches_month
       }
 
       console.log('[API whatsapp/connect] Insert data:', insertData)
