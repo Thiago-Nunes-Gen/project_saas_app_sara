@@ -67,6 +67,49 @@ export default function CadastroPage() {
       }
 
       if (data.user) {
+        // Busca os limites do plano FREE
+        const { data: freePlan } = await supabase
+          .from('saas_plans')
+          .select('max_reminders, max_lists, max_list_items, max_transactions_month, max_rag_queries_month, max_documents, max_web_searches_month')
+          .ilike('name', 'free')
+          .single()
+
+        // Valores padrão do plano FREE (caso a busca falhe)
+        const defaultFreeLimits = {
+          max_reminders: 10,
+          max_lists: 3,
+          max_list_items: 10,
+          max_transactions_month: 15,
+          max_rag_queries_month: 5,
+          max_documents: 0,
+          max_web_searches_month: 2
+        }
+
+        const planLimits = freePlan || defaultFreeLimits
+
+        // Cria o registro em saas_clients com os limites corretos do plano FREE
+        const { error: clientError } = await supabase
+          .from('saas_clients')
+          .insert({
+            auth_user_id: data.user.id,
+            email: email,
+            name: name,
+            status: 'pending_whatsapp',
+            plan: 'free',
+            max_reminders: planLimits.max_reminders,
+            max_lists: planLimits.max_lists,
+            max_list_items: planLimits.max_list_items,
+            max_transactions_month: planLimits.max_transactions_month,
+            max_rag_queries_month: planLimits.max_rag_queries_month,
+            max_documents: planLimits.max_documents,
+            max_web_searches_month: planLimits.max_web_searches_month
+          })
+
+        if (clientError) {
+          console.error('Erro ao criar cliente:', clientError)
+          // Não bloqueia o fluxo, pois o importante é o usuário ter sido criado
+        }
+
         setSuccess(true)
       }
     } catch (err) {
