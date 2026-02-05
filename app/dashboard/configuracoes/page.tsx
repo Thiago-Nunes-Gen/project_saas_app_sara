@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase-browser'
 import { useClient } from '@/hooks/useClient'
+import { useRouter } from 'next/navigation'
 import {
   User,
   Phone,
@@ -13,10 +14,14 @@ import {
   Loader2,
   Check,
   AlertCircle,
-  ExternalLink,
   Zap,
   XCircle,
-  ArrowRight
+  ArrowRight,
+  MapPin,
+  Key,
+  Trash2,
+  X,
+  Frown
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -28,7 +33,7 @@ interface PlanLimits {
   max_web_searches_month: number
 }
 
-// Limites padrão do plano FREE (valores reais do banco)
+// Limites padrão do plano FREE
 const DEFAULT_FREE_LIMITS: PlanLimits = {
   max_reminders: 10,
   max_lists: 3,
@@ -37,7 +42,59 @@ const DEFAULT_FREE_LIMITS: PlanLimits = {
   max_web_searches_month: 2
 }
 
+// Lista de estados brasileiros
+const ESTADOS_BR = [
+  { uf: 'AC', nome: 'Acre' },
+  { uf: 'AL', nome: 'Alagoas' },
+  { uf: 'AP', nome: 'Amapá' },
+  { uf: 'AM', nome: 'Amazonas' },
+  { uf: 'BA', nome: 'Bahia' },
+  { uf: 'CE', nome: 'Ceará' },
+  { uf: 'DF', nome: 'Distrito Federal' },
+  { uf: 'ES', nome: 'Espírito Santo' },
+  { uf: 'GO', nome: 'Goiás' },
+  { uf: 'MA', nome: 'Maranhão' },
+  { uf: 'MT', nome: 'Mato Grosso' },
+  { uf: 'MS', nome: 'Mato Grosso do Sul' },
+  { uf: 'MG', nome: 'Minas Gerais' },
+  { uf: 'PA', nome: 'Pará' },
+  { uf: 'PB', nome: 'Paraíba' },
+  { uf: 'PR', nome: 'Paraná' },
+  { uf: 'PE', nome: 'Pernambuco' },
+  { uf: 'PI', nome: 'Piauí' },
+  { uf: 'RJ', nome: 'Rio de Janeiro' },
+  { uf: 'RN', nome: 'Rio Grande do Norte' },
+  { uf: 'RS', nome: 'Rio Grande do Sul' },
+  { uf: 'RO', nome: 'Rondônia' },
+  { uf: 'RR', nome: 'Roraima' },
+  { uf: 'SC', nome: 'Santa Catarina' },
+  { uf: 'SP', nome: 'São Paulo' },
+  { uf: 'SE', nome: 'Sergipe' },
+  { uf: 'TO', nome: 'Tocantins' }
+]
+
+// Mapeamento de timezone por estado
+const TIMEZONE_MAP: Record<string, string> = {
+  'AC': 'America/Rio_Branco',
+  'AM': 'America/Manaus',
+  'RR': 'America/Boa_Vista',
+  'RO': 'America/Porto_Velho',
+  'MT': 'America/Cuiaba',
+  'MS': 'America/Campo_Grande',
+  // Demais estados usam São Paulo (UTC-3)
+}
+
+function getTimezoneByUF(uf: string): string {
+  return TIMEZONE_MAP[uf] || 'America/Sao_Paulo'
+}
+
+interface Cidade {
+  id: number
+  nome: string
+}
+
 export default function ConfiguracoesPage() {
+  const router = useRouter()
   const { client, loading: clientLoading, refetch } = useClient()
   const [activeTab, setActiveTab] = useState('perfil')
   const [saving, setSaving] = useState(false)
@@ -48,20 +105,78 @@ export default function ConfiguracoesPage() {
   const [name, setName] = useState('')
   const [apelido, setApelido] = useState('')
   const [email, setEmail] = useState('')
+  const [uf, setUf] = useState('')
+  const [cidade, setCidade] = useState('')
+  const [cidades, setCidades] = useState<Cidade[]>([])
+  const [loadingCidades, setLoadingCidades] = useState(false)
+  const [showCidadeDropdown, setShowCidadeDropdown] = useState(false)
+  const [cidadeFiltrada, setCidadeFiltrada] = useState<Cidade[]>([])
 
   // Preferences
   const [morningSummary, setMorningSummary] = useState(true)
-  const [botName, setBotName] = useState('SARA')
+
+  // WhatsApp
+  const [showDisconnectConfirm, setShowDisconnectConfirm] = useState(false)
+  const [disconnecting, setDisconnecting] = useState(false)
+
+  // Cancelamento
+  const [showCancelModal, setShowCancelModal] = useState(false)
+  const [cancelReason, setCancelReason] = useState('')
+  const [cancelling, setCancelling] = useState(false)
+
+  // Segurança
+  const [sendingPasswordReset, setSendingPasswordReset] = useState(false)
 
   useEffect(() => {
     if (client) {
       setName(client.name || '')
       setApelido(client.apelido || '')
       setEmail(client.email || '')
+      setUf(client.uf || '')
+      setCidade(client.cidade || '')
       setMorningSummary(client.morning_summary_enabled ?? true)
-      setBotName(client.bot_name || 'SARA')
     }
   }, [client])
+
+  // Buscar cidades quando UF mudar
+  useEffect(() => {
+    async function fetchCidades() {
+      if (!uf) {
+        setCidades([])
+        return
+      }
+
+      setLoadingCidades(true)
+      try {
+        const response = await fetch(
+          `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${uf}/municipios?orderBy=nome`
+        )
+        const data = await response.json()
+        setCidades(data)
+        setCidadeFiltrada(data)
+      } catch (err) {
+        console.error('Erro ao buscar cidades:', err)
+        setCidades([])
+      } finally {
+        setLoadingCidades(false)
+      }
+    }
+
+    fetchCidades()
+  }, [uf])
+
+  // Filtrar cidades conforme digitação
+  useEffect(() => {
+    if (!cidade) {
+      setCidadeFiltrada(cidades)
+      return
+    }
+
+    const filtradas = cidades.filter(c =>
+      c.nome.toLowerCase().includes(cidade.toLowerCase())
+    )
+    setCidadeFiltrada(filtradas)
+  }, [cidade, cidades])
 
   // Busca os limites do plano atual
   useEffect(() => {
@@ -72,7 +187,6 @@ export default function ConfiguracoesPage() {
       }
 
       const supabase = createClient()
-      // client.plan contém o nome do plano (ex: "free", "starter"), não o UUID
       const { data, error } = await supabase
         .from('saas_plans')
         .select('max_reminders, max_lists, max_transactions_month, max_documents, max_web_searches_month')
@@ -97,13 +211,17 @@ export default function ConfiguracoesPage() {
 
     try {
       const supabase = createClient()
-      
+      const timezone = getTimezoneByUF(uf)
+
       const { error } = await supabase
         .from('saas_clients')
         .update({
           name,
           apelido,
           email,
+          uf,
+          cidade,
+          timezone,
           updated_at: new Date().toISOString()
         })
         .eq('id', client?.id)
@@ -125,12 +243,11 @@ export default function ConfiguracoesPage() {
 
     try {
       const supabase = createClient()
-      
+
       const { error } = await supabase
         .from('saas_clients')
         .update({
           morning_summary_enabled: morningSummary,
-          bot_name: botName,
           updated_at: new Date().toISOString()
         })
         .eq('id', client?.id)
@@ -143,6 +260,99 @@ export default function ConfiguracoesPage() {
       setMessage({ type: 'error', text: 'Erro ao salvar preferências' })
     } finally {
       setSaving(false)
+    }
+  }
+
+  const disconnectWhatsApp = async () => {
+    setDisconnecting(true)
+    try {
+      const supabase = createClient()
+
+      const { error } = await supabase
+        .from('saas_clients')
+        .update({
+          whatsapp_id: null,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', client?.id)
+
+      if (error) throw error
+
+      setShowDisconnectConfirm(false)
+      // Redirecionar para página de configurar WhatsApp
+      router.push('/dashboard/configurar-whatsapp')
+    } catch (err) {
+      setMessage({ type: 'error', text: 'Erro ao desconectar WhatsApp' })
+    } finally {
+      setDisconnecting(false)
+    }
+  }
+
+  const handlePasswordReset = async () => {
+    if (!client?.email) {
+      setMessage({ type: 'error', text: 'Email não encontrado' })
+      return
+    }
+
+    setSendingPasswordReset(true)
+    try {
+      const supabase = createClient()
+
+      const { error } = await supabase.auth.resetPasswordForEmail(client.email, {
+        redirectTo: `${window.location.origin}/auth/nova-senha`,
+      })
+
+      if (error) throw error
+
+      setMessage({ type: 'success', text: 'Email de redefinição enviado! Verifique sua caixa de entrada.' })
+    } catch (err) {
+      setMessage({ type: 'error', text: 'Erro ao enviar email de redefinição' })
+    } finally {
+      setSendingPasswordReset(false)
+    }
+  }
+
+  const handleCancelSubscription = async () => {
+    setCancelling(true)
+    try {
+      const supabase = createClient()
+
+      // Registrar cancelamento
+      const { error: cancelError } = await supabase
+        .from('saas_cancelamentos')
+        .insert({
+          client_id: client?.id,
+          auth_user_id: client?.auth_user_id,
+          nome: client?.name || '',
+          email: client?.email || '',
+          ultimo_plano: client?.plan || 'free',
+          observation: cancelReason.trim() || 'Não informado'
+        })
+
+      if (cancelError) {
+        console.error('Erro ao registrar cancelamento:', cancelError)
+      }
+
+      // Atualizar status do cliente para cancelado
+      const { error } = await supabase
+        .from('saas_clients')
+        .update({
+          plan: 'free',
+          status: 'cancelled',
+          asaas_subscription_id: null,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', client?.id)
+
+      if (error) throw error
+
+      setShowCancelModal(false)
+      setMessage({ type: 'success', text: 'Assinatura cancelada. Você foi movido para o plano Free.' })
+      refetch()
+    } catch (err) {
+      setMessage({ type: 'error', text: 'Erro ao cancelar assinatura' })
+    } finally {
+      setCancelling(false)
     }
   }
 
@@ -176,11 +386,10 @@ export default function ConfiguracoesPage() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                    activeTab === tab.id
+                  className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${activeTab === tab.id
                       ? 'bg-blue-50 text-blue-600'
                       : 'text-gray-600 hover:bg-gray-100'
-                  }`}
+                    }`}
                 >
                   <Icon className="w-5 h-5" />
                   {tab.label}
@@ -193,11 +402,10 @@ export default function ConfiguracoesPage() {
         {/* Content */}
         <div className="flex-1">
           {message && (
-            <div className={`mb-6 p-4 rounded-lg flex items-center gap-3 ${
-              message.type === 'success' 
+            <div className={`mb-6 p-4 rounded-lg flex items-center gap-3 ${message.type === 'success'
                 ? 'bg-green-50 border border-green-200 text-green-700'
                 : 'bg-red-50 border border-red-200 text-red-700'
-            }`}>
+              }`}>
               {message.type === 'success' ? (
                 <Check className="w-5 h-5" />
               ) : (
@@ -211,7 +419,7 @@ export default function ConfiguracoesPage() {
           {activeTab === 'perfil' && (
             <div className="card">
               <h2 className="text-lg font-medium text-gray-900 mb-6">Informações do Perfil</h2>
-              
+
               <div className="space-y-5">
                 <div>
                   <label className="label">Nome completo</label>
@@ -244,6 +452,73 @@ export default function ConfiguracoesPage() {
                   />
                 </div>
 
+                {/* Estado e Cidade */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="label">Estado</label>
+                    <select
+                      value={uf}
+                      onChange={(e) => {
+                        setUf(e.target.value)
+                        setCidade('')
+                      }}
+                      className="input"
+                    >
+                      <option value="">Selecione o estado</option>
+                      {ESTADOS_BR.map((estado) => (
+                        <option key={estado.uf} value={estado.uf}>
+                          {estado.nome}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="relative">
+                    <label className="label">Cidade</label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={cidade}
+                        onChange={(e) => setCidade(e.target.value)}
+                        onFocus={() => setShowCidadeDropdown(true)}
+                        onBlur={() => setTimeout(() => setShowCidadeDropdown(false), 200)}
+                        className="input pr-8"
+                        placeholder={uf ? "Digite a cidade" : "Selecione o estado primeiro"}
+                        disabled={!uf || loadingCidades}
+                      />
+                      {loadingCidades && (
+                        <Loader2 className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-gray-400" />
+                      )}
+                      <MapPin className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                    </div>
+
+                    {showCidadeDropdown && cidadeFiltrada.length > 0 && (
+                      <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                        {cidadeFiltrada.slice(0, 20).map((c) => (
+                          <button
+                            key={c.id}
+                            type="button"
+                            onClick={() => {
+                              setCidade(c.nome)
+                              setShowCidadeDropdown(false)
+                            }}
+                            className="w-full px-4 py-2 text-left text-sm hover:bg-blue-50 text-gray-700"
+                          >
+                            {c.nome}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {uf && (
+                  <p className="text-xs text-gray-500 flex items-center gap-1">
+                    <MapPin className="w-3 h-3" />
+                    Timezone: {getTimezoneByUF(uf)}
+                  </p>
+                )}
+
                 <button
                   onClick={saveProfile}
                   disabled={saving}
@@ -266,21 +541,69 @@ export default function ConfiguracoesPage() {
           {activeTab === 'whatsapp' && (
             <div className="card">
               <h2 className="text-lg font-medium text-gray-900 mb-6">WhatsApp</h2>
-              
+
               {client?.whatsapp_id ? (
-                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
-                      <Phone className="w-6 h-6 text-white" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-green-900">WhatsApp conectado</p>
-                      <p className="text-sm text-green-700">
-                        +{client.whatsapp_id.replace(/(\d{2})(\d{2})(\d{5})(\d{4})/, '$1 $2 $3-$4')}
-                      </p>
+                <>
+                  <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
+                        <Phone className="w-6 h-6 text-white" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-green-900">WhatsApp conectado</p>
+                        <p className="text-sm text-green-700">
+                          +{client.whatsapp_id.replace(/(\d{2})(\d{2})(\d{5})(\d{4})/, '$1 $2 $3-$4')}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
+
+                  {/* Botão Desconectar */}
+                  <div className="mt-6">
+                    {!showDisconnectConfirm ? (
+                      <button
+                        onClick={() => setShowDisconnectConfirm(true)}
+                        className="text-sm text-red-600 hover:text-red-700 flex items-center gap-2"
+                      >
+                        <XCircle className="w-4 h-4" />
+                        Desconectar WhatsApp
+                      </button>
+                    ) : (
+                      <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                        <div className="flex items-start gap-3">
+                          <AlertCircle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                          <div className="flex-1">
+                            <p className="font-medium text-amber-900">Atenção!</p>
+                            <p className="text-sm text-amber-700 mt-1">
+                              Ao trocar de número, você <strong>perderá o histórico de conversas</strong> do número antigo.
+                              Deseja continuar?
+                            </p>
+                            <div className="flex gap-3 mt-4">
+                              <button
+                                onClick={disconnectWhatsApp}
+                                disabled={disconnecting}
+                                className="px-4 py-2 bg-red-500 text-white rounded-lg text-sm font-medium hover:bg-red-600 flex items-center gap-2"
+                              >
+                                {disconnecting ? (
+                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                  <XCircle className="w-4 h-4" />
+                                )}
+                                Sim, desconectar
+                              </button>
+                              <button
+                                onClick={() => setShowDisconnectConfirm(false)}
+                                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200"
+                              >
+                                Cancelar
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </>
               ) : (
                 <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
                   <div className="flex items-start gap-3">
@@ -288,43 +611,19 @@ export default function ConfiguracoesPage() {
                     <div>
                       <p className="font-medium text-amber-900">WhatsApp não vinculado</p>
                       <p className="text-sm text-amber-700 mt-1">
-                        Para vincular, envie uma mensagem para a SARA no WhatsApp dizendo "vincular portal" 
-                        e siga as instruções.
+                        Conecte seu WhatsApp para conversar com a SARA.
                       </p>
+                      <Link
+                        href="/dashboard/configurar-whatsapp"
+                        className="inline-flex items-center gap-2 mt-3 px-4 py-2 bg-green-500 text-white rounded-lg text-sm font-medium hover:bg-green-600"
+                      >
+                        <Phone className="w-4 h-4" />
+                        Conectar WhatsApp
+                      </Link>
                     </div>
                   </div>
                 </div>
               )}
-
-              <div className="mt-6">
-                <h3 className="font-medium text-gray-900 mb-3">Personalização</h3>
-                <div>
-                  <label className="label">Nome do assistente</label>
-                  <input
-                    type="text"
-                    value={botName}
-                    onChange={(e) => setBotName(e.target.value)}
-                    className="input"
-                    placeholder="SARA"
-                  />
-                  <p className="text-sm text-gray-500 mt-1">Como você quer chamar sua assistente</p>
-                </div>
-
-                <button
-                  onClick={savePreferences}
-                  disabled={saving}
-                  className="btn-primary mt-4 flex items-center gap-2"
-                >
-                  {saving ? (
-                    <>
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      Salvando...
-                    </>
-                  ) : (
-                    'Salvar'
-                  )}
-                </button>
-              </div>
             </div>
           )}
 
@@ -332,7 +631,7 @@ export default function ConfiguracoesPage() {
           {activeTab === 'notificacoes' && (
             <div className="card">
               <h2 className="text-lg font-medium text-gray-900 mb-6">Notificações</h2>
-              
+
               <div className="space-y-4">
                 <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                   <div>
@@ -341,13 +640,11 @@ export default function ConfiguracoesPage() {
                   </div>
                   <button
                     onClick={() => setMorningSummary(!morningSummary)}
-                    className={`w-12 h-7 rounded-full transition-colors ${
-                      morningSummary ? 'bg-blue-500' : 'bg-gray-300'
-                    }`}
+                    className={`w-12 h-7 rounded-full transition-colors ${morningSummary ? 'bg-blue-500' : 'bg-gray-300'
+                      }`}
                   >
-                    <div className={`w-5 h-5 bg-white rounded-full shadow transition-transform ${
-                      morningSummary ? 'translate-x-6' : 'translate-x-1'
-                    }`} />
+                    <div className={`w-5 h-5 bg-white rounded-full shadow transition-transform ${morningSummary ? 'translate-x-6' : 'translate-x-1'
+                      }`} />
                   </button>
                 </div>
 
@@ -397,15 +694,11 @@ export default function ConfiguracoesPage() {
 
                 {client?.plan && client.plan !== 'free' && (
                   <button
-                    onClick={() => {
-                      // Abre WhatsApp para cancelar plano
-                      const msg = encodeURIComponent('#cancelarplano')
-                      window.open(`https://wa.me/5516997515087?text=${msg}`, '_blank')
-                    }}
+                    onClick={() => setShowCancelModal(true)}
                     className="flex-1 flex items-center justify-center gap-2 px-4 py-3 border border-red-200 text-red-600 rounded-xl font-medium hover:bg-red-50 transition-colors"
                   >
                     <XCircle className="w-5 h-5" />
-                    Cancelar Plano
+                    Cancelar Assinatura
                   </button>
                 )}
               </div>
@@ -433,6 +726,25 @@ export default function ConfiguracoesPage() {
                   max={planLimits.max_web_searches_month}
                 />
               </div>
+
+              {/* Mensagem para plano FREE */}
+              {client?.plan === 'free' && (
+                <div className="mt-8 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                  <p className="text-sm text-gray-600">
+                    Você está em um <strong>plano FREE</strong>. Para conhecer e assinar um plano,{' '}
+                    <Link href="/dashboard/planos" className="text-blue-600 hover:underline font-medium">
+                      clique aqui
+                    </Link>{' '}
+                    ou no botão UPGRADE acima. Para excluir sua conta, vá até{' '}
+                    <button
+                      onClick={() => setActiveTab('seguranca')}
+                      className="text-blue-600 hover:underline font-medium"
+                    >
+                      Configurações → Segurança
+                    </button>.
+                  </p>
+                </div>
+              )}
             </div>
           )}
 
@@ -440,7 +752,7 @@ export default function ConfiguracoesPage() {
           {activeTab === 'seguranca' && (
             <div className="card">
               <h2 className="text-lg font-medium text-gray-900 mb-6">Segurança</h2>
-              
+
               <div className="space-y-4">
                 <div className="p-4 border border-gray-200 rounded-lg">
                   <div className="flex items-center justify-between">
@@ -448,20 +760,17 @@ export default function ConfiguracoesPage() {
                       <p className="font-medium text-gray-900">Alterar senha</p>
                       <p className="text-sm text-gray-500">Atualize sua senha de acesso</p>
                     </div>
-                    <button className="btn-secondary text-sm">
-                      Alterar
-                    </button>
-                  </div>
-                </div>
-
-                <div className="p-4 border border-gray-200 rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-gray-900">Sessões ativas</p>
-                      <p className="text-sm text-gray-500">Gerencie seus dispositivos conectados</p>
-                    </div>
-                    <button className="btn-secondary text-sm">
-                      Ver sessões
+                    <button
+                      onClick={handlePasswordReset}
+                      disabled={sendingPasswordReset}
+                      className="btn-secondary text-sm flex items-center gap-2"
+                    >
+                      {sendingPasswordReset ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Key className="w-4 h-4" />
+                      )}
+                      {sendingPasswordReset ? 'Enviando...' : 'Alterar'}
                     </button>
                   </div>
                 </div>
@@ -472,7 +781,8 @@ export default function ConfiguracoesPage() {
                       <p className="font-medium text-red-900">Excluir conta</p>
                       <p className="text-sm text-red-700">Isso irá apagar todos os seus dados</p>
                     </div>
-                    <button className="px-4 py-2 bg-red-500 text-white rounded-lg text-sm font-medium hover:bg-red-600">
+                    <button className="px-4 py-2 bg-red-500 text-white rounded-lg text-sm font-medium hover:bg-red-600 flex items-center gap-2">
+                      <Trash2 className="w-4 h-4" />
                       Excluir
                     </button>
                   </div>
@@ -482,12 +792,57 @@ export default function ConfiguracoesPage() {
           )}
         </div>
       </div>
+
+      {/* Modal de Cancelamento */}
+      {showCancelModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 animate-fade-in">
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Frown className="w-8 h-8 text-amber-500" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900">Puxa, que pena!</h3>
+              <p className="text-gray-500 mt-1">Ficamos tristes em ver você ir 😢</p>
+            </div>
+
+            <div className="mb-6">
+              <label className="label">Quer nos contar o motivo do cancelamento? (opcional)</label>
+              <textarea
+                value={cancelReason}
+                onChange={(e) => setCancelReason(e.target.value)}
+                className="input min-h-[100px] resize-none"
+                placeholder="Conte-nos o que podemos melhorar..."
+              />
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={handleCancelSubscription}
+                disabled={cancelling}
+                className="flex-1 px-4 py-3 bg-red-500 text-white rounded-xl font-medium hover:bg-red-600 flex items-center justify-center gap-2"
+              >
+                {cancelling ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <XCircle className="w-5 h-5" />
+                )}
+                Cancelar Assinatura
+              </button>
+              <button
+                onClick={() => setShowCancelModal(false)}
+                className="flex-1 px-4 py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-xl font-medium hover:opacity-90"
+              >
+                Continuar com a SARA
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
 
 function UsageBar({ label, used, max }: { label: string, used: number, max: number }) {
-  // Se max é 0, recurso não disponível no plano
   const percentage = max > 0 ? Math.min((used / max) * 100, 100) : 0
   const isHigh = max > 0 && percentage > 80
   const isDisabled = max === 0

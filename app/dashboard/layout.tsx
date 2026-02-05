@@ -2,6 +2,7 @@ import Sidebar from '@/components/layout/Sidebar'
 import Header from '@/components/layout/Header'
 import ChatWidget from './components/ChatWidget'
 import WhatsAppFloatingButton from '@/components/ui/WhatsAppFloatingButton'
+import WhatsAppDisconnectedBanner from '@/components/ui/WhatsAppDisconnectedBanner'
 
 export default function DashboardLayout({
   children,
@@ -10,6 +11,7 @@ export default function DashboardLayout({
 }) {
   return (
     <div className="min-h-screen bg-sara-bg">
+      <WhatsAppDisconnectedBanner />
       <Sidebar />
       <Header />
       <main className="md:ml-[72px] px-4 pt-2 md:p-6 pb-24 md:pb-6 min-h-[calc(100vh-64px)]">
