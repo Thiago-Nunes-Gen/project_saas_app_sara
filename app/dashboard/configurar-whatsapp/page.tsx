@@ -105,7 +105,7 @@ export default function ConfigurarWhatsAppPage() {
 
           <div className="space-y-3">
             <a
-              href="https://wa.me/5516997515087?text=Ol%C3%A1%20SARA!"
+              href="https://wa.me/5516992706593?text=Ol%C3%A1%20SARA!"
               target="_blank"
               rel="noopener noreferrer"
               className="btn-primary w-full py-3 flex items-center justify-center gap-2"

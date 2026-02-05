@@ -180,7 +180,7 @@ function DefinirSenhaContent() {
               Este link expirou ou já foi utilizado. Solicite um novo link de acesso pelo WhatsApp.
             </p>
             <a
-              href="https://wa.me/5516997515087?text=Preciso de um novo link para acessar o portal"
+              href="https://wa.me/5516992706593?text=Preciso de um novo link para acessar o portal"
               target="_blank"
               rel="noopener noreferrer"
               className="btn-primary inline-flex items-center gap-2"
@@ -307,7 +307,7 @@ function DefinirSenhaContent() {
           <p className="text-center text-sm text-gray-500 mt-6">
             Precisa de ajuda?{' '}
             <a
-              href="https://wa.me/5516997515087"
+              href="https://wa.me/5516992706593"
               target="_blank"
               rel="noopener noreferrer"
               className="text-genesis-blue hover:underline"

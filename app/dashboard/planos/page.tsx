@@ -176,10 +176,10 @@ export default function PlanosPage() {
                   <button
                     onClick={() => handleSelectPlan(plan.id)}
                     className={`w-full py-3 px-4 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ${isPro
-                        ? 'bg-purple-500 text-white hover:bg-purple-600'
-                        : plan.id === 'free'
-                          ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                          : 'bg-blue-500 text-white hover:bg-blue-600'
+                      ? 'bg-purple-500 text-white hover:bg-purple-600'
+                      : plan.id === 'free'
+                        ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        : 'bg-blue-500 text-white hover:bg-blue-600'
                       }`}
                   >
                     {plan.id === 'free' ? 'Começar Grátis' : 'Assinar Agora'}
@@ -201,7 +201,7 @@ export default function PlanosPage() {
           Converse com a SARA pelo WhatsApp e ela te ajuda a escolher o melhor plano!
         </p>
         <a
-          href="https://wa.me/5516997515087?text=Ol%C3%A1%20SARA!%20Preciso%20de%20ajuda%20para%20escolher%20um%20plano."
+          href="https://wa.me/5516992706593?text=Ol%C3%A1%20SARA!%20Preciso%20de%20ajuda%20para%20escolher%20um%20plano."
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-2 px-6 py-3 bg-green-500 text-white rounded-xl font-medium hover:bg-green-600 transition-colors"
