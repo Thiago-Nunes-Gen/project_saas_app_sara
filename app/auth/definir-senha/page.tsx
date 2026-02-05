@@ -218,11 +218,6 @@ function DefinirSenhaContent() {
         <div className="w-full max-w-md">
           {/* Logo */}
           <div className="text-center mb-8">
-            <img
-              src="https://oqcpgljtikfctnolvscp.supabase.co/storage/v1/object/public/bucket-sara//Sara%20logo%20roxa.png"
-              alt="SARA"
-              className="h-12 w-auto mx-auto mb-4"
-            />
             <h1 className="text-2xl font-bold text-gray-900">Bem-vindo ao Portal SARA!</h1>
             <p className="text-gray-500 mt-2">Defina uma senha para acessar sua conta</p>
           </div>
@@ -327,7 +322,7 @@ function DefinirSenhaContent() {
       <div className="p-4 flex items-center justify-center gap-2 opacity-60">
         <span className="text-xs text-gray-500">Desenvolvido por</span>
         <img
-          src="https://oqcpgljtikfctnolvscp.supabase.co/storage/v1/object/public/bucket-sara//logo-genesis.png"
+          src="https://vkohkliecwxxruceocxo.supabase.co/storage/v1/object/public/Imagens%20Sara/logo_genesis.png"
           alt="Gênesis I.A."
           className="h-4 w-auto"
         />

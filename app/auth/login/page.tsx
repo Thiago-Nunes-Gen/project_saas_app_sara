@@ -55,15 +55,6 @@ function LoginForm() {
 
   return (
     <div className="animate-fade-in">
-      {/* Mobile Logo */}
-      <div className="lg:hidden flex justify-center mb-8">
-        <img
-          src="https://oqcpgljtikfctnolvscp.supabase.co/storage/v1/object/public/bucket-sara//Sara%20logo%20roxa.png"
-          alt="SARA"
-          className="h-10 w-auto"
-        />
-      </div>
-
       <div className="text-center mb-8">
         <h1 className="text-2xl font-bold text-sara-text mb-2">Bem-vindo de volta!</h1>
         <p className="text-sara-muted">Entre na sua conta para continuar</p>

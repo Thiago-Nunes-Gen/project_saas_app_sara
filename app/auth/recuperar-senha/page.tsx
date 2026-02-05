@@ -58,14 +58,6 @@ export default function RecuperarSenhaPage() {
 
   return (
     <div className="animate-fade-in">
-      <div className="lg:hidden flex justify-center mb-8">
-        <img
-          src="https://oqcpgljtikfctnolvscp.supabase.co/storage/v1/object/public/bucket-sara//Sara%20logo%20roxa.png"
-          alt="SARA"
-          className="h-10 w-auto"
-        />
-      </div>
-
       <Link href="/auth/login" className="inline-flex items-center gap-2 text-sm text-sara-muted hover:text-sara-text mb-6">
         <ArrowLeft className="w-4 h-4" />
         Voltar ao login

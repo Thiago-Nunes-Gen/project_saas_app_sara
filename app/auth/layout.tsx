@@ -9,16 +9,7 @@ export default function AuthLayout({
     <div className="min-h-screen bg-sara-bg flex">
       {/* Left Side - Branding */}
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-genesis-purple-dark via-genesis-purple to-genesis-purple-darker p-12 flex-col justify-between">
-        <div>
-          {/* Logo SARA no topo */}
-          <Image
-            src="https://oqcpgljtikfctnolvscp.supabase.co/storage/v1/object/public/bucket-sara//Sara%20logo%20branca.png"
-            alt="SARA"
-            width={120}
-            height={40}
-            className="h-10 w-auto"
-          />
-        </div>
+        <div />
 
         <div>
           <h1 className="text-4xl font-bold text-white mb-4">
@@ -34,7 +25,7 @@ export default function AuthLayout({
         <div className="flex items-center gap-2 opacity-70">
           <span className="text-sm text-white/70">Desenvolvido por</span>
           <Image
-            src="https://oqcpgljtikfctnolvscp.supabase.co/storage/v1/object/public/bucket-sara//logo-genesis.png"
+            src="https://vkohkliecwxxruceocxo.supabase.co/storage/v1/object/public/Imagens%20Sara/logo_genesis.png"
             alt="Gênesis I.A."
             width={80}
             height={24}
@@ -51,11 +42,11 @@ export default function AuthLayout({
           </div>
         </div>
 
-        {/* Footer mobile - apenas no lado direito (mobile e desktop) */}
+        {/* Footer mobile */}
         <div className="p-4 flex items-center justify-center gap-2 opacity-60">
           <span className="text-xs text-sara-muted">Desenvolvido por</span>
           <Image
-            src="https://oqcpgljtikfctnolvscp.supabase.co/storage/v1/object/public/bucket-sara//logo-genesis.png"
+            src="https://vkohkliecwxxruceocxo.supabase.co/storage/v1/object/public/Imagens%20Sara/logo_genesis.png"
             alt="Gênesis I.A."
             width={60}
             height={20}
