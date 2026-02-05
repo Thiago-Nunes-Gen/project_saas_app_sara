@@ -8,17 +8,18 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        // Nova paleta Gênesis
         primary: {
-          50: '#E3F2FD',
-          100: '#BBDEFB',
-          200: '#90CAF9',
-          300: '#64B5F6',
-          400: '#42A5F5',
-          500: '#1E88E5',
-          600: '#1976D2',
-          700: '#1565C0',
-          800: '#0D47A1',
-          900: '#0A3D8F',
+          50: '#f3f4fb',
+          100: '#e8e9f7',
+          200: '#d5d8f0',
+          300: '#aab2e8', // Lilás claro da paleta
+          400: '#7b86d9',
+          500: '#3d9af4', // Azul brilhante da paleta
+          600: '#23639f', // Azul médio da paleta
+          700: '#2d1856', // Roxo médio da paleta
+          800: '#21154d', // Roxo escuro da paleta
+          900: '#210222', // Roxo muito escuro da paleta
         },
         sara: {
           bg: '#FAFAFA',
@@ -27,6 +28,19 @@ module.exports = {
           text: '#1A1A1A',
           muted: '#6B7280',
           light: '#9CA3AF',
+        },
+        // Cores específicas da marca Gênesis
+        genesis: {
+          purple: {
+            dark: '#21154d',
+            DEFAULT: '#2d1856',
+            light: '#aab2e8',
+            darker: '#210222',
+          },
+          blue: {
+            DEFAULT: '#23639f',
+            light: '#3d9af4',
+          }
         }
       },
       fontFamily: {

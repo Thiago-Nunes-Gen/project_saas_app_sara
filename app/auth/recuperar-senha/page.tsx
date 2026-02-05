@@ -18,7 +18,7 @@ export default function RecuperarSenhaPage() {
 
     try {
       const supabase = createClient()
-      
+
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/auth/nova-senha`,
       })
@@ -45,7 +45,7 @@ export default function RecuperarSenhaPage() {
         </div>
         <h1 className="text-2xl font-bold text-sara-text mb-2">Email enviado!</h1>
         <p className="text-sara-muted mb-6">
-          Se existe uma conta com o email <strong>{email}</strong>, 
+          Se existe uma conta com o email <strong>{email}</strong>,
           você receberá um link para redefinir sua senha.
         </p>
         <Link href="/auth/login" className="btn-primary inline-flex items-center gap-2">
@@ -59,9 +59,11 @@ export default function RecuperarSenhaPage() {
   return (
     <div className="animate-fade-in">
       <div className="lg:hidden flex justify-center mb-8">
-        <div className="w-14 h-14 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center">
-          <span className="text-white font-bold text-2xl">S</span>
-        </div>
+        <img
+          src="https://oqcpgljtikfctnolvscp.supabase.co/storage/v1/object/public/bucket-sara//Sara%20logo%20roxa.png"
+          alt="SARA"
+          className="h-10 w-auto"
+        />
       </div>
 
       <Link href="/auth/login" className="inline-flex items-center gap-2 text-sm text-sara-muted hover:text-sara-text mb-6">

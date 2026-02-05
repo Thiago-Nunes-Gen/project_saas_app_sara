@@ -149,9 +149,11 @@ export default function CadastroPage() {
     <div className="animate-fade-in">
       {/* Mobile Logo */}
       <div className="lg:hidden flex justify-center mb-8">
-        <div className="w-14 h-14 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center">
-          <span className="text-white font-bold text-2xl">S</span>
-        </div>
+        <img
+          src="https://oqcpgljtikfctnolvscp.supabase.co/storage/v1/object/public/bucket-sara//Sara%20logo%20roxa.png"
+          alt="SARA"
+          className="h-10 w-auto"
+        />
       </div>
 
       <div className="text-center mb-8">
