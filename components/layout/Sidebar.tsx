@@ -15,7 +15,8 @@ import {
   MessageSquare,
   FolderOpen,
   Menu,
-  X
+  X,
+  MessageCircle
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase-browser'
 import { useRouter } from 'next/navigation'
@@ -113,7 +114,7 @@ export default function Sidebar() {
       {/* Mobile Bottom Navigation */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 safe-bottom">
         <div className="flex items-center justify-around h-16">
-          {mobileNavItems.slice(0, 4).map((item) => {
+          {mobileNavItems.slice(0, 3).map((item) => {
             const Icon = item.icon
             const isActive = pathname === item.href ||
               (item.href !== '/dashboard' && pathname.startsWith(item.href))
@@ -130,6 +131,16 @@ export default function Sidebar() {
               </Link>
             )
           })}
+          {/* WhatsApp SARA Button */}
+          <a
+            href="https://wa.me/5516992706593?text=Ol%C3%A1%20SARA!"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex flex-col items-center justify-center flex-1 h-full text-green-500"
+          >
+            <MessageCircle className="w-5 h-5" />
+            <span className="text-[10px] mt-1">WhatsApp</span>
+          </a>
           {/* Menu Button */}
           <button
             onClick={() => setMobileMenuOpen(true)}
