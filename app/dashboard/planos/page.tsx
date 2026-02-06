@@ -151,35 +151,6 @@ export default function PlanosPage() {
                 </div>
               </div>
 
-              {/* Limites do Plano */}
-              <div className="p-6 border-b border-gray-100">
-                <div className="grid grid-cols-2 gap-3 text-sm">
-                  <div className="flex items-center gap-2">
-                    <span className="text-gray-500">Lembretes:</span>
-                    <span className="font-medium text-gray-900">
-                      {plan.max_reminders === -1 ? '∞' : plan.max_reminders}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-gray-500">Listas:</span>
-                    <span className="font-medium text-gray-900">
-                      {plan.max_lists === -1 ? '∞' : plan.max_lists}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-gray-500">Transações:</span>
-                    <span className="font-medium text-gray-900">
-                      {plan.max_transactions_month === -1 ? '∞' : plan.max_transactions_month}/mês
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-gray-500">Agendamentos:</span>
-                    <span className="font-medium text-gray-900">
-                      {plan.max_appointments_month === -1 ? '∞' : plan.max_appointments_month}/mês
-                    </span>
-                  </div>
-                </div>
-              </div>
 
               {/* Features */}
               <div className="p-6 flex-1">
