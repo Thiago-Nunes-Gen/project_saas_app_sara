@@ -322,11 +322,13 @@ function CheckoutContent() {
                   <input
                     type="email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="input"
+                    readOnly
+                    className="input bg-gray-50 text-gray-500 cursor-not-allowed"
                     placeholder="seu@email.com"
-                    required
                   />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Para alterar o email, entre em contato: suporte@iagenes.com.br
+                  </p>
                 </div>
               </div>
             </div>

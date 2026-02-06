@@ -218,7 +218,6 @@ export default function ConfiguracoesPage() {
         .update({
           name,
           apelido,
-          email,
           uf,
           cidade,
           timezone,
@@ -387,8 +386,8 @@ export default function ConfiguracoesPage() {
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${activeTab === tab.id
-                      ? 'bg-blue-50 text-blue-600'
-                      : 'text-gray-600 hover:bg-gray-100'
+                    ? 'bg-blue-50 text-blue-600'
+                    : 'text-gray-600 hover:bg-gray-100'
                     }`}
                 >
                   <Icon className="w-5 h-5" />
@@ -403,8 +402,8 @@ export default function ConfiguracoesPage() {
         <div className="flex-1">
           {message && (
             <div className={`mb-6 p-4 rounded-lg flex items-center gap-3 ${message.type === 'success'
-                ? 'bg-green-50 border border-green-200 text-green-700'
-                : 'bg-red-50 border border-red-200 text-red-700'
+              ? 'bg-green-50 border border-green-200 text-green-700'
+              : 'bg-red-50 border border-red-200 text-red-700'
               }`}>
               {message.type === 'success' ? (
                 <Check className="w-5 h-5" />
@@ -447,9 +446,12 @@ export default function ConfiguracoesPage() {
                   <input
                     type="email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="input"
+                    readOnly
+                    className="input bg-gray-50 text-gray-500 cursor-not-allowed"
                   />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Para alterar o email, entre em contato: suporte@iagenes.com.br
+                  </p>
                 </div>
 
                 {/* Estado e Cidade */}
