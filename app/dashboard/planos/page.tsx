@@ -139,7 +139,7 @@ export default function PlanosPage() {
                   <Icon className="w-6 h-6" />
                 </div>
                 <h3 className="text-xl font-bold text-gray-900">{plan.name}</h3>
-                <p className="text-sm text-gray-500 mt-1">{plan.description}</p>
+                <p className="text-sm text-gray-500 mt-1 min-h-[40px]">{plan.description}</p>
 
                 <div className="mt-4">
                   <span className="text-3xl font-bold text-gray-900">
