@@ -155,6 +155,15 @@ export default function PlanosPage() {
               {/* Features */}
               <div className="p-6 flex-1">
                 <ul className="space-y-3">
+                  {/* Agendamentos - adicionado manualmente */}
+                  <li className="flex items-start gap-2">
+                    <Check className={`w-5 h-5 ${colors.text} flex-shrink-0 mt-0.5`} />
+                    <span className="text-sm text-gray-600">
+                      {plan.max_appointments_month === -1
+                        ? 'Agendamentos ilimitados'
+                        : `${plan.max_appointments_month} agendamentos/mês`}
+                    </span>
+                  </li>
                   {plan.features.map((feature, index) => (
                     <li key={index} className="flex items-start gap-2">
                       <Check className={`w-5 h-5 ${colors.text} flex-shrink-0 mt-0.5`} />
