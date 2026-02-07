@@ -124,6 +124,28 @@ function StepCard({ number, title, description }: { number: number, title: strin
     )
 }
 
+// Item FAQ Accordion
+function FaqItem({ question, answer }: { question: string, answer: string }) {
+    const [isOpen, setIsOpen] = useState(false)
+
+    return (
+        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden transition-all duration-300 hover:shadow-md">
+            <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="w-full flex items-center justify-between p-6 text-left"
+            >
+                <span className="font-bold text-gray-900 text-lg">{question}</span>
+                <ChevronDown className={`w-5 h-5 text-gray-500 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+            </button>
+            <div className={`transition-all duration-300 ease-in-out ${isOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
+                <div className="p-6 pt-0 text-gray-600 leading-relaxed">
+                    {answer}
+                </div>
+            </div>
+        </div>
+    )
+}
+
 export default function LandingPage() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
     const [scrolled, setScrolled] = useState(false)
@@ -543,7 +565,47 @@ export default function LandingPage() {
                 </div>
             </section>
 
-            {/* CTA Section */}
+            {/* FAQ Section */}
+            <section className="py-20 lg:py-32 bg-gray-50">
+                <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="text-center mb-16">
+                        <span className="inline-block bg-purple-100 text-purple-600 px-4 py-1 rounded-full text-sm font-semibold mb-4">
+                            DÚVIDAS FREQUENTES
+                        </span>
+                        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 mb-4">
+                            Perguntas Comuns
+                        </h2>
+                    </div>
+
+                    <div className="space-y-4">
+                        <FaqItem
+                            question="A SARA é segura? Meus dados estão protegidos?"
+                            answer="Sim! Utilizamos criptografia em trânsito e repouso (nível bancário) e seus dados são armazenados em servidores seguros. Seguimos rigorosamente a LGPD e nunca compartilhamos suas informações com terceiros."
+                        />
+                        <FaqItem
+                            question="Preciso instalar algum aplicativo?"
+                            answer="Não! A SARA funciona 100% no seu WhatsApp. É só salvar o número e começar a conversar. Você também ganha acesso a um Portal Web para visualização detalhada de relatórios e configurações."
+                        />
+                        <FaqItem
+                            question="O plano gratuito é para sempre?"
+                            answer="Sim! O plano Gratuito não expira. Ele tem limites mensais de uso que se renovam automaticamente. Você só precisa fazer upgrade para planos pagos se desejar mais capacidade ou recursos exclusivos."
+                        />
+                        <FaqItem
+                            question="Ela entende mensagens de áudio?"
+                            answer="Entende sim! Você pode enviar áudios longos ditando gastos, lembretes ou itens de lista. A IA da SARA transcreve, interpreta e organiza tudo magicamente para você."
+                        />
+                        <FaqItem
+                            question="E se a SARA entender algo errado?"
+                            answer="Você tem total controle. Pode editar ou excluir qualquer lançamento diretamente pelo chat (pedindo para ela corrigir) ou acessando seu Portal Web. Ela também aprende com suas correções para ficar cada vez mais precisa."
+                        />
+                        <FaqItem
+                            question="Posso cancelar quando quiser?"
+                            answer="Com certeza. Sem multas, sem fidelidade e sem letras miúdas. Você gerencia sua assinatura com um clique diretamente no portal e pode cancelar a qualquer momento."
+                        />
+                    </div>
+                </div>
+            </section>
+
             <section className="py-20 lg:py-32 bg-gradient-to-br from-[#21154d] via-[#2d1856] to-[#23639f] relative overflow-hidden">
                 <div className="absolute inset-0">
                     <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl" />
