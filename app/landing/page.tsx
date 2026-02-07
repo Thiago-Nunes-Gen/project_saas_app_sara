@@ -22,7 +22,8 @@ import {
     Crown,
     Building2,
     Menu,
-    X
+    X,
+    Heart
 } from 'lucide-react'
 
 // Componente de animação de número
@@ -541,6 +542,15 @@ export default function LandingPage() {
                                         <div className="text-sm text-gray-500">Empresa brasileira</div>
                                     </div>
                                 </div>
+                                <div className="flex items-center gap-3">
+                                    <div className="w-12 h-12 rounded-full bg-pink-100 flex items-center justify-center">
+                                        <Heart className="w-6 h-6 text-pink-600" />
+                                    </div>
+                                    <div>
+                                        <div className="font-bold text-gray-900">Apaixonados por I.A.</div>
+                                        <div className="text-sm text-gray-500">Inovação no DNA</div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div className="flex justify-center">
@@ -585,6 +595,10 @@ export default function LandingPage() {
                         <FaqItem
                             question="Preciso instalar algum aplicativo?"
                             answer="Não! A SARA funciona 100% no seu WhatsApp. É só salvar o número e começar a conversar. Você também ganha acesso a um Portal Web para visualização detalhada de relatórios e configurações."
+                        />
+                        <FaqItem
+                            question="Como funciona o pagamento? É seguro?"
+                            answer="Totalmente seguro! Nossas assinaturas são processadas pelo **Asaas**, um dos maiores gateways de pagamento do Brasil. Nós da **Genesis I.A.** estamos comprometidos com sua privacidade e não temos acesso aos seus dados financeiros."
                         />
                         <FaqItem
                             question="O plano gratuito é para sempre?"
