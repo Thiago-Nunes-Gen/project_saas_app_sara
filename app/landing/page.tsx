@@ -658,41 +658,47 @@ export default function LandingPage() {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="grid md:grid-cols-4 gap-8">
                         <div>
-                            <div className="flex items-center gap-2 mb-4">
+                            <div className="flex items-center gap-3 mb-4">
                                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-blue-500 flex items-center justify-center">
                                     <MessageCircle className="w-6 h-6 text-white" />
                                 </div>
-                                <span className="text-xl font-bold">SARA</span>
+                                <div>
+                                    <span className="text-xl font-bold block leading-none text-white">SARA</span>
+                                    <span className="text-[10px] text-gray-400 uppercase tracking-wider font-medium">Smart Artificial Reliable Assistant</span>
+                                </div>
                             </div>
                             <p className="text-gray-400 text-sm">
                                 Sua assistente pessoal inteligente, disponível 24/7 no WhatsApp.
                             </p>
                         </div>
                         <div>
-                            <h4 className="font-semibold mb-4">Produto</h4>
+                            <h4 className="font-semibold mb-4 text-white">Produto</h4>
                             <ul className="space-y-2 text-gray-400 text-sm">
-                                <li><a href="#funcionalidades" className="hover:text-white transition-colors">Funcionalidades</a></li>
-                                <li><a href="#planos" className="hover:text-white transition-colors">Planos</a></li>
-                                <li><Link href="/auth/cadastro" className="hover:text-white transition-colors">Comece Grátis</Link></li>
+                                <li><a href="#funcionalidades" className="hover:text-purple-400 transition-colors">Funcionalidades</a></li>
+                                <li><a href="#planos" className="hover:text-purple-400 transition-colors">Planos</a></li>
+                                <li><Link href="/auth/cadastro" className="hover:text-purple-400 transition-colors">Comece Grátis</Link></li>
                             </ul>
                         </div>
                         <div>
-                            <h4 className="font-semibold mb-4">Empresa</h4>
+                            <h4 className="font-semibold mb-4 text-white">Empresa</h4>
                             <ul className="space-y-2 text-gray-400 text-sm">
-                                <li><a href="https://iagenes.com.br" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Genesis IA</a></li>
-                                <li><a href="mailto:suporte@iagenes.com.br" className="hover:text-white transition-colors">Contato</a></li>
+                                <li><a href="https://iagenes.com.br" target="_blank" rel="noopener noreferrer" className="hover:text-purple-400 transition-colors">Genesis IA</a></li>
+                                <li><a href="mailto:suporte@iagenes.com.br" className="hover:text-purple-400 transition-colors">Contato</a></li>
                             </ul>
                         </div>
                         <div>
-                            <h4 className="font-semibold mb-4">Legal</h4>
+                            <h4 className="font-semibold mb-4 text-white">Legal</h4>
                             <ul className="space-y-2 text-gray-400 text-sm">
-                                <li><Link href="/termos" className="hover:text-white transition-colors">Termos de Uso</Link></li>
-                                <li><Link href="/privacidade" className="hover:text-white transition-colors">Política de Privacidade</Link></li>
+                                <li><Link href="/termos" className="hover:text-purple-400 transition-colors">Termos de Uso</Link></li>
+                                <li><Link href="/privacidade" className="hover:text-purple-400 transition-colors">Política de Privacidade</Link></li>
                             </ul>
                         </div>
                     </div>
-                    <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-500 text-sm">
+                    <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-gray-500 text-sm">
                         <p>© {new Date().getFullYear()} GENESIS SOLUÇÕES EM IA LTDA. Todos os direitos reservados.</p>
+                        <p className="flex items-center gap-1">
+                            Desenvolvido com <Heart className="w-3 h-3 text-red-500 fill-red-500" /> pela <span className="font-bold text-gray-300">Genesis Soluções em I.A.</span>
+                        </p>
                     </div>
                 </div>
             </footer>
