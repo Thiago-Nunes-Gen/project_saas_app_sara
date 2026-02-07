@@ -101,8 +101,8 @@ function PlanCard({ name, price, features, popular, icon: Icon, color }: {
             <Link
                 href={`/auth/cadastro?plano=${name.toLowerCase()}`}
                 className={`block w-full py-3 px-4 rounded-xl text-center font-semibold transition-all duration-300 ${popular
-                        ? 'bg-gradient-to-r from-purple-600 to-blue-500 text-white hover:shadow-lg hover:scale-105'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-gradient-to-r from-purple-600 to-blue-500 text-white hover:shadow-lg hover:scale-105'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
             >
                 Começar Agora
@@ -224,21 +224,21 @@ export default function LandingPage() {
                                 </a>
                             </div>
 
-                            {/* Social Proof */}
+                            {/* Social Proof - Frases de Impacto */}
                             <div className="mt-12 flex flex-wrap items-center justify-center lg:justify-start gap-8">
-                                <div className="text-center">
-                                    <div className="text-3xl font-bold text-white"><AnimatedCounter target={500} suffix="+" /></div>
-                                    <div className="text-white/60 text-sm">Usuários ativos</div>
+                                <div className="text-center lg:text-left">
+                                    <div className="text-xl font-bold text-white">Mais organização</div>
+                                    <div className="text-white/60 text-sm">Menos esforço</div>
                                 </div>
-                                <div className="text-center">
-                                    <div className="text-3xl font-bold text-white"><AnimatedCounter target={10000} suffix="+" /></div>
-                                    <div className="text-white/60 text-sm">Lembretes criados</div>
+                                <div className="hidden lg:block w-px h-10 bg-white/20"></div>
+                                <div className="text-center lg:text-left">
+                                    <div className="text-xl font-bold text-white">Lembretes e finanças</div>
+                                    <div className="text-white/60 text-sm">Em segundos</div>
                                 </div>
-                                <div className="text-center">
-                                    <div className="text-3xl font-bold text-white">4.9</div>
-                                    <div className="text-white/60 text-sm flex items-center gap-1">
-                                        <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" /> Avaliação
-                                    </div>
+                                <div className="hidden lg:block w-px h-10 bg-white/20"></div>
+                                <div className="text-center lg:text-left">
+                                    <div className="text-xl font-bold text-white">100% no WhatsApp</div>
+                                    <div className="text-white/60 text-sm">E no Chat do Portal</div>
                                 </div>
                             </div>
                         </div>
@@ -389,8 +389,8 @@ export default function LandingPage() {
                         />
                         <StepCard
                             number={2}
-                            title="Conecte o WhatsApp"
-                            description="Escaneie o QR Code e vincule seu número à SARA."
+                            title="Vincule e Pronto"
+                            description="Após o cadastro, vincule seu WhatsApp de forma simples. Você pode acessar a SARA no WhatsApp e Chat do Portal."
                         />
                         <StepCard
                             number={3}
