@@ -23,7 +23,8 @@ import {
     Building2,
     Menu,
     X,
-    Heart
+    Heart,
+    Mail
 } from 'lucide-react'
 
 // Componente de animação de número
@@ -616,6 +617,18 @@ export default function LandingPage() {
                             question="Posso cancelar quando quiser?"
                             answer="Com certeza. Sem multas, sem fidelidade e sem letras miúdas. Você gerencia sua assinatura com um clique diretamente no portal e pode cancelar a qualquer momento."
                         />
+                    </div>
+
+                    <div className="mt-12 text-center">
+                        <div className="inline-flex items-center gap-2 bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+                            <Mail className="w-5 h-5 text-purple-600" />
+                            <span className="text-gray-600">
+                                Ainda tem dúvidas? Fique tranquilo, entre em contato pelo{' '}
+                                <a href="mailto:suporte@iagenes.com.br" className="text-purple-600 font-bold hover:underline">
+                                    suporte@iagenes.com.br
+                                </a>
+                            </span>
+                        </div>
                     </div>
                 </div>
             </section>
