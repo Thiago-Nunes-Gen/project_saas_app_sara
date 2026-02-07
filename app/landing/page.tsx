@@ -126,7 +126,7 @@ function StepCard({ number, title, description }: { number: number, title: strin
 }
 
 // Item FAQ Accordion
-function FaqItem({ question, answer }: { question: string, answer: string }) {
+function FaqItem({ question, answer }: { question: string, answer: React.ReactNode }) {
     const [isOpen, setIsOpen] = useState(false)
 
     return (
@@ -598,7 +598,7 @@ export default function LandingPage() {
                         />
                         <FaqItem
                             question="Como funciona o pagamento? É seguro?"
-                            answer="Totalmente seguro! Nossas assinaturas são processadas pelo **Asaas**, um dos maiores gateways de pagamento do Brasil. Nós da **Genesis I.A.** estamos comprometidos com sua privacidade e não temos acesso aos seus dados financeiros."
+                            answer={<>Totalmente seguro! Nossas assinaturas são processadas pelo <strong>Asaas</strong>, um dos maiores gateways de pagamento do Brasil. Nós da <strong>Genesis I.A.</strong> estamos comprometidos com sua privacidade e não temos acesso aos seus dados financeiros.</>}
                         />
                         <FaqItem
                             question="O plano gratuito é para sempre?"
