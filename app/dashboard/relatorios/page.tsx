@@ -501,54 +501,54 @@ export default function RelatoriosPage() {
           </div>
         </div>
       </div>
-    </div>
 
-      {/* Upgrade Modal */ }
-  {
-    showUpgradeModal && (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
-        <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl relative">
-          <button
-            onClick={() => setShowUpgradeModal(false)}
-            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
-          >
-            <X className="w-6 h-6" />
-          </button>
 
-          <div className="text-center">
-            <div className="w-16 h-16 bg-gradient-to-br from-purple-100 to-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Lock className="w-8 h-8 text-purple-600" />
-            </div>
-
-            <h3 className="text-xl font-bold text-gray-900 mb-2">
-              Desbloqueie os Relatórios
-            </h3>
-
-            <p className="text-gray-600 mb-6 leading-relaxed">
-              Os relatórios completos com análise de IA estão disponíveis a partir do plano <strong>Starter</strong>.
-              Faça o upgrade para ter insights valiosos sobre suas finanças e produtividade!
-            </p>
-
-            <div className="space-y-3">
-              <Link
-                href="/dashboard/planos"
-                className="block w-full py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold rounded-xl hover:shadow-lg hover:scale-[1.02] transition-all duration-200"
-              >
-                Ver Planos e Preços
-              </Link>
-
+      {/* Upgrade Modal */}
+      {
+        showUpgradeModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
+            <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl relative">
               <button
                 onClick={() => setShowUpgradeModal(false)}
-                className="block w-full py-2 text-gray-500 hover:text-gray-700 font-medium transition-colors"
+                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
               >
-                Continuar no Grátis
+                <X className="w-6 h-6" />
               </button>
+
+              <div className="text-center">
+                <div className="w-16 h-16 bg-gradient-to-br from-purple-100 to-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Lock className="w-8 h-8 text-purple-600" />
+                </div>
+
+                <h3 className="text-xl font-bold text-gray-900 mb-2">
+                  Desbloqueie os Relatórios
+                </h3>
+
+                <p className="text-gray-600 mb-6 leading-relaxed">
+                  Os relatórios completos com análise de IA estão disponíveis a partir do plano <strong>Starter</strong>.
+                  Faça o upgrade para ter insights valiosos sobre suas finanças e produtividade!
+                </p>
+
+                <div className="space-y-3">
+                  <Link
+                    href="/dashboard/planos"
+                    className="block w-full py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold rounded-xl hover:shadow-lg hover:scale-[1.02] transition-all duration-200"
+                  >
+                    Ver Planos e Preços
+                  </Link>
+
+                  <button
+                    onClick={() => setShowUpgradeModal(false)}
+                    className="block w-full py-2 text-gray-500 hover:text-gray-700 font-medium transition-colors"
+                  >
+                    Continuar no Grátis
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
-    )
-  }
+        )
+      }
     </div >
   )
 }
