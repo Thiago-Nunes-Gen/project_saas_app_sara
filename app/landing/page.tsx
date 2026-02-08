@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { createClient } from '@/lib/supabase-browser'
 import {
     MessageCircle,
     Wallet,
@@ -26,6 +27,20 @@ import {
     Heart,
     Mail
 } from 'lucide-react'
+
+interface Plan {
+    id: string
+    name: string
+    price_monthly: number
+    features: string[] | string
+}
+
+const planConfig: Record<string, { icon: any, color: string }> = {
+    free: { icon: Star, color: "from-gray-400 to-gray-500" },
+    starter: { icon: Zap, color: "from-yellow-400 to-orange-500" },
+    pro: { icon: Crown, color: "from-purple-500 to-pink-500" },
+    enterprise: { icon: Building2, color: "from-blue-500 to-cyan-500" }
+}
 
 // Componente de animação de número
 function AnimatedCounter({ target, duration = 2000, suffix = '' }: { target: number, duration?: number, suffix?: string }) {
@@ -151,12 +166,39 @@ function FaqItem({ question, answer }: { question: string, answer: React.ReactNo
 export default function LandingPage() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
     const [scrolled, setScrolled] = useState(false)
+    const [plans, setPlans] = useState<Plan[]>([])
+    const [loadingPlans, setLoadingPlans] = useState(true)
 
     useEffect(() => {
         const handleScroll = () => setScrolled(window.scrollY > 50)
         window.addEventListener('scroll', handleScroll)
+
+        // Fetch Plans
+        async function fetchPlans() {
+            const supabase = createClient()
+            const { data } = await supabase
+                .from('saas_plans')
+                .select('id, name, price_monthly, features')
+                .eq('is_active', true)
+                .order('price_monthly', { ascending: true })
+
+            if (data) {
+                setPlans(data.map(p => ({
+                    ...p,
+                    features: typeof p.features === 'string' ? JSON.parse(p.features) : p.features
+                })))
+            }
+            setLoadingPlans(false)
+        }
+        fetchPlans()
+
         return () => window.removeEventListener('scroll', handleScroll)
     }, [])
+
+    const formatPrice = (price: number) => {
+        if (price === 0) return 'Grátis'
+        return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(price)
+    }
 
     return (
         <div className="min-h-screen bg-white font-sans">
@@ -448,61 +490,38 @@ export default function LandingPage() {
                     </div>
 
                     <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-4">
-                        <PlanCard
-                            name="Gratuito"
-                            price="Grátis"
-                            icon={Star}
-                            color="from-gray-400 to-gray-500"
-                            features={[
-                                "10 lembretes ativos",
-                                "3 listas com 8 itens cada",
-                                "15 transações/mês",
-                                "3 agendamentos/mês",
-                                "Ideal para experimentar"
-                            ]}
-                        />
-                        <PlanCard
-                            name="Starter"
-                            price="R$ 19,90"
-                            icon={Zap}
-                            color="from-yellow-400 to-orange-500"
-                            features={[
-                                "50 lembretes ativos",
-                                "10 listas com 50 itens",
-                                "60 transações/mês",
-                                "10 agendamentos/mês",
-                                "10 pesquisas web/mês"
-                            ]}
-                        />
-                        <PlanCard
-                            name="Profissional"
-                            price="R$ 49,90"
-                            icon={Crown}
-                            color="from-purple-500 to-pink-500"
-                            popular
-                            features={[
-                                "100 lembretes ativos",
-                                "50 listas com 100 itens",
-                                "150 transações/mês",
-                                "40 agendamentos/mês",
-                                "25 pesquisas web/mês",
-                                "Relatórios em PDF"
-                            ]}
-                        />
-                        <PlanCard
-                            name="Enterprise"
-                            price="R$ 99,90"
-                            icon={Building2}
-                            color="from-blue-500 to-cyan-500"
-                            features={[
-                                "Lembretes ilimitados",
-                                "Listas ilimitadas",
-                                "Transações ilimitadas",
-                                "Agendamentos ilimitados",
-                                "50 pesquisas web/mês",
-                                "Suporte prioritário"
-                            ]}
-                        />
+                        {loadingPlans ? (
+                            // Skeleton Loading
+                            [...Array(4)].map((_, i) => (
+                                <div key={i} className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 h-[500px] animate-pulse">
+                                    <div className="w-12 h-12 rounded-xl bg-gray-200 mb-4" />
+                                    <div className="h-6 w-3/4 bg-gray-200 rounded mb-4" />
+                                    <div className="h-10 w-1/2 bg-gray-200 rounded mb-8" />
+                                    <div className="space-y-3">
+                                        {[...Array(5)].map((_, j) => (
+                                            <div key={j} className="h-4 w-full bg-gray-200 rounded" />
+                                        ))}
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            plans.map(plan => {
+                                const config = planConfig[plan.id] || planConfig.free
+                                const isPro = plan.id === 'pro'
+
+                                return (
+                                    <PlanCard
+                                        key={plan.id}
+                                        name={plan.name}
+                                        price={formatPrice(plan.price_monthly)}
+                                        icon={config.icon}
+                                        color={config.color}
+                                        features={Array.isArray(plan.features) ? plan.features : []}
+                                        popular={isPro}
+                                    />
+                                )
+                            })
+                        )}
                     </div>
                 </div>
             </section>
