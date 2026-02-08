@@ -80,6 +80,11 @@ export default function PlanosPage() {
     }).format(price)
   }
 
+  const formatLimit = (limit: number) => {
+    if (limit === -1 || limit >= 999999) return 'Ilimitado'
+    return limit
+  }
+
   const handleSelectPlan = (planId: string) => {
     if (planId === 'free') {
       // Free plan - no checkout needed
@@ -159,7 +164,7 @@ export default function PlanosPage() {
                   <li className="flex items-start gap-2">
                     <Check className={`w-5 h-5 ${colors.text} flex-shrink-0 mt-0.5`} />
                     <span className="text-sm text-gray-600">
-                      {plan.max_appointments_month === -1
+                      {plan.max_appointments_month === -1 || plan.max_appointments_month >= 999999
                         ? 'Agendamentos ilimitados'
                         : `${plan.max_appointments_month} agendamentos/mês`}
                     </span>
@@ -240,7 +245,7 @@ export default function PlanosPage() {
               <td className="py-4 px-4 text-sm text-gray-600">Lembretes ativos</td>
               {plans.map(plan => (
                 <td key={plan.id} className="text-center py-4 px-4 text-sm text-gray-900">
-                  {plan.max_reminders === -1 ? 'Ilimitado' : plan.max_reminders}
+                  {formatLimit(plan.max_reminders)}
                 </td>
               ))}
             </tr>
@@ -248,7 +253,7 @@ export default function PlanosPage() {
               <td className="py-4 px-4 text-sm text-gray-600">Listas</td>
               {plans.map(plan => (
                 <td key={plan.id} className="text-center py-4 px-4 text-sm text-gray-900">
-                  {plan.max_lists === -1 ? 'Ilimitado' : plan.max_lists}
+                  {formatLimit(plan.max_lists)}
                 </td>
               ))}
             </tr>
@@ -256,7 +261,7 @@ export default function PlanosPage() {
               <td className="py-4 px-4 text-sm text-gray-600">Transações/mês</td>
               {plans.map(plan => (
                 <td key={plan.id} className="text-center py-4 px-4 text-sm text-gray-900">
-                  {plan.max_transactions_month === -1 ? 'Ilimitado' : plan.max_transactions_month}
+                  {formatLimit(plan.max_transactions_month)}
                 </td>
               ))}
             </tr>
@@ -264,7 +269,7 @@ export default function PlanosPage() {
               <td className="py-4 px-4 text-sm text-gray-600">Documentos na base</td>
               {plans.map(plan => (
                 <td key={plan.id} className="text-center py-4 px-4 text-sm text-gray-900">
-                  {plan.max_documents === -1 ? 'Ilimitado' : plan.max_documents}
+                  {formatLimit(plan.max_documents)}
                 </td>
               ))}
             </tr>
@@ -272,7 +277,7 @@ export default function PlanosPage() {
               <td className="py-4 px-4 text-sm text-gray-600">Pesquisas web/mês</td>
               {plans.map(plan => (
                 <td key={plan.id} className="text-center py-4 px-4 text-sm text-gray-900">
-                  {plan.max_web_searches_month === -1 ? 'Ilimitado' : plan.max_web_searches_month}
+                  {formatLimit(plan.max_web_searches_month)}
                 </td>
               ))}
             </tr>
@@ -280,7 +285,7 @@ export default function PlanosPage() {
               <td className="py-4 px-4 text-sm text-gray-600">Agendamentos/mês</td>
               {plans.map(plan => (
                 <td key={plan.id} className="text-center py-4 px-4 text-sm text-gray-900">
-                  {plan.max_appointments_month === -1 ? 'Ilimitado' : plan.max_appointments_month}
+                  {formatLimit(plan.max_appointments_month)}
                 </td>
               ))}
             </tr>
