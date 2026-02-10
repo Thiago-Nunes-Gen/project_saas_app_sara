@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from 'react'
 import { useClient } from '@/hooks/useClient'
-import { useTransactions, useMonthlyStats } from '@/hooks/useTransactions'
+import { useTransactions } from '@/hooks/useTransactions'
 import { useReminders } from '@/hooks/useReminders'
 import { createClient } from '@/lib/supabase-browser'
+import { FinanceSummaryCards } from './_components/FinanceSummaryCards'
+import { FinanceCharts } from './_components/FinanceCharts'
 import WhatsAppSetupModal from '@/components/modals/WhatsAppSetupModal'
 import {
   ArrowUpRight,
@@ -48,9 +50,9 @@ interface PlanLimits {
 
 // Limites padrão do plano FREE (valores reais do banco)
 const DEFAULT_FREE_LIMITS: PlanLimits = {
-  max_reminders: 10,
-  max_lists: 3,
-  max_transactions_month: 15,
+  max_reminders: 5,
+  max_lists: 2,
+  max_transactions_month: 5,
   max_documents: 0,
   max_web_searches_month: 2,
   max_appointments_month: 3
@@ -58,7 +60,7 @@ const DEFAULT_FREE_LIMITS: PlanLimits = {
 
 export default function DashboardPage() {
   const { client, loading: clientLoading } = useClient()
-  const { stats, loading: statsLoading } = useMonthlyStats()
+
   const { transactions, loading: transactionsLoading } = useTransactions({ limit: 5 })
   const { reminders, loading: remindersLoading } = useReminders({ status: 'pending', limit: 20 })
   const [hideValues, setHideValues] = useState(false)
@@ -80,11 +82,11 @@ export default function DashboardPage() {
       console.log('[Dashboard] Buscando limites do plano:', client.plan)
       const supabase = createClient()
 
-      // client.plan contém o nome do plano (ex: "free", "starter"), não o UUID
+      // client.plan contém o id do plano (ex: "free", "starter")
       const { data, error } = await supabase
         .from('saas_plans')
         .select('max_reminders, max_lists, max_transactions_month, max_documents, max_web_searches_month, max_appointments_month')
-        .ilike('name', client.plan)
+        .eq('id', client.plan) // CORRIGIDO: Busca pelo ID (ex: 'free') e não pelo nome
         .single()
 
       console.log('[Dashboard] Resultado saas_plans:', { data, error })
@@ -331,56 +333,13 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
         {/* Main Column */}
         <div className="space-y-6">
-          {/* Resumo Financeiro */}
-          <div className="card animate-fade-in-up">
-            <div className="flex items-center justify-between mb-5">
-              <div>
-                <h2 className="text-base font-semibold text-gray-900">Resumo Financeiro</h2>
-                <p className="text-sm text-gray-400 capitalize">{currentMonth}</p>
-              </div>
-              <button
-                onClick={() => setHideValues(!hideValues)}
-                className="p-2 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-gray-600 transition-colors"
-                title={hideValues ? 'Mostrar valores' : 'Ocultar valores'}
-              >
-                {hideValues ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-              </button>
-            </div>
+          {/* Resumo Financeiro Inteligente */}
+          <FinanceSummaryCards />
 
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <div className="p-5 rounded-xl bg-green-50">
-                <div className="flex items-center gap-1.5 text-sm text-gray-500 mb-2">
-                  <TrendingUp className="w-4 h-4" />
-                  Receitas
-                </div>
-                <p className="text-2xl font-semibold text-green-600">
-                  {statsLoading ? '...' : formatCurrency(stats?.total_income || 0)}
-                </p>
-              </div>
+          <FinanceCharts />
 
-              <div className="p-5 rounded-xl bg-red-50">
-                <div className="flex items-center gap-1.5 text-sm text-gray-500 mb-2">
-                  <TrendingDown className="w-4 h-4" />
-                  Despesas
-                </div>
-                <p className="text-2xl font-semibold text-red-600">
-                  {statsLoading ? '...' : formatCurrency(stats?.total_expense || 0)}
-                </p>
-              </div>
-
-              <div className="p-5 rounded-xl bg-blue-50">
-                <div className="flex items-center gap-1.5 text-sm text-gray-500 mb-2">
-                  <DollarSign className="w-4 h-4" />
-                  Saldo
-                </div>
-                <p className="text-2xl font-semibold text-blue-600">
-                  {statsLoading ? '...' : formatCurrency(stats?.balance || 0)}
-                </p>
-              </div>
-            </div>
-
-            {/* Recent Transactions */}
+          {/* Últimas Transações (Mantido como lista simples) */}
+          <div className="card animate-fade-in-up md:col-span-2">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-semibold text-gray-900">Últimas Transações</h3>
               <Link href="/dashboard/financeiro" className="text-sm text-blue-500 hover:text-blue-600 font-medium">

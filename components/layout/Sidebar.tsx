@@ -27,7 +27,7 @@ const navItems = [
   { icon: CalendarDays, label: 'Agenda', href: '/dashboard/agenda' },
   { icon: Bell, label: 'Lembretes', href: '/dashboard/lembretes' },
   { icon: FileText, label: 'Listas', href: '/dashboard/listas' },
-  { icon: MessageSquare, label: 'Conversas', href: '/dashboard/conversas' },
+  { icon: MessageSquare, label: 'Central de Memória', href: '/dashboard/conversas' },
   { icon: FolderOpen, label: 'Documentos', href: '/dashboard/documentos' },
   { icon: DollarSign, label: 'Financeiro', href: '/dashboard/financeiro' },
   { icon: ClipboardList, label: 'Notas', href: '/dashboard/notas' },

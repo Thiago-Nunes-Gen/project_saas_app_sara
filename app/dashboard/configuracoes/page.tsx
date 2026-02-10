@@ -31,13 +31,15 @@ interface PlanLimits {
   max_transactions_month: number
   max_documents: number
   max_web_searches_month: number
+  max_appointments_month: number
 }
 
-// Limites padrão do plano FREE
+// Limites padrão do plano FREE (Sincronizado com DB)
 const DEFAULT_FREE_LIMITS: PlanLimits = {
-  max_reminders: 10,
-  max_lists: 3,
-  max_transactions_month: 15,
+  max_reminders: 5,
+  max_lists: 2,
+  max_transactions_month: 5,
+  max_appointments_month: 3,
   max_documents: 0,
   max_web_searches_month: 2
 }
@@ -189,8 +191,8 @@ export default function ConfiguracoesPage() {
       const supabase = createClient()
       const { data, error } = await supabase
         .from('saas_plans')
-        .select('max_reminders, max_lists, max_transactions_month, max_documents, max_web_searches_month')
-        .ilike('name', client.plan)
+        .select('max_reminders, max_lists, max_transactions_month, max_documents, max_web_searches_month, max_appointments_month')
+        .eq('id', client.plan) // CORRIGIDO: Busca pelo ID (ex: 'free') e não pelo nome
         .single()
 
       if (!error && data) {
@@ -726,6 +728,11 @@ export default function ConfiguracoesPage() {
                   label="Pesquisas IA/mês"
                   used={client?.web_searches_month || 0}
                   max={planLimits.max_web_searches_month}
+                />
+                <UsageBar
+                  label="Agendamentos/mês"
+                  used={client?.appointments_month || 0}
+                  max={planLimits.max_appointments_month}
                 />
               </div>
 
