@@ -32,6 +32,7 @@ interface SearchResult {
 
 export default function Header() {
   const router = useRouter()
+  const [showMobileSearch, setShowMobileSearch] = useState(false)
   const [showSearch, setShowSearch] = useState(false)
   const [showUserMenu, setShowUserMenu] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
@@ -213,200 +214,268 @@ export default function Header() {
 
   return (
     <header className="h-14 md:h-16 bg-white border-b border-gray-200 px-4 md:px-6 flex items-center justify-between sticky top-0 z-30">
-      {/* Mobile Logo */}
-      <Link href="/dashboard" className="md:hidden w-9 h-9 bg-gradient-to-br from-primary-500 to-primary-400 rounded-lg flex items-center justify-center">
-        <span className="text-white font-bold text-base">S</span>
-      </Link>
 
-      {/* Search - Hidden on mobile, visible on desktop */}
-      <div ref={searchRef} className="hidden md:block relative flex-1 max-w-lg mx-auto">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+      {/* Mobile Search Overlay */}
+      {showMobileSearch ? (
+        <div className="absolute inset-0 bg-white z-50 flex items-center px-4 gap-2 animate-fade-in">
+          <Search className="w-5 h-5 text-gray-400" />
           <input
             type="text"
-            placeholder="Buscar transações, lembretes, listas..."
+            placeholder="Buscar..."
             value={searchQuery}
             onChange={(e) => handleSearch(e.target.value)}
-            onFocus={() => setShowSearch(true)}
-            className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-            spellCheck="true"
-            lang="pt-BR"
+            className="flex-1 bg-transparent border-none focus:ring-0 text-sm font-medium h-full"
+            autoFocus
           />
-          {searchQuery && (
-            <button
-              onClick={() => { setSearchQuery(''); setSearchResults([]); }}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          )}
-        </div>
-
-        {/* Search Results Dropdown */}
-        {showSearch && searchQuery.length >= 2 && (
-          <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-50">
-            {searching ? (
-              <div className="p-4 text-center">
-                <div className="spinner w-5 h-5 mx-auto" />
-              </div>
-            ) : searchResults.length === 0 ? (
-              <div className="p-4 text-center text-gray-500 text-sm">
-                Nenhum resultado encontrado
-              </div>
-            ) : (
-              <div className="divide-y divide-gray-100">
-                {searchResults.map((result) => (
-                  <Link
-                    key={`${result.type}-${result.id}`}
-                    href={result.url}
-                    onClick={() => { setShowSearch(false); setSearchQuery(''); }}
-                    className="flex items-center gap-3 p-3 hover:bg-gray-50 transition-colors"
-                  >
-                    <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center text-gray-500">
-                      {getIcon(result.type)}
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">{result.title}</p>
-                      {result.subtitle && (
-                        <p className="text-xs text-gray-500">{result.subtitle}</p>
-                      )}
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Right Side */}
-      <div className="flex items-center gap-2 ml-4">
-        {/* Upgrade Button */}
-        <Link
-          href="/dashboard/planos"
-          className="hidden md:flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-purple-500 to-blue-500 text-white text-sm font-medium rounded-lg hover:opacity-90 transition-opacity"
-        >
-          <Zap className="w-4 h-4" />
-          Upgrade
-        </Link>
-
-        {/* WhatsApp SARA Button */}
-        <a
-          href="https://wa.me/5516992706593?text=Ol%C3%A1%20SARA!"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="hidden md:flex items-center gap-1.5 px-3 py-1.5 bg-green-500 text-white text-sm font-medium rounded-lg hover:bg-green-600 transition-colors"
-          title="Falar com SARA no WhatsApp"
-        >
-          <MessageCircle className="w-4 h-4" />
-          WhatsApp SARA
-        </a>
-
-        {/* Notifications */}
-        <div ref={notifRef} className="relative">
           <button
-            onClick={() => setShowNotifications(!showNotifications)}
-            className="relative p-2.5 hover:bg-gray-100 rounded-xl transition-colors"
+            onClick={() => { setShowMobileSearch(false); setSearchQuery(''); setSearchResults([]); }}
+            className="p-2 text-gray-500 hover:bg-gray-100 rounded-full"
           >
-            <Bell className="w-5 h-5 text-gray-500" />
-            {notifications.length > 0 && (
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
-            )}
+            <X className="w-5 h-5" />
           </button>
 
-          {showNotifications && (
-            <div className="absolute top-full right-0 mt-2 w-72 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-50">
-              <div className="p-3 border-b border-gray-100">
-                <h3 className="text-sm font-semibold text-gray-900">Notificações</h3>
-              </div>
-              {notifications.length === 0 ? (
+          {/* Search Results Dropdown (Mobile) */}
+          {searchQuery.length >= 2 && (
+            <div className="absolute top-full left-0 right-0 border-t border-gray-200 bg-white shadow-lg max-h-[80vh] overflow-y-auto">
+              {searching ? (
+                <div className="p-4 text-center">
+                  <div className="spinner w-5 h-5 mx-auto" />
+                </div>
+              ) : searchResults.length === 0 ? (
                 <div className="p-4 text-center text-gray-500 text-sm">
-                  Nenhuma notificação
+                  Nenhum resultado encontrado
                 </div>
               ) : (
-                <div className="divide-y divide-gray-100 max-h-64 overflow-y-auto">
-                  {notifications.map((notif) => (
+                <div className="divide-y divide-gray-100">
+                  {searchResults.map((result) => (
                     <Link
-                      key={notif.id}
-                      href="/dashboard/lembretes"
-                      onClick={() => setShowNotifications(false)}
-                      className="flex items-start gap-3 p-3 hover:bg-gray-50 transition-colors"
+                      key={`${result.type}-${result.id}`}
+                      href={result.url}
+                      onClick={() => { setShowMobileSearch(false); setSearchQuery(''); }}
+                      className="flex items-center gap-3 p-4 hover:bg-gray-50 transition-colors"
                     >
-                      <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-500 flex-shrink-0">
-                        <Calendar className="w-4 h-4" />
+                      <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center text-gray-500 flex-shrink-0">
+                        {getIcon(result.type)}
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-gray-900">{notif.title}</p>
-                        <p className="text-xs text-gray-500">
-                          Hoje às {new Date(notif.remind_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-                        </p>
+                        <p className="text-sm font-medium text-gray-900">{result.title}</p>
+                        {result.subtitle && (
+                          <p className="text-xs text-gray-500">{result.subtitle}</p>
+                        )}
                       </div>
                     </Link>
                   ))}
                 </div>
               )}
-              <Link
-                href="/dashboard/lembretes"
-                onClick={() => setShowNotifications(false)}
-                className="block p-3 text-center text-sm text-blue-500 hover:bg-gray-50 border-t border-gray-100"
-              >
-                Ver todos os lembretes
-              </Link>
             </div>
           )}
         </div>
+      ) : (
+        <>
+          {/* Mobile Logo */}
+          <Link href="/dashboard" className="md:hidden w-9 h-9 bg-gradient-to-br from-primary-500 to-primary-400 rounded-lg flex items-center justify-center">
+            <span className="text-white font-bold text-base">S</span>
+          </Link>
 
-        {/* Feedback */}
-        <Link href="/dashboard/feedback" className="p-2.5 hover:bg-gray-100 rounded-xl transition-colors" title="Enviar feedback">
-          <Star className="w-5 h-5 text-gray-500" />
-        </Link>
-
-        {/* User Menu */}
-        <div ref={userMenuRef} className="relative">
-          <button
-            onClick={() => setShowUserMenu(!showUserMenu)}
-            className="w-9 h-9 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-sm hover:opacity-90 transition-opacity"
-          >
-            {userInitial}
-          </button>
-
-          {showUserMenu && (
-            <div className="absolute top-full right-0 mt-2 w-56 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-50">
-              <div className="p-3 border-b border-gray-100">
-                <p className="text-sm font-semibold text-gray-900">{userName}</p>
-                <p className="text-xs text-gray-500">Conta SARA</p>
-              </div>
-              <div className="p-1">
-                <Link
-                  href="/dashboard/configuracoes"
-                  onClick={() => setShowUserMenu(false)}
-                  className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
-                >
-                  <User className="w-4 h-4" />
-                  Meu Perfil
-                </Link>
-                <Link
-                  href="/dashboard/configuracoes"
-                  onClick={() => setShowUserMenu(false)}
-                  className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
-                >
-                  <Settings className="w-4 h-4" />
-                  Configurações
-                </Link>
-              </div>
-              <div className="p-1 border-t border-gray-100">
+          {/* Search - Hidden on mobile, visible on desktop */}
+          <div ref={searchRef} className="hidden md:block relative flex-1 max-w-lg mx-auto">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Buscar transações, lembretes, listas..."
+                value={searchQuery}
+                onChange={(e) => handleSearch(e.target.value)}
+                onFocus={() => setShowSearch(true)}
+                className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                spellCheck="true"
+                lang="pt-BR"
+              />
+              {searchQuery && (
                 <button
-                  onClick={handleLogout}
-                  className="flex items-center gap-3 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors w-full"
+                  onClick={() => { setSearchQuery(''); setSearchResults([]); }}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                 >
-                  <LogOut className="w-4 h-4" />
-                  Sair
+                  <X className="w-4 h-4" />
                 </button>
-              </div>
+              )}
             </div>
-          )}
-        </div>
-      </div>
+
+            {/* Search Results Dropdown */}
+            {showSearch && searchQuery.length >= 2 && (
+              <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-50">
+                {searching ? (
+                  <div className="p-4 text-center">
+                    <div className="spinner w-5 h-5 mx-auto" />
+                  </div>
+                ) : searchResults.length === 0 ? (
+                  <div className="p-4 text-center text-gray-500 text-sm">
+                    Nenhum resultado encontrado
+                  </div>
+                ) : (
+                  <div className="divide-y divide-gray-100">
+                    {searchResults.map((result) => (
+                      <Link
+                        key={`${result.type}-${result.id}`}
+                        href={result.url}
+                        onClick={() => { setShowSearch(false); setSearchQuery(''); }}
+                        className="flex items-center gap-3 p-3 hover:bg-gray-50 transition-colors"
+                      >
+                        <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center text-gray-500">
+                          {getIcon(result.type)}
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">{result.title}</p>
+                          {result.subtitle && (
+                            <p className="text-xs text-gray-500">{result.subtitle}</p>
+                          )}
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Right Side */}
+          <div className="flex items-center gap-2 ml-4">
+            {/* Mobile Search Trigger */}
+            <button
+              onClick={() => setShowMobileSearch(true)}
+              className="md:hidden p-2.5 hover:bg-gray-100 rounded-xl transition-colors text-gray-500"
+            >
+              <Search className="w-5 h-5" />
+            </button>
+
+            {/* Upgrade Button */}
+            <Link
+              href="/dashboard/planos"
+              className="hidden md:flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-purple-500 to-blue-500 text-white text-sm font-medium rounded-lg hover:opacity-90 transition-opacity"
+            >
+              <Zap className="w-4 h-4" />
+              Upgrade
+            </Link>
+
+            {/* WhatsApp SARA Button */}
+            <a
+              href="https://wa.me/5516992706593?text=Ol%C3%A1%20SARA!"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden md:flex items-center gap-1.5 px-3 py-1.5 bg-green-500 text-white text-sm font-medium rounded-lg hover:bg-green-600 transition-colors"
+              title="Falar com SARA no WhatsApp"
+            >
+              <MessageCircle className="w-4 h-4" />
+              WhatsApp SARA
+            </a>
+
+            {/* Notifications */}
+            <div ref={notifRef} className="relative">
+              <button
+                onClick={() => setShowNotifications(!showNotifications)}
+                className="relative p-2.5 hover:bg-gray-100 rounded-xl transition-colors"
+              >
+                <Bell className="w-5 h-5 text-gray-500" />
+                {notifications.length > 0 && (
+                  <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
+                )}
+              </button>
+
+              {showNotifications && (
+                <div className="absolute top-full right-0 mt-2 w-72 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-50">
+                  <div className="p-3 border-b border-gray-100">
+                    <h3 className="text-sm font-semibold text-gray-900">Notificações</h3>
+                  </div>
+                  {notifications.length === 0 ? (
+                    <div className="p-4 text-center text-gray-500 text-sm">
+                      Nenhuma notificação
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-gray-100 max-h-64 overflow-y-auto">
+                      {notifications.map((notif) => (
+                        <Link
+                          key={notif.id}
+                          href="/dashboard/lembretes"
+                          onClick={() => setShowNotifications(false)}
+                          className="flex items-start gap-3 p-3 hover:bg-gray-50 transition-colors"
+                        >
+                          <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-500 flex-shrink-0">
+                            <Calendar className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">{notif.title}</p>
+                            <p className="text-xs text-gray-500">
+                              Hoje às {new Date(notif.remind_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                            </p>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                  <Link
+                    href="/dashboard/lembretes"
+                    onClick={() => setShowNotifications(false)}
+                    className="block p-3 text-center text-sm text-blue-500 hover:bg-gray-50 border-t border-gray-100"
+                  >
+                    Ver todos os lembretes
+                  </Link>
+                </div>
+              )}
+            </div>
+
+            {/* Feedback */}
+            <Link href="/dashboard/feedback" className="p-2.5 hover:bg-gray-100 rounded-xl transition-colors" title="Enviar feedback">
+              <Star className="w-5 h-5 text-gray-500" />
+            </Link>
+
+            {/* User Menu */}
+            <div ref={userMenuRef} className="relative">
+              <button
+                onClick={() => setShowUserMenu(!showUserMenu)}
+                className="w-9 h-9 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-sm hover:opacity-90 transition-opacity"
+              >
+                {userInitial}
+              </button>
+
+              {showUserMenu && (
+                <div className="absolute top-full right-0 mt-2 w-56 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-50">
+                  <div className="p-3 border-b border-gray-100">
+                    <p className="text-sm font-semibold text-gray-900">{userName}</p>
+                    <p className="text-xs text-gray-500">Conta SARA</p>
+                  </div>
+                  <div className="p-1">
+                    <Link
+                      href="/dashboard/configuracoes"
+                      onClick={() => setShowUserMenu(false)}
+                      className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                    >
+                      <User className="w-4 h-4" />
+                      Meu Perfil
+                    </Link>
+                    <Link
+                      href="/dashboard/configuracoes"
+                      onClick={() => setShowUserMenu(false)}
+                      className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                    >
+                      <Settings className="w-4 h-4" />
+                      Configurações
+                    </Link>
+                  </div>
+                  <div className="p-1 border-t border-gray-100">
+                    <button
+                      onClick={handleLogout}
+                      className="flex items-center gap-3 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors w-full"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Sair
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </>
+      )}
     </header>
   )
 }
