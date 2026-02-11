@@ -1,0 +1,398 @@
+{
+  "name": "SARA SaaS - Resumo Matinal",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT saas_buscar_resumo_matinal() as resultado;",
+        "options": {}
+      },
+      "id": "bac72ae1-6398-4835-8e6b-8662f964916a",
+      "name": "Buscar Resumo Matinal",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -80,
+        352
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "2xQBC6Q6FS0TLYyI",
+          "name": "Postgres_Zero"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\nlet resultado = input.resultado;\n\n// Parse se for string\nif (typeof resultado === 'string') {\n  try {\n    resultado = JSON.parse(resultado);\n  } catch (e) {\n    return [{ json: { status: 'erro', dados: [] } }];\n  }\n}\n\nconsole.log('=== RESUMO MATINAL ===');\nconsole.log('Status:', resultado.status);\nconsole.log('Clientes:', resultado.dados?.length || 0);\n\nreturn [{ json: resultado }];"
+      },
+      "id": "4e9e09e3-cb15-4979-9198-835102cfdb01",
+      "name": "Parser Resultado",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        144,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "check-sucesso",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "sucesso",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "1a6ddd75-7ddd-4338-a691-0f7b1b9c3dca",
+      "name": "Tem Clientes?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        368,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "dados",
+        "options": {}
+      },
+      "id": "20013dbb-2b15-4974-bb43-06865c34a4f1",
+      "name": "Separa Clientes",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        576,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const cliente = $input.first().json;\n\nconst apelido = cliente.apelido || 'Usuário';\nconst lembretes = cliente.lembretes_hoje || [];\nconst listas = cliente.listas_pendentes || [];\nconst totalLembretes = cliente.total_lembretes_hoje || 0;\nconst totalListas = cliente.total_listas_pendentes || 0;\nconst botNome = cliente.bot_nome || 'Sara';\n\n// Data formatada\nconst hoje = new Date();\nconst diasSemana = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];\nconst diaSemana = diasSemana[hoje.getDay()];\nconst dia = String(hoje.getDate()).padStart(2, '0');\nconst mes = String(hoje.getMonth() + 1).padStart(2, '0');\nconst dataFormatada = `${dia}/${mes}`;\n\n// Separar aniversários dos outros lembretes\nconst aniversarios = lembretes.filter(l => l.is_aniversario);\nconst outrosLembretes = lembretes.filter(l => !l.is_aniversario);\n\nlet msg = `┏━━━━━━━━━━━━━━━━━━━┓\n   ☀️  *BOM DIA, ${apelido.toUpperCase()}!*\n┗━━━━━━━━━━━━━━━━━━━┛\n\n📅 *${diaSemana}, ${dataFormatada}*\n`;\n\n// Aniversários (se houver)\nif (aniversarios.length > 0) {\n  msg += `\\n🎂 *Aniversários hoje:*\\n━━━━━━━━━━━━━━━━━━━\\n`;\n  aniversarios.forEach(a => {\n    const nome = a.descricao || a.titulo.replace(/aniversário\\s*(do|da|de)?\\s*/i, '');\n    msg += `  🎈 ${nome}\\n`;\n  });\n}\n\n// Lembretes do dia\nif (outrosLembretes.length > 0) {\n  msg += `\\n🔔 *Seus lembretes de hoje:*\\n━━━━━━━━━━━━━━━━━━━\\n`;\n  outrosLembretes.forEach(l => {\n    const prioridadeIcon = l.prioridade === 'alta' ? ' 🔴' : '';\n    msg += `  ⏰ ${l.hora} - ${l.titulo}${prioridadeIcon}\\n`;\n  });\n} else if (aniversarios.length === 0) {\n  msg += `\\n✨ *Nenhum lembrete para hoje!*\\nDia livre para você 😊\\n`;\n}\n\n// Listas pendentes\nif (listas.length > 0) {\n  msg += `\\n📋 *Listas com itens pendentes:*\\n━━━━━━━━━━━━━━━━━━━\\n`;\n  listas.forEach(l => {\n    msg += `  🛒 ${l.titulo} — ${l.pendentes} ${l.pendentes === 1 ? 'item' : 'itens'}\\n`;\n  });\n}\n\nmsg += `\\n━━━━━━━━━━━━━━━━━━━\\n•${botNome}• Tenha um ótimo dia! 💫`;\n\nreturn {\n  json: {\n    client_id: cliente.client_id,\n    whatsapp_id: cliente.whatsapp_id,\n    mensagem: msg,\n    total_lembretes: totalLembretes,\n    total_listas: totalListas,\n    total_aniversarios: aniversarios.length\n  }\n};"
+      },
+      "id": "6d6cbbb4-73e3-4860-a9e5-eb6bdbeb0d97",
+      "name": "Monta Mensagem",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        992,
+        288
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "messages-api",
+        "instanceName": "SARA_SaaS",
+        "remoteJid": "={{ $json.whatsapp_id }}@s.whatsapp.net",
+        "messageText": "={{ $json.mensagem }}",
+        "options_message": {
+          "delay": 2000,
+          "linkPreview": false
+        }
+      },
+      "id": "83dd4af4-9524-4b48-b37d-149901cda8d8",
+      "name": "Enviar WhatsApp",
+      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "typeVersion": 1,
+      "position": [
+        1184,
+        288
+      ],
+      "credentials": {
+        "evolutionApi": {
+          "id": "U78J5QaTvwO0ynKA",
+          "name": "Evolution SARA_SaaS"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT saas_marcar_resumo_enviado('{{ $('Monta Mensagem').item.json.client_id }}') as resultado;",
+        "options": {}
+      },
+      "id": "a0d4ffc3-29ee-4659-b23b-6d2c1ecae6fc",
+      "name": "Marcar Enviado",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1376,
+        288
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "2xQBC6Q6FS0TLYyI",
+          "name": "Postgres_Zero"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## SARA SaaS - Resumo Matinal v1.0\n\n**Função:** Envia resumo diário às 7h para cada cliente\n\n**Conteúdo:**\n- Aniversários do dia 🎂\n- Lembretes do dia 🔔\n- Listas com itens pendentes 📋\n\n**Controle:**\n- morning_summary_enabled (cliente pode desativar)\n- morning_summary_last_sent (evita duplicados)\n\n**Cron:** 0 * * * * (a cada hora, minuto 0)\n**SQL:** Verifica se são 7h no timezone de CADA cliente\n**Suporta:** Qualquer fuso horário! 🌍",
+        "height": 468,
+        "width": 360,
+        "color": 6
+      },
+      "id": "9eddb145-6e70-4748-9338-46ef4e00553e",
+      "name": "Documentação",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -304,
+        -144
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Fluxo\n\nCron → Busca → Parser → IF → Separa → Monta → Envia → Marca",
+        "height": 128,
+        "width": 600,
+        "color": 3
+      },
+      "id": "84728fee-60ce-4aea-9a81-1083bd7fcf0a",
+      "name": "Fluxo",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -80,
+        512
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "no-clients",
+              "name": "info",
+              "value": "Nenhum cliente para enviar resumo neste momento",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f1e291ce-7d92-48c8-b018-f0f591f698dd",
+      "name": "Sem Clientes",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        576,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 * * * *"
+            }
+          ]
+        }
+      },
+      "id": "faba023c-14ae-41f8-9caa-76e497b23833",
+      "name": "Cron A Cada Hora",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -304,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        784,
+        224
+      ],
+      "id": "f4137334-ad30-4f8e-8e62-26e1544f18f1",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "name": "Finalizado",
+      "typeVersion": 1,
+      "position": [
+        1072,
+        112
+      ],
+      "id": "2f870180-5579-4774-861a-d016b0937f12"
+    }
+  ],
+  "pinData": {
+    "Cron A Cada Hora": [
+      {
+        "json": {
+          "timestamp": "2026-01-14T05:00:00.005-05:00",
+          "Readable date": "January 14th 2026, 5:00:00 am",
+          "Readable time": "5:00:00 am",
+          "Day of week": "Wednesday",
+          "Year": "2026",
+          "Month": "January",
+          "Day of month": "14",
+          "Hour": "05",
+          "Minute": "00",
+          "Second": "00",
+          "Timezone": "America/New_York (UTC-05:00)"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Buscar Resumo Matinal": {
+      "main": [
+        [
+          {
+            "node": "Parser Resultado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parser Resultado": {
+      "main": [
+        [
+          {
+            "node": "Tem Clientes?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tem Clientes?": {
+      "main": [
+        [
+          {
+            "node": "Separa Clientes",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Sem Clientes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Separa Clientes": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Monta Mensagem": {
+      "main": [
+        [
+          {
+            "node": "Enviar WhatsApp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar WhatsApp": {
+      "main": [
+        [
+          {
+            "node": "Marcar Enviado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cron A Cada Hora": {
+      "main": [
+        [
+          {
+            "node": "Buscar Resumo Matinal",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Finalizado",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Monta Mensagem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Marcar Enviado": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finalizado": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "e2f051cc-6317-41af-b44b-6f77a5f34fa2",
+  "meta": {
+    "instanceId": "2162172325255cd265a19f3178f77abb9ab7ec9c7a1d869ba2d2925c11389625"
+  },
+  "id": "PC9-MMrD3rcavE5GvnP84",
+  "tags": []
+}

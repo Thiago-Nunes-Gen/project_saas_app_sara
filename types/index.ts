@@ -43,9 +43,19 @@ export interface Client {
   bot_personality: string;
   morning_summary_enabled: boolean;
 
-  // Onboarding
   onboarding_completed: boolean;
   onboarding_step: string;
+
+  // Dados de Faturamento
+  billing_cpf?: string;
+  billing_cep?: string;
+  billing_endereco?: string;
+  billing_numero?: string;
+  billing_complemento?: string;
+  billing_bairro?: string;
+  billing_cidade?: string;
+  billing_estado?: string;
+  billing_email?: string;
 }
 
 export interface Transaction {

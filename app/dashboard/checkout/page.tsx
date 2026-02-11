@@ -53,6 +53,7 @@ function CheckoutContent() {
   const [bairro, setBairro] = useState('')
   const [cidade, setCidade] = useState('')
   const [estado, setEstado] = useState('')
+  const [complemento, setComplemento] = useState('')
 
   // State
   const [loading, setLoading] = useState(false)
@@ -88,7 +89,9 @@ function CheckoutContent() {
       if (client.billing_numero) setNumero(client.billing_numero)
       if (client.billing_bairro) setBairro(client.billing_bairro)
       if (client.billing_cidade) setCidade(client.billing_cidade)
+      if (client.billing_cidade) setCidade(client.billing_cidade)
       if (client.billing_estado) setEstado(client.billing_estado)
+      if (client.billing_complemento) setComplemento(client.billing_complemento)
     }
   }, [client])
 
@@ -186,8 +189,10 @@ function CheckoutContent() {
             endereco: endereco.trim(),
             numero: numero.trim(),
             bairro: bairro.trim(),
+
             cidade: cidade.trim(),
-            estado: estado.trim().toUpperCase()
+            estado: estado.trim().toUpperCase(),
+            complemento: complemento.trim()
           }
         })
       })
@@ -392,16 +397,28 @@ function CheckoutContent() {
                   </div>
                 </div>
 
-                <div>
-                  <label className="label">Bairro *</label>
-                  <input
-                    type="text"
-                    value={bairro}
-                    onChange={(e) => setBairro(e.target.value)}
-                    className="input"
-                    placeholder="Bairro"
-                    required
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="label">Bairro *</label>
+                    <input
+                      type="text"
+                      value={bairro}
+                      onChange={(e) => setBairro(e.target.value)}
+                      className="input"
+                      placeholder="Bairro"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="label">Complemento</label>
+                    <input
+                      type="text"
+                      value={complemento}
+                      onChange={(e) => setComplemento(e.target.value)}
+                      className="input"
+                      placeholder="Apto 101, Bloco B..."
+                    />
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-3 gap-4">

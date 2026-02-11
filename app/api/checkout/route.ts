@@ -22,6 +22,7 @@ interface BillingData {
   bairro: string
   cidade: string
   estado: string
+  complemento?: string
 }
 
 interface CheckoutRequest {
@@ -131,7 +132,8 @@ export async function POST(request: NextRequest) {
           numero: billing.numero.trim(),
           bairro: billing.bairro.trim(),
           cidade: billing.cidade.trim(),
-          estado: billing.estado.trim().toUpperCase()
+          estado: billing.estado.trim().toUpperCase(),
+          complemento: billing.complemento?.trim() || ''
         }
       })
     })
