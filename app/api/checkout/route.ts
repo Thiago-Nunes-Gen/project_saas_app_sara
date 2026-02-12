@@ -2,6 +2,7 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
+import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit'
 
 // Supabase admin client
 const supabaseAdmin = createClient(
@@ -76,6 +77,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Usuário não autenticado' },
         { status: 401 }
+      )
+    }
+
+    // Rate limiting: 5 tentativas de checkout por minuto por usuário
+    const rateLimit = checkRateLimit(`checkout:${user.id}`, RATE_LIMITS.checkout)
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: 'Muitas tentativas. Aguarde um momento antes de tentar novamente.' },
+        { status: 429, headers: { 'Retry-After': String(rateLimit.resetIn) } }
       )
     }
 

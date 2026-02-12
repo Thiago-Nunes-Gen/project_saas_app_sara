@@ -1,0 +1,165 @@
+{
+  "name": "SARA SaaS - Segurança SARA Portal",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -304,
+        96
+      ],
+      "id": "2314d1af-2cf8-4484-98ba-981238f4c54d",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "https://project-saas-app-sara.vercel.app",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -64,
+        176
+      ],
+      "id": "6525e32f-d4a5-4bc2-95ec-ca415d8cae21",
+      "name": "(Testar Portal)",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "url": "https://xjrtfmbqosreuvhpwdey.supabase.co/rest/v1/",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -64,
+        -16
+      ],
+      "id": "20f9b47b-d859-4ac4-87ec-3a575eaac587",
+      "name": "(Testar SUPABASE)",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "cf48lBw8TSjkmR6K",
+          "name": "supabase_lista_thiago"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const results = [];\n\n// Verifica Portal\nconst portal = $('HTTP Request').first();\nconst portalOk = portal?.json?.statusCode !== undefined \n  ? portal.json.statusCode < 400 \n  : !portal?.json?.error;\nresults.push({\n  servico: 'Portal (Vercel)',\n  status: portalOk ? '✅ Online' : '❌ Offline',\n  detalhes: portalOk ? 'Respondendo normalmente' : (portal?.json?.error || 'Sem resposta')\n});\n\n// Verifica Supabase\nconst supa = $('HTTP Request1').first();\nconst supaOk = supa?.json?.statusCode !== undefined \n  ? supa.json.statusCode < 400 \n  : !supa?.json?.error;\nresults.push({\n  servico: 'Supabase (API)',\n  status: supaOk ? '✅ Online' : '❌ Offline',\n  detalhes: supaOk ? 'Respondendo normalmente' : (supa?.json?.error || 'Sem resposta')\n});\n\nconst todosOk = portalOk && supaOk;\n\nreturn [{\n  json: {\n    todos_ok: todosOk,\n    timestamp: new Date().toISOString(),\n    results\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        96
+      ],
+      "id": "238e078e-7c11-4773-bacf-8017bae7ed01",
+      "name": "(Avaliar Resultados)"
+    },
+    {
+      "parameters": {
+        "resource": "messages-api",
+        "instanceName": "SARA_SaaS",
+        "remoteJid": "5516997515087@s.whatsapp.net",
+        "messageText": "=🚨 ALERTA: Um ou mais serviços da SARA estão offline!\\n\\n{{ $json.results.map(r => r.servico + ': ' + r.status).join('\\n') }}\\n\\nVerificado em: {{ $json.timestamp }}",
+        "options_message": {}
+      },
+      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "typeVersion": 1,
+      "position": [
+        448,
+        96
+      ],
+      "id": "481dcc47-f78e-4b30-9403-b2b637d5f254",
+      "name": "enviar erro",
+      "credentials": {
+        "evolutionApi": {
+          "id": "U78J5QaTvwO0ynKA",
+          "name": "Evolution SARA_SaaS"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "(Testar SUPABASE)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "(Testar Portal)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "(Testar SUPABASE)": {
+      "main": [
+        [
+          {
+            "node": "(Avaliar Resultados)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "(Testar Portal)": {
+      "main": [
+        [
+          {
+            "node": "(Avaliar Resultados)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "(Avaliar Resultados)": {
+      "main": [
+        [
+          {
+            "node": "enviar erro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "b3b7fc76-052f-43f2-be5b-77d78bbbf146",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2162172325255cd265a19f3178f77abb9ab7ec9c7a1d869ba2d2925c11389625"
+  },
+  "id": "dyi2HUsJR0SZrdAG",
+  "tags": []
+}

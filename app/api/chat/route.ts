@@ -1,6 +1,7 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
+import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit'
 
 // URL do webhook n8n - configure no .env
 const N8N_WEBHOOK_URL = process.env.N8N_PORTAL_CHAT_WEBHOOK_URL || ''
@@ -28,6 +29,15 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { error: 'Não autorizado' },
         { status: 401 }
+      )
+    }
+
+    // Rate limiting: 20 mensagens por minuto por usuário
+    const rateLimit = checkRateLimit(`chat:${user.id}`, RATE_LIMITS.chat)
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: 'Muitas mensagens. Aguarde um momento antes de enviar novamente.' },
+        { status: 429, headers: { 'Retry-After': String(rateLimit.resetIn) } }
       )
     }
 
