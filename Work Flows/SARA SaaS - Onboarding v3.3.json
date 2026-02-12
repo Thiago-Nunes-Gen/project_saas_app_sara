@@ -1,0 +1,1244 @@
+{
+  "name": "SARA SaaS - Onboarding v3.3",
+  "nodes": [
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "d3f6839b-c978-4410-a4ff-35662143ce21",
+                    "leftValue": "={{ $json.step }}",
+                    "rightValue": "welcome",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "welcome"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.step }}",
+                    "rightValue": "lgpd",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "b3263b13-87d9-4db2-8bd4-9c0aa758ad73"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "lgpd"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "86cd0768-2b48-4a61-91c4-564ef0ee0ccd",
+                    "leftValue": "={{ $json.step }}",
+                    "rightValue": "name",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "name"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "cae0f5a5-11c7-4d48-9b71-672e12f0d7c0",
+                    "leftValue": "={{ $json.step }}",
+                    "rightValue": "apelido",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "apelido"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "25e6267d-9157-4231-be96-ec95a8a8ad26",
+                    "leftValue": "={{ $json.step }}",
+                    "rightValue": "cidade",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "cidade"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "2d26eb57-57b7-4fdb-b5ba-843e19a0ad22",
+                    "leftValue": "={{ $json.step }}",
+                    "rightValue": "email",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "email"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "e8dcb47a-7749-4e00-93b0-66198addcc99",
+                    "leftValue": "={{ $json.step }}",
+                    "rightValue": "plans",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "plans"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -656,
+        864
+      ],
+      "id": "9bc6eb22-5e47-4f10-ac47-612fa8ba6043",
+      "name": "Roteador Onboarding"
+    },
+    {
+      "parameters": {
+        "jsCode": "const nome = $('Trigger Onboarding').item.json.pushName || 'você';\n\nconst mensagem = `Oi, *${nome}*! 👋\n\nPrazer, sou a *SARA* - sua assistente pessoal no WhatsApp!\n\nPosso te ajudar com:\n⏰ Lembretes que te avisam na hora certa\n📋 Listas de compras e tarefas\n💰 Controle financeiro simples\n🔍 Pesquisas rápidas\n\nTô aqui 24h pra te ajudar! 😊\n\nPra gente começar, preciso de um OK seu sobre seus dados. Posso explicar?`;\n\nreturn {\n  json: {\n    mensagem: mensagem,\n    telefone: $('Trigger Onboarding').item.json.telefone,\n    instance: $('Trigger Onboarding').item.json.instance\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -192,
+        624
+      ],
+      "id": "156bfbfc-f35a-490d-910a-e3f88534694f",
+      "name": "Msg Welcome"
+    },
+    {
+      "parameters": {
+        "jsCode": "const mensagem = `Ótimo! 🎉\n\nAgora me conta: *qual seu nome completo?*`;\n\nreturn {\n  json: {\n    mensagem: mensagem,\n    telefone: $('Trigger Onboarding').item.json.telefone,\n    instance: $('Trigger Onboarding').item.json.instance\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -192,
+        912
+      ],
+      "id": "39c7459b-d7cd-4b02-9269-d4b36f6a6ffe",
+      "name": "Msg Name"
+    },
+    {
+      "parameters": {
+        "jsCode": "const nome = $('Trigger Onboarding').item.json.pushName || 'Usuário';\n\nconst mensagem = `Prazer, *${nome}*! 😄\n\nE como você prefere que eu te chame no dia a dia?\n\n_(Se quiser que use seu primeiro nome, só responde *não*)_`;\n\nreturn {\n  json: {\n    mensagem: mensagem,\n    telefone: $('Trigger Onboarding').item.json.telefone,\n    instance: $('Trigger Onboarding').item.json.instance\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -192,
+        1056
+      ],
+      "id": "385a54aa-b5a7-4c5c-b8b1-85e9307e5492",
+      "name": "Msg Apelido"
+    },
+    {
+      "parameters": {
+        "jsCode": "const nome = $('Trigger Onboarding').item.json.pushName || 'você';\n\nconst mensagem = `Perfeito, *${nome}*! 🚀\n\nVocê já tá com *7 dias grátis* do plano Starter pra testar tudo!\n\n📦 *Nossos planos:*\n\n🆓 *Free* - Grátis\n- 10 lembretes, 3 listas, 15 transações/mês\n- 2 pesquisas web/mês\n\n⭐ *Starter* - R$ 19,90/mês\n- 50 lembretes, 10 listas, 60 transações/mês\n- 10 pesquisas web/mês\n\n🚀 *Pro* - R$ 49,90/mês\n- 100 lembretes, 50 listas, 150 transações/mês\n- 25 pesquisas web/mês + suporte prioritário\n\n💎 *Enterprise* - R$ 99,90/mês\n- Tudo ilimitado + 50 pesquisas web/mês\n\nAproveita o trial e depois você escolhe 😉\n\nVamos começar?`;\n\nreturn {\n  json: {\n    mensagem: mensagem,\n    telefone: $('Trigger Onboarding').item.json.telefone,\n    instance: $('Trigger Onboarding').item.json.instance\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -192,
+        1552
+      ],
+      "id": "882026cc-3a5e-4b2d-ab8e-8688dbf7dde4",
+      "name": "Msg Plans"
+    },
+    {
+      "parameters": {
+        "resource": "messages-api",
+        "instanceName": "={{ $json.instance }}",
+        "remoteJid": "={{ $json.telefone }}",
+        "messageText": "={{ $json.mensagem }}",
+        "options_message": {
+          "delay": 1500
+        }
+      },
+      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "typeVersion": 1,
+      "position": [
+        1232,
+        320
+      ],
+      "id": "7d56ad53-4e93-4565-9705-18a74636c135",
+      "name": "Enviar Msg Onboarding",
+      "credentials": {
+        "evolutionApi": {
+          "id": "U78J5QaTvwO0ynKA",
+          "name": "Evolution SARA_SaaS"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "12f1dd08-53fd-437f-96f0-4ee2a16f6cf3",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "novo_usuario",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -1760,
+        512
+      ],
+      "id": "fa394800-35c1-4d79-8b56-f984e4115443",
+      "name": "Tem Resposta?"
+    },
+    {
+      "parameters": {
+        "jsCode": "const step = $('Trigger Onboarding').item.json.step;\nconst mensagemOriginal = $('Trigger Onboarding').item.json.mensagem_usuario || '';\nconst mensagem = mensagemOriginal.toLowerCase().trim();\nconst whatsappId = $('Trigger Onboarding').item.json.whatsapp_id;\n\nlet acao = null;\nlet valor = null;\nlet proximoStep = null;\nlet mensagemResposta = null;\n\n// ============================================\n// TRATAMENTO DE CASOS ESPECIAIS (ANTES DO SWITCH)\n// ============================================\n\n// 1. Detecta comandos durante onboarding\nif (mensagem.startsWith('#')) {\n  return {\n    json: {\n      whatsapp_id: whatsappId,\n      step_atual: step,\n      acao: 'redirecionar',\n      valor: null,\n      proximo_step: step,\n      mensagem_original: mensagem,\n      mensagem_resposta: \"Calma! Ainda estamos nos conhecendo 😊\\n\\nDepois que terminarmos, você pode usar esse comando!\\n\\nVamos continuar?\",\n      telefone: $('Trigger Onboarding').item.json.telefone,\n      instance: $('Trigger Onboarding').item.json.instance,\n      pushName: $('Trigger Onboarding').item.json.pushName\n    }\n  };\n}\n\n// 2. Detecta mensagens que parecem saudações repetidas\nconst saudacoes = ['oi', 'olá', 'ola', 'hey', 'eai', 'e ai', 'opa', 'bom dia', 'boa tarde', 'boa noite', 'oie', 'oii', 'oiii'];\nif (step !== 'welcome' && saudacoes.some(s => mensagem === s || mensagem.startsWith(s + ' '))) {\n  return {\n    json: {\n      whatsapp_id: whatsappId,\n      step_atual: step,\n      acao: 'repetir',\n      valor: null,\n      proximo_step: step,\n      mensagem_original: mensagem,\n      mensagem_resposta: null,\n      telefone: $('Trigger Onboarding').item.json.telefone,\n      instance: $('Trigger Onboarding').item.json.instance,\n      pushName: $('Trigger Onboarding').item.json.pushName\n    }\n  };\n}\n\n// 3. Detecta mensagens muito curtas em steps que precisam de conteúdo\nif ((step === 'name' || step === 'cidade') && mensagem.length < 2) {\n  const msgErro = step === 'name' \n    ? \"Não entendi! 😅 Me conta seu *nome completo*?\"\n    : \"Não entendi! 😅 Me conta sua *cidade*?\";\n  \n  return {\n    json: {\n      whatsapp_id: whatsappId,\n      step_atual: step,\n      acao: 'repetir',\n      valor: null,\n      proximo_step: step,\n      mensagem_original: mensagem,\n      mensagem_resposta: msgErro,\n      telefone: $('Trigger Onboarding').item.json.telefone,\n      instance: $('Trigger Onboarding').item.json.instance,\n      pushName: $('Trigger Onboarding').item.json.pushName\n    }\n  };\n}\n\n// ============================================\n// PROCESSAMENTO NORMAL (SWITCH)\n// ============================================\n\nswitch(step) {\n  case 'welcome':\n    // Qualquer resposta avança para LGPD\n    acao = 'avancar_para_lgpd';\n    proximoStep = 'lgpd';\n    break;\n    \n  case 'lgpd':\n    // Lista de aceites (removido 's' que era muito genérico)\n    const aceites = ['aceito', 'aceitar', 'concordo', 'concordar', 'sim', 'ok', \n                     'pode', 'confirmo', 'autorizo', 'topo', 'topei', \n                     'beleza', 'bora', 'vamos', 'fechado', 'combinado', 'show', 'blz', 'tá', 'ta'];\n    \n    // Palavras que indicam pedido de mais info (verificar ANTES do aceite)\n    const pedidoInfo = ['lgpd', 'dúvida', 'duvida', 'detalhe', 'detalhes', 'mais', 'explicar', 'explica'];\n    \n    // Verifica PRIMEIRO se é pedido de info (prioridade sobre aceite)\n    const querInfo = pedidoInfo.some(p => mensagem.includes(p));\n    \n    // Divide a mensagem em palavras para match exato de aceite\n    const palavras = mensagem.split(/\\s+/);\n    const aceitou = aceites.some(a => palavras.includes(a) || mensagem === a);\n    \n    // Prioridade: info > aceite > repetir\n    if (querInfo) {\n      acao = 'info_lgpd';\n      proximoStep = 'lgpd';\n      mensagemResposta = \"📋 *Política de Privacidade SARA*\\n\\n*Dados coletados:*\\n• Número WhatsApp\\n• Nome e apelido\\n• Mensagens, lembretes, listas e finanças\\n\\n*Usamos para:*\\n• Fornecer os serviços\\n• Personalizar sua experiência\\n\\n*Seus direitos:*\\n• Acessar seus dados\\n• Solicitar exclusão\\n• Revogar consentimento\\n\\n━━━━━━━━━━━━━━━━━━━━━\\n\\nPara continuar, responda *ACEITO* 👍\";\n    } else if (aceitou) {\n      acao = 'aceitar_lgpd';\n      proximoStep = 'name';\n    } else {\n      acao = 'repetir';\n      proximoStep = 'lgpd';\n      mensagemResposta = \"Não entendi! 😅\\n\\nPara continuar, responda *ACEITO*\\n\\nSe tiver dúvidas, digite *LGPD*\";\n    }\n    break;\n    \n  case 'name':\n    // Salva o nome informado\n    if (mensagem.length >= 2) {\n      acao = 'salvar_nome';\n      // Capitaliza o nome\n      valor = mensagemOriginal.split(' ').map(p => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()).join(' ');\n      proximoStep = 'apelido';\n    } else {\n      acao = 'repetir';\n      proximoStep = 'name';\n      mensagemResposta = \"Não entendi! 😅 Me conta seu *nome completo*?\";\n    }\n    break;\n    \n  case 'apelido':\n    // Salva o apelido\n    acao = 'salvar_apelido';\n    if (mensagem === 'não' || mensagem === 'nao' || mensagem === 'n' || mensagem === 'nenhum') {\n      valor = null;\n    } else {\n      valor = mensagemOriginal.charAt(0).toUpperCase() + mensagemOriginal.slice(1).toLowerCase();\n    }\n    proximoStep = 'cidade';\n    break;\n    \n  case 'cidade':\n    // Salva a cidade e vai para EMAIL (não mais para plans)\n    if (mensagem.length >= 2) {\n      acao = 'salvar_cidade';\n      valor = mensagemOriginal;\n      proximoStep = 'email';  // ← CORRIGIDO: agora vai para email\n    } else {\n      acao = 'repetir';\n      proximoStep = 'cidade';\n      mensagemResposta = \"Não entendi! 😅 Me conta sua *cidade*?\\n\\nEx: *São Paulo - SP*\";\n    }\n    break;\n\n  case 'email':\n    // Valida e salva o email\n    const emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;\n    if (emailRegex.test(mensagem)) {\n      acao = 'salvar_email';\n      valor = mensagemOriginal.toLowerCase().trim();\n      proximoStep = 'plans';\n    } else {\n      acao = 'repetir';\n      proximoStep = 'email';\n      mensagemResposta = \"Hmm, esse email não parece válido 🤔\\n\\nPode digitar novamente?\\n\\nEx: *seuemail@gmail.com*\";\n    }\n    break;\n    \n  case 'plans':\n    // Finaliza onboarding\n    acao = 'finalizar_onboarding';\n    proximoStep = 'completed';\n    break;\n    \n  default:\n    // Step desconhecido - tenta recuperar\n    acao = 'repetir';\n    proximoStep = step || 'welcome';\n    mensagemResposta = \"Ops, me perdi! 😅 Vamos recomeçar?\";\n}\n\nreturn {\n  json: {\n    whatsapp_id: whatsappId,\n    step_atual: step,\n    acao: acao,\n    valor: valor,\n    proximo_step: proximoStep,\n    mensagem_original: mensagem,\n    mensagem_resposta: mensagemResposta,\n    telefone: $('Trigger Onboarding').item.json.telefone,\n    instance: $('Trigger Onboarding').item.json.instance,\n    pushName: $('Trigger Onboarding').item.json.pushName\n  }\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1216,
+        -176
+      ],
+      "id": "02ed6de6-5008-4306-a4bb-5b9789828d5f",
+      "name": "Processar Resposta"
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "whatsapp_id"
+            },
+            {
+              "name": "telefone"
+            },
+            {
+              "name": "instance"
+            },
+            {
+              "name": "pushName"
+            },
+            {
+              "name": "step"
+            },
+            {
+              "name": "mensagem_usuario"
+            },
+            {
+              "name": "status"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -1968,
+        512
+      ],
+      "id": "76e0bebf-6801-4871-aa07-e1fbdc7a34a2",
+      "name": "Trigger Onboarding"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT saas_onboarding_flow(\n  '{{ $json.whatsapp_id }}',\n  '{{ $json.acao }}',\n  {{ $json.valor ? \"'\" + $json.valor.replace(/'/g, \"''\") + \"'\" : \"NULL\" }}\n) as resultado;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -1024,
+        -176
+      ],
+      "id": "f5a2897e-2b9c-4b7b-9c55-1a20f7329d96",
+      "name": "Atualizar Onboarding",
+      "credentials": {
+        "postgres": {
+          "id": "2xQBC6Q6FS0TLYyI",
+          "name": "Postgres_Zero"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "49b70876-781c-4374-9900-417c2d8c307c",
+                    "leftValue": "={{ $('Processar Resposta').item.json.acao }}",
+                    "rightValue": "info_lgpd",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "info_lgpd"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "c2f3bd9f-cbac-4549-9f63-e6ab96655c0a",
+                    "leftValue": "={{ $('Processar Resposta').item.json.acao }}",
+                    "rightValue": "repetir",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "repetir"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "59985de0-4786-460e-8b86-6866e285f1fa",
+                    "leftValue": "={{ $('Processar Resposta').item.json.acao }}",
+                    "rightValue": "redirecionar",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "redirecionar"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "7dd78f69-05f0-4723-a704-facaddf36924",
+                    "leftValue": "={{ $('Processar Resposta').item.json.proximo_step }}",
+                    "rightValue": "welcome",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "welcome"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Processar Resposta').item.json.proximo_step }}",
+                    "rightValue": "lgpd",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "b8bbc390-1719-402c-b398-5d6404dc7753"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "lgpd"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "611d1c1b-0df8-44c3-a7f9-c27e511e8336",
+                    "leftValue": "={{ $('Processar Resposta').item.json.proximo_step }}",
+                    "rightValue": "name",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "name"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "9298a738-b7ef-40e8-b66e-57b7b6fb634b",
+                    "leftValue": "={{ $('Processar Resposta').item.json.proximo_step }}",
+                    "rightValue": "apelido",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "apelido"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "3879db6b-8eee-4430-b5e8-a6cf6962ec9b",
+                    "leftValue": "={{ $('Processar Resposta').item.json.proximo_step }}",
+                    "rightValue": "cidade",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "cidade"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "07ecba7d-8649-4b41-9fd5-0d81983662d7",
+                    "leftValue": "={{ $('Processar Resposta').item.json.proximo_step }}",
+                    "rightValue": "email",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "email"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "69a1af44-e410-40f5-8197-83d715f92da3",
+                    "leftValue": "={{ $('Processar Resposta').item.json.proximo_step }}",
+                    "rightValue": "plans",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "plans"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "e129b334-229c-4a21-aff3-74310c83ea05",
+                    "leftValue": "={{ $('Processar Resposta').item.json.proximo_step }}",
+                    "rightValue": "completed",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "completed"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -832,
+        -320
+      ],
+      "id": "61cd5a4e-5445-459c-8512-faee434e6242",
+      "name": "Proximo Passo"
+    },
+    {
+      "parameters": {
+        "jsCode": "const nome = $('Processar Resposta').item.json.pushName || 'Usuário';\n\nconst mensagem = `Que ótimo ter você aqui, *${nome}*! 🎉\n\nEu sou a *SARA* - sua assistente pessoal inteligente.\n\n🤖 *O que posso fazer por você:*\n\n⏰ *Lembretes* - Te aviso na hora certa\n📋 *Listas* - Compras, tarefas, o que precisar\n💰 *Financeiro* - Controle de gastos e receitas\n📧 *Email* - Leio, envio e respondo por você\n🔍 *Pesquisas* - Busco informações na internet\n\nEstou aqui 24h por dia, 7 dias por semana! 💪\n\nVamos configurar sua conta?`;\n\nreturn {\n  json: {\n    mensagem: mensagem,\n    telefone: $('Processar Resposta').item.json.telefone,\n    instance: $('Processar Resposta').item.json.instance\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -176,
+        -1024
+      ],
+      "id": "fbfdcfe0-9b58-4e50-b3a6-b106707a1d47",
+      "name": "Msg Welcome 2"
+    },
+    {
+      "parameters": {
+        "jsCode": "const mensagem = `Desculpa, não entendi! 😅\n\nPara continuar, preciso que você responda *ACEITO* para concordar com os termos.\n\nSe tiver dúvidas sobre a LGPD, responda *LGPD*.`;\n\nreturn {\n  json: {\n    mensagem: mensagem,\n    telefone: $('Processar Resposta').item.json.telefone,\n    instance: $('Processar Resposta').item.json.instance\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -192,
+        768
+      ],
+      "id": "97f9183b-6ac0-4435-9f96-ead02308b707",
+      "name": "Msg Repetir LGPD"
+    },
+    {
+      "parameters": {
+        "jsCode": "const mensagem = `Agora me conta: *como posso te chamar?*\n\nMe diz seu nome completo 😊`;\n\nreturn {\n  json: {\n    mensagem: mensagem,\n    telefone: $('Processar Resposta').item.json.telefone,\n    instance: $('Processar Resposta').item.json.instance\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -176,
+        -576
+      ],
+      "id": "de100c12-95b6-48c4-9ff3-c220f47ba2b1",
+      "name": "Msg Name 2"
+    },
+    {
+      "parameters": {
+        "jsCode": "const nome = $('Processar Resposta').item.json.valor || $('Processar Resposta').item.json.pushName || 'Usuário';\n\nconst mensagem = `Prazer, *${nome}*! 😄\n\nE tem algum *apelido* que você prefere que eu use no dia a dia?\n\n(Se não tiver, é só responder *não*)`;\n\nreturn {\n  json: {\n    mensagem: mensagem,\n    telefone: $('Processar Resposta').item.json.telefone,\n    instance: $('Processar Resposta').item.json.instance\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -176,
+        -416
+      ],
+      "id": "d84a0817-38a2-48e2-8ef7-422c52dde8c4",
+      "name": "Msg Apelido 2"
+    },
+    {
+      "parameters": {
+        "jsCode": "const apelido = $('Processar Resposta').item.json.pushName?.split(' ')[0] || 'você';\n\nconst mensagem = \"Perfeito, *\" + apelido + \"*! 🚀\\n\\nVocê já tá com *7 dias grátis* do plano Starter pra testar tudo!\\n\\n📦 *Nossos planos:*\\n\\n🆓 *Free* - Grátis\\n• 10 lembretes, 3 listas, 15 transações/mês\\n• 2 pesquisas web/mês\\n\\n⭐ *Starter* - R$ 19,90/mês\\n• 50 lembretes, 10 listas, 60 transações/mês\\n• 10 pesquisas web/mês\\n\\n🚀 *Pro* - R$ 49,90/mês\\n• 100 lembretes, 50 listas, 150 transações/mês\\n• 25 pesquisas web/mês + suporte prioritário\\n\\n💎 *Enterprise* - R$ 99,90/mês\\n• Tudo ilimitado + 50 pesquisas web/mês\\n\\nAproveita o trial e depois você escolhe 😉\\n\\nVamos começar?\";\n\nreturn {\n  json: {\n    mensagem: mensagem,\n    telefone: $('Processar Resposta').item.json.telefone,\n    instance: $('Processar Resposta').item.json.instance\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -176,
+        80
+      ],
+      "id": "a69a6ee1-b41a-48eb-a2a7-4f6867701a6e",
+      "name": "Msg Plans 2"
+    },
+    {
+      "parameters": {
+        "jsCode": "const apelido = $('Atualizar Onboarding').item.json.resultado?.apelido || $('Processar Resposta').item.json.pushName || 'você';\nconst clientId = $('Atualizar Onboarding').item.json.resultado?.client_id || '';\n\nconst mensagem = `Prontinho, *${apelido}*! 🎉\n\nTá tudo configurado! Agora é só aproveitar todas as minhas funcionalidades 😊\n\n⚠️ATENÇÃO⚠️ \n\nAntes de qualquer coisa!\n\nAcesse o Portal da Sara clicando no link abaixo e faça seu cadastro, nele você tera acesso a funcionalidades exclusivas da SARA!\n\nClique aqui 👇\nhttps://sara.iagenes.com.br/auth/cadastro?client_id=${clientId}\n━━━━━━━━━━━━━━━━━━━━━\n\n💡 *Experimenta agora:*\n_\"Me lembra de beber água às 14h\"_\n_\"Gastei 50 no almoço\"_\n_\"Cria lista de compras\"_\n\n━━━━━━━━━━━━━━━━━━━━━\n\n📌 *Comandos úteis:*\n\n*#meuplano* → Ver seu plano atual\n*#meuuso* → Ver quanto já usou\n#plano → Para ver planos disponíveis \n*#assinar* → Fazer upgrade de plano\n\n━━━━━━━━━━━━━━━━━━━━━\n\nQualquer coisa, é só me chamar! 🚀`;\n\nreturn {\n  json: {\n    mensagem: mensagem,\n    telefone: $('Processar Resposta').item.json.telefone,\n    instance: $('Processar Resposta').item.json.instance\n  }\n};\n\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -176,
+        240
+      ],
+      "id": "78f796ef-e8c0-45a2-b439-2c0c49964535",
+      "name": "Msg Completed"
+    },
+    {
+      "parameters": {
+        "jsCode": "const mensagem = `Beleza! 📋\n\nResumindo: vou guardar só o que você me mandar (lembretes, listas, gastos) pra poder te ajudar.\n\n🔒 Você pode ver ou apagar tudo quando quiser!\n\nTopa? Responde *ACEITO* 👍\n\n_Quer mais detalhes? Digite *LGPD*_`;\n\nreturn {\n  json: {\n    mensagem: mensagem,\n    telefone: $('Processar Resposta').item.json.telefone,\n    instance: $('Processar Resposta').item.json.instance\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -176,
+        -880
+      ],
+      "id": "258deb67-a1f8-41d3-b1a4-2badcd3a1c75",
+      "name": "Msg LGPD 2"
+    },
+    {
+      "parameters": {
+        "jsCode": "const apelido = $('Trigger Onboarding').item.json.pushName || 'você';\n\nconst mensagem = `Legal, *${apelido}*! 😊\n\nAgora me conta: *qual sua cidade?* 📍\n\n_(Isso me ajuda a pesquisar coisas perto de você e dar a previsão do tempo certinha!)_\n\nPode mandar assim: *São Paulo - SP* ou só *São Paulo*`;\n\nreturn {\n  json: {\n    mensagem: mensagem,\n    telefone: $('Trigger Onboarding').item.json.telefone,\n    instance: $('Trigger Onboarding').item.json.instance\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -192,
+        1232
+      ],
+      "id": "8e4787e7-49a9-4a20-9513-794551716221",
+      "name": "Msg Cidade"
+    },
+    {
+      "parameters": {
+        "jsCode": "const apelido = $('Processar Resposta').item.json.valor || $('Processar Resposta').item.json.pushName || 'você';\n\nconst mensagem = `Ótimo, *${apelido}*! 😊\n\nAgora me conta: *qual sua cidade?* 📍\n\n_(Isso me ajuda a pesquisar coisas perto de você e dar a previsão do tempo certinha!)_\n\nPode mandar assim: *São Paulo - SP* ou só *São Paulo*`;\n\nreturn {\n  json: {\n    mensagem: mensagem,\n    telefone: $('Processar Resposta').item.json.telefone,\n    instance: $('Processar Resposta').item.json.instance\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -176,
+        -256
+      ],
+      "id": "6f35ea23-96a2-4dc1-b02b-a618b99380cf",
+      "name": "Msg Cidade 2"
+    },
+    {
+      "parameters": {
+        "jsCode": "const dados = $('Processar Resposta').item.json;\n\n// Se tem mensagem de resposta personalizada, usa ela\nif (dados.mensagem_resposta) {\n  return {\n    json: {\n      mensagem: dados.mensagem_resposta,\n      telefone: dados.telefone,\n      instance: dados.instance\n    }\n  };\n}\n\n// Fallback - não deveria chegar aqui\nreturn {\n  json: {\n    mensagem: \"Vamos continuar? 😊\",\n    telefone: dados.telefone,\n    instance: dados.instance\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -176,
+        400
+      ],
+      "id": "ac47cb05-7e9b-486e-9d56-67b70d93f520",
+      "name": "Msg Redirecionar"
+    },
+    {
+      "parameters": {
+        "jsCode": "const dados = $('Processar Resposta').item.json;\n\nreturn {\n  json: {\n    mensagem: dados.mensagem_resposta,\n    telefone: dados.telefone,\n    instance: dados.instance\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -176,
+        -736
+      ],
+      "id": "4593a071-ada2-482d-80f6-dcd14a4feb49",
+      "name": "Msg Info LGPD"
+    },
+    {
+      "parameters": {
+        "jsCode": "const apelido = $('Trigger Onboarding').item.json.pushName?.split(' ')[0] || 'você';\n\nconst mensagem = `Perfeito, *${apelido}*! 📍\n\nAgora preciso do seu *email* 📧\n\nVou usar pra te enviar o acesso ao Portal e comunicados importantes!\n\n_Digite seu melhor email:_`;\n\nreturn {\n  json: {\n    mensagem: mensagem,\n    telefone: $('Trigger Onboarding').item.json.telefone,\n    instance: $('Trigger Onboarding').item.json.instance\n  }\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -192,
+        1392
+      ],
+      "id": "0d5920e1-b73b-4c56-8062-a82258a31c7a",
+      "name": "Msg Email"
+    },
+    {
+      "parameters": {
+        "jsCode": "const apelido = $('Processar Resposta').item.json.pushName?.split(' ')[0] || 'você';\n\nconst mensagem = `Ótimo, *${apelido}*! 📍\n\nAgora me passa seu *email* 📧\n\n_Vou usar para te enviar o acesso ao Portal!_`;\n\nreturn {\n  json: {\n    mensagem: mensagem,\n    telefone: $('Processar Resposta').item.json.telefone,\n    instance: $('Processar Resposta').item.json.instance\n  }\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -176,
+        -80
+      ],
+      "id": "c41db05f-ea99-43b3-9111-6d52eebf7af0",
+      "name": "Msg Email2"
+    }
+  ],
+  "pinData": {
+    "Trigger Onboarding": [
+      {
+        "json": {
+          "whatsapp_id": "5516997515087",
+          "telefone": "5516997515087@s.whatsapp.net",
+          "instance": "SARA_SaaS",
+          "pushName": "Thiago N  Nunes",
+          "step": "cidade",
+          "mensagem_usuario": "Araraquara SP",
+          "status": "onboarding"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Roteador Onboarding": {
+      "main": [
+        [
+          {
+            "node": "Msg Welcome",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Msg Repetir LGPD",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Msg Name",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Msg Apelido",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Msg Cidade",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Msg Email",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Msg Plans",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Msg Welcome": {
+      "main": [
+        [
+          {
+            "node": "Enviar Msg Onboarding",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Msg Name": {
+      "main": [
+        [
+          {
+            "node": "Enviar Msg Onboarding",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Msg Apelido": {
+      "main": [
+        [
+          {
+            "node": "Enviar Msg Onboarding",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Msg Plans": {
+      "main": [
+        [
+          {
+            "node": "Enviar Msg Onboarding",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tem Resposta?": {
+      "main": [
+        [
+          {
+            "node": "Processar Resposta",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Roteador Onboarding",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Trigger Onboarding": {
+      "main": [
+        [
+          {
+            "node": "Tem Resposta?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Processar Resposta": {
+      "main": [
+        [
+          {
+            "node": "Atualizar Onboarding",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Atualizar Onboarding": {
+      "main": [
+        [
+          {
+            "node": "Proximo Passo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Proximo Passo": {
+      "main": [
+        [
+          {
+            "node": "Msg Info LGPD",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Msg Redirecionar",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Msg Redirecionar",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Msg Welcome 2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Msg LGPD 2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Msg Name 2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Msg Apelido 2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Msg Cidade 2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Msg Email2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Msg Plans 2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Msg Completed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Msg Repetir LGPD": {
+      "main": [
+        [
+          {
+            "node": "Enviar Msg Onboarding",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Msg Welcome 2": {
+      "main": [
+        [
+          {
+            "node": "Enviar Msg Onboarding",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Msg Name 2": {
+      "main": [
+        [
+          {
+            "node": "Enviar Msg Onboarding",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Msg Apelido 2": {
+      "main": [
+        [
+          {
+            "node": "Enviar Msg Onboarding",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Msg Plans 2": {
+      "main": [
+        [
+          {
+            "node": "Enviar Msg Onboarding",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Msg Completed": {
+      "main": [
+        [
+          {
+            "node": "Enviar Msg Onboarding",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Msg LGPD 2": {
+      "main": [
+        [
+          {
+            "node": "Enviar Msg Onboarding",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Msg Cidade": {
+      "main": [
+        [
+          {
+            "node": "Enviar Msg Onboarding",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Msg Cidade 2": {
+      "main": [
+        [
+          {
+            "node": "Enviar Msg Onboarding",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Msg Redirecionar": {
+      "main": [
+        [
+          {
+            "node": "Enviar Msg Onboarding",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Msg Info LGPD": {
+      "main": [
+        [
+          {
+            "node": "Enviar Msg Onboarding",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Msg Email": {
+      "main": [
+        [
+          {
+            "node": "Enviar Msg Onboarding",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Msg Email2": {
+      "main": [
+        [
+          {
+            "node": "Enviar Msg Onboarding",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "timezone": "America/Sao_Paulo",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "a046e3a6-dd96-4a31-83e7-e594d3ad8684",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2162172325255cd265a19f3178f77abb9ab7ec9c7a1d869ba2d2925c11389625"
+  },
+  "id": "KRRgWZbkJpRg4ZJ4",
+  "tags": []
+}

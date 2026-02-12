@@ -1,0 +1,676 @@
+{
+  "name": "SARA - Inadimplência Diária",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -480,
+        -80
+      ],
+      "id": "15eb85d9-59cb-4ff4-9c8e-f459d56478f2",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "f90ca123-5738-4025-ac3c-fef01e953406",
+              "leftValue": "={{ $json.client_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        112,
+        -80
+      ],
+      "id": "b66ebd4c-bbbe-4295-a4cb-044c05c94eb8",
+      "name": "Tem Inadimplentes"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM buscar_inadimplentes();",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -80,
+        -80
+      ],
+      "id": "22b21110-7c6a-4b72-b47e-1a9bd5d750a5",
+      "name": "Buscar Inadimplentes",
+      "credentials": {
+        "postgres": {
+          "id": "2xQBC6Q6FS0TLYyI",
+          "name": "Postgres_Zero"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.dias_atraso }}",
+                    "rightValue": 7,
+                    "operator": {
+                      "type": "number",
+                      "operation": "lte"
+                    },
+                    "id": "068c8444-1337-429f-af95-656a11d74f96"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "8da30c44-75a9-4e16-a354-7150e5e61e23",
+                    "leftValue": "={{ $json.dias_atraso }}",
+                    "rightValue": 15,
+                    "operator": {
+                      "type": "number",
+                      "operation": "lte"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        672,
+        -96
+      ],
+      "id": "3867f632-685b-4af5-b7cd-27b8a5ce714b",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM aplicar_acao_inadimplencia(\n  '{{ $json.client_id }}'::uuid,\n  'lembrete'\n);",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        992,
+        -256
+      ],
+      "id": "bf0a70e9-1047-4b98-8bb7-16e8f4de6859",
+      "name": "Aplicar Ação Lembrete",
+      "credentials": {
+        "postgres": {
+          "id": "2xQBC6Q6FS0TLYyI",
+          "name": "Postgres_Zero"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2304d146-bfed-487b-8070-f8184887952e",
+              "name": "instancia",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -256,
+        -80
+      ],
+      "id": "65bf8c75-d609-438d-b9c4-abd8be407f89",
+      "name": "Dados"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $('Split In Batches').first().json;\n\nlet msg = `💡 *Lembrete de pagamento*\\n\\n`;\nmsg += `Olá, ${item.client_name}!\\n\\n`;\nmsg += `Seu pagamento está pendente há *${item.dias_atraso} dias*.\\n\\n`;\nmsg += `Regularize para continuar aproveitando a SARA! 😊`;\n\nreturn [{\n  json: {\n    telefone: item.whatsapp_id,\n    mensagem: msg\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        -256
+      ],
+      "id": "17c9b8bd-6429-42d2-9966-a08b28b00d4a",
+      "name": "Montar Lembrete"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM aplicar_acao_inadimplencia(\n  '{{ $json.client_id }}'::uuid,\n  'aviso'\n);",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        992,
+        -80
+      ],
+      "id": "dcef5376-5179-4adc-a864-d1e58981dc96",
+      "name": "Aplicar Ação Aviso",
+      "credentials": {
+        "postgres": {
+          "id": "2xQBC6Q6FS0TLYyI",
+          "name": "Postgres_Zero"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $('Split In Batches').first().json;\n\nlet msg = `⚠️ *Aviso importante*\\n\\n`;\nmsg += `Olá, ${item.client_name}!\\n\\n`;\nmsg += `Seu pagamento está pendente há *${item.dias_atraso} dias*.\\n\\n`;\nmsg += `*Atenção:* Em breve seu acesso poderá ser suspenso.\\n\\n`;\nmsg += `Regularize agora para evitar interrupção!`;\n\nreturn [{\n  json: {\n    telefone: item.whatsapp_id,\n    mensagem: msg\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        -80
+      ],
+      "id": "263783d6-eed6-453f-91aa-aaa0ca0759ae",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM aplicar_acao_inadimplencia(\n  '{{ $json.client_id }}'::uuid,\n  'bloquear'\n);",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        992,
+        112
+      ],
+      "id": "4335c6d5-56c1-459c-9bb1-1e663dd97c40",
+      "name": "Aplicar Bloqueio",
+      "credentials": {
+        "postgres": {
+          "id": "2xQBC6Q6FS0TLYyI",
+          "name": "Postgres_Zero"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $('Split In Batches').first().json;\n\nlet msg = `🚫 *Acesso suspenso*\\n\\n`;\nmsg += `Olá, ${item.client_name}.\\n\\n`;\nmsg += `Devido à pendência de *${item.dias_atraso} dias*, seu acesso foi suspenso.\\n\\n`;\nmsg += `Para reativar, regularize seu pagamento e digite *#suporte*.`;\n\nreturn [{\n  json: {\n    telefone: item.whatsapp_id,\n    mensagem: msg\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        112
+      ],
+      "id": "854cae97-0fd6-4042-8948-88a68fb98c13",
+      "name": "Montar Bloqueio"
+    },
+    {
+      "parameters": {
+        "resource": "messages-api",
+        "instanceName": "={{ $('Webhook').item.json.instancia }}",
+        "remoteJid": "={{ $('Webhook').item.json.telefone }}",
+        "messageText": "={{ $('Montar Mensagem Atraso').item.json.mensagem.msg }}",
+        "options_message": {}
+      },
+      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "typeVersion": 1,
+      "position": [
+        1424,
+        -256
+      ],
+      "id": "e015f863-411c-4d93-9dfb-d3ecc0fb474c",
+      "name": "Enviar Aviso Atraso",
+      "credentials": {
+        "evolutionApi": {
+          "id": "U78J5QaTvwO0ynKA",
+          "name": "Evolution SARA_SaaS"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "messages-api",
+        "instanceName": "={{ $('Webhook').item.json.instancia }}",
+        "remoteJid": "={{ $('Webhook').item.json.telefone }}",
+        "messageText": "={{ $('Montar Mensagem Atraso').item.json.mensagem.msg }}",
+        "options_message": {}
+      },
+      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "typeVersion": 1,
+      "position": [
+        1424,
+        -80
+      ],
+      "id": "5a36e1b8-4403-45b4-8d34-59bfeb1e3a88",
+      "name": "Enviar Aviso Atraso1",
+      "credentials": {
+        "evolutionApi": {
+          "id": "U78J5QaTvwO0ynKA",
+          "name": "Evolution SARA_SaaS"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "messages-api",
+        "instanceName": "={{ $('Webhook').item.json.instancia }}",
+        "remoteJid": "={{ $('Webhook').item.json.telefone }}",
+        "messageText": "={{ $('Montar Mensagem Atraso').item.json.mensagem.msg }}",
+        "options_message": {}
+      },
+      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "typeVersion": 1,
+      "position": [
+        1424,
+        112
+      ],
+      "id": "9ad492ac-2457-4d29-9a00-479f11214e05",
+      "name": "Enviar Aviso Atraso2",
+      "credentials": {
+        "evolutionApi": {
+          "id": "U78J5QaTvwO0ynKA",
+          "name": "Evolution SARA_SaaS"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "expression",
+        "numberOutputs": 3,
+        "output": "={{ Math.floor(Math.random() * 3) }}"
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        1680,
+        -96
+      ],
+      "id": "3243a803-b0c5-460e-ba00-c92154e38a34",
+      "name": "Switch1"
+    },
+    {
+      "parameters": {
+        "amount": 2
+      },
+      "id": "00c9975c-0324-490b-9659-ff785bf365d6",
+      "name": "2 Segundo",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1920,
+        -80
+      ],
+      "webhookId": "a2c69e1c-13fe-44a2-962c-1249288537eb"
+    },
+    {
+      "parameters": {
+        "amount": 3
+      },
+      "id": "0e755009-bf5b-4217-a8a5-9935d1c43dbd",
+      "name": "Aguarda 3",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1920,
+        96
+      ],
+      "webhookId": "a2c69e1c-13fe-44a2-962c-1249288537eb"
+    },
+    {
+      "parameters": {
+        "amount": 1
+      },
+      "id": "aa9d4b62-a5d7-4025-9072-59c8f5860579",
+      "name": "Aguarda 1",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1920,
+        -256
+      ],
+      "webhookId": "a2c69e1c-13fe-44a2-962c-1249288537eb"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        416,
+        -96
+      ],
+      "id": "c765e9a2-d3a2-498f-aef1-c73d0e8d24a6",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        736,
+        -304
+      ],
+      "id": "233bdf08-5c21-4638-824c-e580dcbf18ae",
+      "name": "No Operation, do nothing"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Dados",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Inadimplentes": {
+      "main": [
+        [
+          {
+            "node": "Tem Inadimplentes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tem Inadimplentes": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Aplicar Ação Lembrete",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Aplicar Ação Aviso",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Aplicar Bloqueio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aplicar Ação Lembrete": {
+      "main": [
+        [
+          {
+            "node": "Montar Lembrete",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dados": {
+      "main": [
+        [
+          {
+            "node": "Buscar Inadimplentes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aplicar Ação Aviso": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aplicar Bloqueio": {
+      "main": [
+        [
+          {
+            "node": "Montar Bloqueio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Montar Lembrete": {
+      "main": [
+        [
+          {
+            "node": "Enviar Aviso Atraso",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Enviar Aviso Atraso1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Montar Bloqueio": {
+      "main": [
+        [
+          {
+            "node": "Enviar Aviso Atraso2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch1": {
+      "main": [
+        [
+          {
+            "node": "Aguarda 1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "2 Segundo",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Aguarda 3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar Aviso Atraso1": {
+      "main": [
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar Aviso Atraso": {
+      "main": [
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar Aviso Atraso2": {
+      "main": [
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aguarda 1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "2 Segundo": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aguarda 3": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "761a8a58-5119-4e0d-9782-cec8b1b5bcbc",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2162172325255cd265a19f3178f77abb9ab7ec9c7a1d869ba2d2925c11389625"
+  },
+  "id": "BkJT9SwLsIn2FLOO-BzE5",
+  "tags": []
+}

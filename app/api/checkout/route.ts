@@ -118,6 +118,7 @@ export async function POST(request: NextRequest) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'X-Webhook-Secret': process.env.N8N_WEBHOOK_SECRET || '',
       },
       body: JSON.stringify({
         client_id: client.id,

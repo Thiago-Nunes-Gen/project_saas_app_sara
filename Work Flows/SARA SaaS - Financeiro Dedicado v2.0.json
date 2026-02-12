@@ -1,0 +1,229 @@
+{
+  "name": "SARA SaaS - Financeiro Dedicado v2.0",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## SARA SaaS - Financeiro Dedicado v1.0\n\n**Por que este workflow existe:**\nA tool padrão estava marcando parâmetros opcionais como required.\nEste workflow trata corretamente valores vazios.\n\n**Entrada:**\n- whatsapp_id\n- acao: registrar_receita | registrar_despesa | editar_transacao | excluir_transacao | relatorio | saldo\n- descricao, valor, categoria, forma_pagamento\n- data_inicio, data_fim, data\n- transacao_id\n\n**Saída:**\n- status: sucesso | erro\n- msg: Mensagem amigável\n- dados: Dados retornados",
+        "height": 368,
+        "width": 400,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        32,
+        -112
+      ],
+      "typeVersion": 1,
+      "id": "331cdc70-d3bc-4b8c-b112-eaeb1e5f07b0",
+      "name": "Documentação"
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "whatsapp_id"
+            },
+            {
+              "name": "acao"
+            },
+            {
+              "name": "descricao"
+            },
+            {
+              "name": "valor"
+            },
+            {
+              "name": "transacao_id"
+            },
+            {
+              "name": "categoria"
+            },
+            {
+              "name": "forma_pagamento"
+            },
+            {
+              "name": "data"
+            },
+            {
+              "name": "data_inicio"
+            },
+            {
+              "name": "data_fim"
+            },
+            {
+              "name": "client_id"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        512,
+        -96
+      ],
+      "id": "6133e4ba-a8a9-47b4-8a39-1c2b7dc3ed17",
+      "name": "Trigger Financeiro"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ==============================================\n// TRATADOR DE PARÂMETROS FINANCEIRO v3.0\n// ==============================================\n\nconst input = $input.first().json;\n\n// Função para tratar valores vazios\nfunction tratarParam(valor, tipo = 'string') {\n  if (!valor || valor === '' || valor === 'false' || valor === 'null' || valor === 'undefined') {\n    return null;\n  }\n  \n  switch(tipo) {\n    case 'numeric':\n      const valorLimpo = String(valor).replace(/[R$\\s]/g, '').replace(',', '.');\n      const num = parseFloat(valorLimpo);\n      return isNaN(num) ? null : num;\n      \n    case 'bigint':\n      const id = parseInt(valor);\n      return isNaN(id) ? null : id;\n      \n    default:\n      return String(valor).replace(/'/g, \"''\");\n  }\n}\n\n// Processa TODOS os parâmetros (incluindo os novos)\nconst whatsapp_id = tratarParam(input.whatsapp_id);\nconst acao = tratarParam(input.acao);\nconst descricao = tratarParam(input.descricao);\nconst valor = tratarParam(input.valor, 'numeric');\nconst transacao_id = tratarParam(input.transacao_id, 'bigint');\nconst categoria = tratarParam(input.categoria);\nconst forma_pagamento = tratarParam(input.forma_pagamento);\nconst data = tratarParam(input.data);\nconst data_inicio = tratarParam(input.data_inicio);\nconst data_fim = tratarParam(input.data_fim);\n\n// Monta query - parâmetros não usados ficam NULL\nconst query = `SELECT saas_financeiro(\n  ${whatsapp_id ? \"'\" + whatsapp_id + \"'\" : 'NULL'},\n  ${acao ? \"'\" + acao + \"'\" : 'NULL'},\n  ${descricao ? \"'\" + descricao + \"'\" : 'NULL'},\n  ${valor !== null ? valor + '::numeric' : 'NULL'},\n  ${categoria ? \"'\" + categoria + \"'\" : 'NULL'},\n  ${forma_pagamento ? \"'\" + forma_pagamento + \"'\" : 'NULL'},\n  ${data_inicio ? \"'\" + data_inicio + \"'::date\" : 'NULL'},\n  ${data_fim ? \"'\" + data_fim + \"'::date\" : 'NULL'},\n  ${data ? \"'\" + data + \"'::date\" : 'NULL'},\n  ${transacao_id !== null ? transacao_id + '::bigint' : 'NULL'}\n) as resultado;`;\n\nconsole.log('=== FINANCEIRO v3 ===');\nconsole.log('Ação:', acao);\nconsole.log('Descrição:', descricao);\nconsole.log('Valor:', valor);\nconsole.log('Categoria:', categoria);\nconsole.log('Forma Pagamento:', forma_pagamento);\nconsole.log('Data:', data);\nconsole.log('Período:', data_inicio, 'até', data_fim);\nconsole.log('Query:', query);\n\nreturn {\n  json: {\n    whatsapp_id: input.whatsapp_id,\n    client_id: input.client_id,\n    acao: input.acao,\n    descricao: input.descricao,\n    valor: valor,\n    transacao_id: transacao_id,\n    categoria: categoria,\n    forma_pagamento: forma_pagamento,\n    data: data,\n    data_inicio: data_inicio,\n    data_fim: data_fim,\n    query: query\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        512,
+        128
+      ],
+      "id": "82db11f0-fe32-489b-827a-7975e72de044",
+      "name": "Tratador de Parâmetros"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "{{ $json.query }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        688,
+        128
+      ],
+      "id": "f4282c9a-283c-4c7e-a50b-a8e54bd58b5d",
+      "name": "SQL Financeiro",
+      "alwaysOutputData": false,
+      "credentials": {
+        "postgres": {
+          "id": "2xQBC6Q6FS0TLYyI",
+          "name": "Postgres_Zero"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// =====================================================\n// PARSER + FORMATADOR FINANCEIRO v5.3 (SARA) - AJUSTADO\n// Saldo e Relatório com quadrados coloridos 🟩🟥\n// =====================================================\n\n// ===============================\n// 1. CONTEXTO GLOBAL (PARÂMETROS)\n// ===============================\nconst params = $items(\"Tratador de Parâmetros\")[0].json;\nconst whatsapp_id = params.whatsapp_id;\nconst client_id   = params.client_id;\n\n// ===============================\n// 2. RESPOSTA DO SQL\n// ===============================\nconst sqlItem = $input.first().json;\nconst resultado = sqlItem.resultado ?? null;\n\n// ===============================\n// 3. ERRO ESTRUTURAL\n// ===============================\nif (!resultado || !resultado.status) {\n  return [{\n    whatsapp_id,\n    client_id,\n    status: \"erro\",\n    acao: \"erro_interno\",\n    mensagem_formatada:\n      \"Ops, tive um problema técnico ao acessar seus dados financeiros.\\n\" +\n      \"Tente novamente em instantes.\",\n    finance_context: {}\n  }];\n}\n\n// ===============================\n// 4. ERRO FUNCIONAL (SQL)\n// ===============================\nif (resultado.status === \"erro\") {\n  return [{\n    whatsapp_id,\n    client_id,\n    status: \"erro\",\n    acao: resultado.acao ?? \"erro\",\n    mensagem_formatada: `${resultado.msg ?? \"Não consegui processar sua solicitação.\"}`,\n    finance_context: {}\n  }];\n}\n\n// ===============================\n// 5. AVISO DE DUPLICATA\n// ===============================\nif (resultado.status === \"aviso\" && resultado.acao === \"duplicata_detectada\") {\n  const dados = resultado.dados ?? {};\n  \n  let msg = `========================\\n`;\n  msg += `⚠️ *Possível Duplicata*\\n`;\n  msg += `========================\\n`;\n  msg += `Você acabou de registrar:\\n`;\n  msg += `• ${dados.descricao}\\n`;\n  msg += `• R$ ${Number(dados.valor).toFixed(2)}\\n`;\n  msg += `• ${dados.data}\\n`;\n  msg += `========================\\n`;\n  msg += `Para confirmar, aguarde 5 minutos ou altere algum detalhe.`;\n  \n  return [{\n    whatsapp_id,\n    client_id,\n    status: \"aviso\",\n    acao: \"duplicata_detectada\",\n    mensagem_formatada: msg,\n    finance_context: {}\n  }];\n}\n\n// ===============================\n// 6. REGISTRAR RECEITA\n// ===============================\nif (resultado.acao === \"registrar_receita\") {\n  const dados = resultado.dados ?? {};\n  \n  let msg = `========================\\n`;\n  msg += `💰 *Receita Registrada* ✓\\n`;\n  msg += `========================\\n`;\n  msg += `*${dados.descricao}*\\n`;\n  msg += `Valor: _R$ ${Number(dados.valor).toFixed(2)}_\\n`;\n  msg += `Data: _${dados.data}_\\n`;\n  \n  if (dados.categoria) {\n    msg += `Categoria: _${dados.categoria}_\\n`;\n  }\n  if (dados.forma_pagamento) {\n    msg += `Pagamento: _${dados.forma_pagamento}_\\n`;\n  }\n  \n  msg += `━━━━━━━━━━━━━━━━\\n`;\n  msg += `_ID: ${dados.id}_\\n`;\n  msg += `========================`;\n  \n  return [{\n    whatsapp_id,\n    client_id,\n    status: \"sucesso\",\n    acao: \"registrar_receita\",\n    mensagem_formatada: msg,\n    finance_context: {\n      transaction_id: dados.id,\n      tipo: \"receita\",\n      descricao: dados.descricao,\n      valor: dados.valor,\n      data: dados.data\n    }\n  }];\n}\n\n// ===============================\n// 7. REGISTRAR DESPESA\n// ===============================\nif (resultado.acao === \"registrar_despesa\") {\n  const dados = resultado.dados ?? {};\n  \n  let msg = `========================\\n`;\n  msg += `💸 *Despesa Registrada* ✓\\n`;\n  msg += `========================\\n`;\n  msg += `*${dados.descricao}*\\n`;\n  msg += `━━━━━━━━━━━━━━━━\\n`;\n  msg += `Valor: _R$ ${Number(dados.valor).toFixed(2)}_\\n`;\n  msg += `Data: _${dados.data}_\\n`;\n  \n  if (dados.categoria) {\n    msg += `Categoria: _${dados.categoria}_\\n`;\n  }\n  if (dados.forma_pagamento) {\n    msg += `Pagamento: _${dados.forma_pagamento}_\\n`;\n  }\n  \n  msg += `========================\\n`;\n  msg += `_ID: ${dados.id}_\\n`;\n  msg += `========================`;\n  \n  return [{\n    whatsapp_id,\n    client_id,\n    status: \"sucesso\",\n    acao: \"registrar_despesa\",\n    mensagem_formatada: msg,\n    finance_context: {\n      transaction_id: dados.id,\n      tipo: \"despesa\",\n      descricao: dados.descricao,\n      valor: dados.valor,\n      data: dados.data\n    }\n  }];\n}\n\n// ===============================\n// 8. EDITAR TRANSAÇÃO\n// ===============================\nif (resultado.acao === \"editar_transacao\") {\n  const dados = resultado.dados ?? {};\n  \n  let msg = `========================\\n`;\n  msg += `✏️ *Transação Atualizada* ✓\\n`;\n  msg += `========================\\n`;\n  msg += `*${dados.descricao}*\\n`;\n  msg += `Valor: _R$ ${Number(dados.valor).toFixed(2)}_\\n`;\n  msg += `Data: _${dados.data}_\\n`;\n  \n  if (dados.categoria) {\n    msg += `Categoria: _${dados.categoria}_\\n`;\n  }\n  if (dados.forma_pagamento) {\n    msg += `Pagamento: _${dados.forma_pagamento}_\\n`;\n  }\n  \n  msg += `━━━━━━━━━━━━━━━━\\n`;\n  msg += `_ID: ${dados.id}_\\n`;\n  msg += `========================`;\n  \n  return [{\n    whatsapp_id,\n    client_id,\n    status: \"sucesso\",\n    acao: \"editar_transacao\",\n    mensagem_formatada: msg,\n    finance_context: {\n      transaction_id: dados.id,\n      tipo: dados.tipo,\n      descricao: dados.descricao,\n      valor: dados.valor,\n      data: dados.data\n    }\n  }];\n}\n\n// ===============================\n// 9. EXCLUIR TRANSAÇÃO\n// ===============================\nif (resultado.acao === \"excluir_transacao\") {\n  const dados = resultado.dados ?? {};\n  \n  let msg = `========================\\n`;\n  msg += `🗑️ *Transação Excluída* ✓\\n`;\n  msg += `========================\\n`;\n  msg += `${dados.descricao}\\n`;\n  msg += `R$ ${Number(dados.valor).toFixed(2)}\\n`;\n  msg += `${dados.data}\\n`;\n  msg += `━━━━━━━━━━━━━━━━\\n`;\n  msg += `========================`;\n  \n  return [{\n    whatsapp_id,\n    client_id,\n    status: \"sucesso\",\n    acao: \"excluir_transacao\",\n    mensagem_formatada: msg,\n    finance_context: {} // Limpa contexto após exclusão\n  }];\n}\n\n// ===============================\n// 10. SALDO RÁPIDO - AJUSTADO 🟩🟥\n// ===============================\nif (resultado.acao === \"saldo\") {\n  const dados = resultado.dados ?? {};\n  const saldo = Number(dados.saldo);\n  const receitas = Number(dados.receitas);\n  const despesas = Number(dados.despesas);\n  \n  let status_icon = saldo >= 0 ? \"✓\" : \"!\";\n  let status_text = \"\";\n  \n  if (saldo < 0) {\n    status_text = \"Saldo negativo no período.\";\n  } else if (saldo > 0) {\n    status_text = \"Saldo positivo no período.\";\n  } else {\n    status_text = \"Saldo neutro no período.\";\n  }\n  \n  let msg = `========================\\n`;\n  msg += `📜 *Saldo ${dados.mes}*\\n`;\n  msg += `========================\\n`;\n  msg += `🟩 Entradas: R$ ${receitas.toFixed(2)}\\n`;\n  msg += `🟥 Saídas: R$ ${despesas.toFixed(2)}\\n`;\n  msg += `━━━━━━━━━━━━━━━━\\n`;\n  msg += `*Saldo: R$ ${saldo.toFixed(2)}* ${status_icon}\\n`;\n  msg += `========================\\n`;\n  msg += `${status_text}`;\n  \n  return [{\n    whatsapp_id,\n    client_id,\n    status: \"sucesso\",\n    acao: \"saldo\",\n    mensagem_formatada: msg,\n    finance_context: {}\n  }];\n}\n\n// ===============================\n// 11. RELATÓRIO COMPLETO - AJUSTADO 🟩🟥\n// ===============================\nif (resultado.acao === \"relatorio\") {\n  const dados = resultado.dados ?? {};\n  const periodo = dados.periodo ?? {};\n  const resumo = dados.resumo ?? {};\n  const transacoes = dados.transacoes ?? [];\n  \n  const saldo = Number(resumo.saldo);\n  const status_icon = saldo >= 0 ? \"✓\" : \"!\";\n  \n  let msg = `========================\\n`;\n  msg += `📊 Relatório Financeiro\\n`;\n  msg += `📅 Período: ${periodo.inicio} - ${periodo.fim}\\n`;\n  msg += `========================\\n`;\n  msg += `---Resumo---\\n`;\n  msg += `Entradas: R$ ${Number(resumo.receitas).toFixed(2)}\\n`;\n  msg += `Saídas: R$ ${Number(resumo.despesas).toFixed(2)}\\n`;\n  msg += `━━━━━━━━━━━━━━━━\\n`;\n  msg += `Saldo: R$ ${saldo.toFixed(2)} ${status_icon}\\n`;\n  msg += `========================\\n`;\n  msg += `Movimentações (${transacoes.length})\\n\\n`;\n  \n  if (transacoes.length > 0) {\n    // Mostra as 10 mais recentes\n    const mostrar = transacoes.slice(0, 10);\n    mostrar.forEach((t, index) => {\n      const tipo_icon = t.tipo === \"receita\" ? \"🟩\" : \"🟥\";\n      msg += `${tipo_icon} ${t.data} - ${t.descricao}\\n`;\n      msg += `  R$ ${Number(t.valor).toFixed(2)}`;\n      if (t.categoria) msg += ` • ${t.categoria}`;\n      msg += `\\n`;\n      \n      // Adiciona separador entre transações (exceto na última)\n      if (index < mostrar.length - 1) {\n        msg += `------------------------\\n`;\n      }\n    });\n    \n    if (transacoes.length > 10) {\n      msg += `\\n_+${transacoes.length - 10} transações_\\n`;\n    }\n  } else {\n    msg += `Nenhuma movimentação no período.\\n`;\n  }\n  \n  msg += `========================\\n`;\n  \n  // Insights automáticos\n  if (transacoes.length >= 5) {\n    msg += `💡 Insights:\\n`;\n    \n    // Maior gasto\n    const despesasArray = transacoes.filter(t => t.tipo === \"despesa\");\n    if (despesasArray.length > 0) {\n      const maiorGasto = despesasArray.reduce((max, t) => \n        Number(t.valor) > Number(max.valor) ? t : max\n      );\n      msg += `- Maior gasto: ${maiorGasto.descricao} (R$ ${Number(maiorGasto.valor).toFixed(2)})\\n`;\n    }\n    \n    // Categorias (se houver)\n    const comCategoria = transacoes.filter(t => t.categoria);\n    if (comCategoria.length > 0) {\n      const categorias = {};\n      comCategoria.forEach(t => {\n        if (!categorias[t.categoria]) categorias[t.categoria] = 0;\n        categorias[t.categoria] += Number(t.valor);\n      });\n      const topCategoria = Object.entries(categorias).sort((a,b) => b[1] - a[1])[0];\n      msg += `- Categoria com mais gastos: ${topCategoria[0]} (R$ ${topCategoria[1].toFixed(2)})\\n`;\n    }\n    \n    msg += `========================\\n`;\n  }\n  \n  msg += `Precisa de mais detalhes? Estou aqui!`;\n  \n  return [{\n    whatsapp_id,\n    client_id,\n    status: \"sucesso\",\n    acao: \"relatorio\",\n    mensagem_formatada: msg,\n    finance_context: {}\n  }];\n}\n\n// ===============================\n// 12. AÇÃO NÃO MAPEADA (FALLBACK)\n// ===============================\nreturn [{\n  whatsapp_id,\n  client_id,\n  status: \"sucesso\",\n  acao: resultado.acao ?? \"ok\",\n  mensagem_formatada:\n    \"========================\\n\" +\n    \"Solicitação processada com sucesso.\\n\" +\n    \"========================\",\n  finance_context: {}\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        128
+      ],
+      "id": "1695bf61-15f3-459f-91d8-2b1f8dd7c3aa",
+      "name": "Parser Resposta"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- =====================================================\n-- JANELA CONTEXTO v2.0 - SQL ATÔMICO COM RETORNO\n-- Salva contexto E retorna dados em UMA query\n-- =====================================================\n\nWITH contexto_salvo AS (\n  INSERT INTO saas_finance_context (\n    whatsapp_id,\n    client_id,\n    last_transaction_id,\n    last_transaction_type,\n    last_transaction_description,\n    last_transaction_amount,\n    last_transaction_date,\n    last_action,\n    updated_at\n  )\n  VALUES (\n    '{{ $json.whatsapp_id }}',\n    '{{ $json.client_id }}',\n    {{ $json.finance_context.transaction_id ?? 'null' }},\n    {{ $json.finance_context.tipo ? `'${$json.finance_context.tipo.replace(/'/g, \"''\")}'` : 'null' }},\n    {{ $json.finance_context.descricao ? `'${$json.finance_context.descricao.replace(/'/g, \"''\")}'` : 'null' }},\n    {{ $json.finance_context.valor ?? 'null' }},\n    {{ $json.finance_context.data ? `to_date('${$json.finance_context.data}','DD/MM/YYYY')` : 'null' }},\n    '{{ $json.acao }}',\n    now()\n  )\n  ON CONFLICT (client_id) \n  DO UPDATE SET\n    last_transaction_id = excluded.last_transaction_id,\n    last_transaction_type = excluded.last_transaction_type,\n    last_transaction_description = excluded.last_transaction_description,\n    last_transaction_amount = excluded.last_transaction_amount,\n    last_transaction_date = excluded.last_transaction_date,\n    last_action = excluded.last_action,\n    updated_at = now()\n  RETURNING true as sucesso\n)\nSELECT \n  '{{ $json.whatsapp_id }}'::text as whatsapp_id,\n  '{{ $json.client_id }}'::uuid as client_id,\n  '{{ $json.status }}'::text as status,\n  '{{ $json.acao }}'::text as acao,\n  {{ $json.mensagem_formatada ? `'${$json.mensagem_formatada.replace(/'/g, \"''\")}'` : 'null' }}::text as mensagem_formatada,\n  '{{ JSON.stringify($json.finance_context).replace(/'/g, \"''\") }}'::jsonb as finance_context,\n  true as contexto_salvo,\n  now() as timestamp_contexto\nFROM contexto_salvo;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1248,
+        128
+      ],
+      "id": "74104036-fcd7-4575-b24e-79ccd626924b",
+      "name": "Janela Contexto",
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "2xQBC6Q6FS0TLYyI",
+          "name": "Postgres_Zero"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// =====================================================\n// NORMALIZADOR DE CONTEXTO FINANCEIRO v1.0\n// =====================================================\n\nconst item = $input.first().json;\n\n// ===============================\n// GARANTIA DE RAIZ\n// ===============================\nconst safe = (v) => (v === undefined || v === \"\" ? null : v);\n\n// ===============================\n// CONTEXTO FINANCEIRO\n// ===============================\nconst fc = item.finance_context ?? {};\n\nconst finance_context = {\n  transaction_id: Number.isFinite(Number(fc.transaction_id))\n    ? Number(fc.transaction_id)\n    : null,\n\n  tipo: typeof fc.tipo === \"string\" && fc.tipo.trim() !== \"\"\n    ? fc.tipo\n    : null,\n\n  descricao: typeof fc.descricao === \"string\" && fc.descricao.trim() !== \"\"\n    ? fc.descricao\n    : null,\n\n  valor: Number.isFinite(Number(fc.valor))\n    ? Number(fc.valor)\n    : null,\n\n  data: typeof fc.data === \"string\" && /^\\d{2}\\/\\d{2}\\/\\d{4}$/.test(fc.data)\n    ? fc.data\n    : null\n};\n\n// ===============================\n// SAÍDA NORMALIZADA\n// ===============================\nreturn [{\n  whatsapp_id: item.whatsapp_id,\n  client_id: item.client_id,\n  status: item.status,\n  acao: item.acao,\n  mensagem_formatada: item.mensagem_formatada,\n  finance_context\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1056,
+        128
+      ],
+      "id": "e1a68a6d-287e-4e6b-8d9d-490a8bf0c2c2",
+      "name": "Normalizador de Contexto"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Trigger Financeiro": {
+      "main": [
+        [
+          {
+            "node": "Tratador de Parâmetros",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tratador de Parâmetros": {
+      "main": [
+        [
+          {
+            "node": "SQL Financeiro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SQL Financeiro": {
+      "main": [
+        [
+          {
+            "node": "Parser Resposta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parser Resposta": {
+      "main": [
+        [
+          {
+            "node": "Normalizador de Contexto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalizador de Contexto": {
+      "main": [
+        [
+          {
+            "node": "Janela Contexto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Janela Contexto": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "775e8adc-ae6e-4083-91b7-05079347e9e6",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2162172325255cd265a19f3178f77abb9ab7ec9c7a1d869ba2d2925c11389625"
+  },
+  "id": "pRnxa6KnhtpVUFl5rwugL",
+  "tags": []
+}

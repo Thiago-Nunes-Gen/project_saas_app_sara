@@ -1,0 +1,148 @@
+{
+  "name": "Sara Saas - Comando #meuplano",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT obter_info_planos('{{ $json[\"whatsapp_id \"] }}')",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        80,
+        -32
+      ],
+      "id": "c755268c-6115-46f5-8eab-38017731292b",
+      "name": "Busca Info Planos",
+      "credentials": {
+        "postgres": {
+          "id": "2xQBC6Q6FS0TLYyI",
+          "name": "Postgres_Zero"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================\n// PARSER: Comando #meuuso (v4 - Simplificado)\n// Mostra uso + agendamentos, direciona para Portal\n// ============================================\n\n// Buscar dados do node anterior (SQL)\nconst rawData = $input.first().json;\nconst dados = rawData.obter_info_planos || rawData;\n\n// Buscar whatsapp_id para resposta\nlet whatsapp_id = null;\nlet telefone = null;\n\n// Tentar pegar de diferentes fontes\nfor (const item of $items()) {\n  if (item.json.whatsapp_id) whatsapp_id = item.json.whatsapp_id;\n  if (item.json.telefone) telefone = item.json.telefone;\n  if (item.json.data?.whatsapp_id) whatsapp_id = item.json.data.whatsapp_id;\n  if (item.json.data?.telefone) telefone = item.json.data.telefone;\n}\n\n// Se não encontrou, tentar no trigger\nif (!whatsapp_id) {\n  try {\n    const triggerData = $('Execute Workflow Trigger').first()?.json || {};\n    whatsapp_id = triggerData.whatsapp_id || triggerData['whatsapp_id '];\n    telefone = triggerData.telefone;\n  } catch (e) {}\n}\n\n// ============================================\n// VERIFICAR ERRO\n// ============================================\nif (dados.status === 'erro') {\n  return [{\n    json: {\n      whatsapp_id,\n      telefone,\n      mensagem_formatada: `❌ ${dados.msg}`\n    }\n  }];\n}\n\n// ============================================\n// EXTRAIR DADOS\n// ============================================\nconst cliente = dados.cliente;\nconst planoAtual = dados.plano_atual;\nconst usoAtual = dados.uso_atual;\n\n// ============================================\n// FUNÇÕES AUXILIARES\n// ============================================\n\n// Barra de progresso visual compacta\nfunction barraProgresso(percentual) {\n  const total = 8;\n  let emoji;\n  \n  if (percentual >= 90) emoji = '🟥';\n  else if (percentual >= 70) emoji = '🟨';\n  else emoji = '🟩';\n  \n  const preenchido = Math.min(Math.round((percentual / 100) * total), total);\n  const vazio = total - preenchido;\n  return emoji.repeat(preenchido) + '⬜'.repeat(vazio);\n}\n\n// Formatar limite\nfunction formatarLimite(valor) {\n  if (valor === -1) return '∞';\n  if (valor === 0) return '—';\n  return valor.toString();\n}\n\n// Formatar uso com barra\nfunction formatarUso(nome, emoji, usado, limite) {\n  if (limite === 0) return '';\n  \n  let linha = `${emoji} *${nome}:* ${usado}/${formatarLimite(limite)}`;\n  \n  if (limite > 0) {\n    const percentual = Math.round((usado / limite) * 100);\n    linha += `\\n   ${barraProgresso(percentual)} ${percentual}%`;\n  }\n  \n  return linha + '\\n\\n';\n}\n\n// ============================================\n// MONTAR MENSAGEM\n// ============================================\nlet msg = '';\n\n// CABEÇALHO\nmsg += `╔═══════════════════╗\\n`;\nmsg += `     📊 *MEU PLANO*\\n`;\nmsg += `╚═══════════════════╝\\n\\n`;\n\n// PLANO ATUAL (resumido)\nmsg += `📦 *Plano:* ${planoAtual.nome}\\n`;\n\n// Status\nif (cliente.status === 'trial') {\n  const trialEnd = new Date(cliente.trial_ends_at);\n  const hoje = new Date();\n  const diasRestantes = Math.ceil((trialEnd - hoje) / (1000 * 60 * 60 * 24));\n  msg += `⏱️ *Trial:* ${diasRestantes > 0 ? diasRestantes : 0} dias restantes\\n`;\n} else if (cliente.status === 'active') {\n  msg += `✅ *Status:* Ativo\\n`;\n} else {\n  msg += `⚠️ *Status:* ${cliente.status}\\n`;\n}\n\nmsg += `\\n━━━━━━━━━━━━━━━━━━━━━\\n\\n`;\n\n// USO ATUAL\nmsg += `📈 *Seu consumo:*\\n\\n`;\n\n// Lembretes\nif (usoAtual.lembretes) {\n  msg += formatarUso('Lembretes', '🔔', usoAtual.lembretes.usado, usoAtual.lembretes.limite);\n}\n\n// Listas\nif (usoAtual.listas) {\n  msg += formatarUso('Listas', '📝', usoAtual.listas.usado, usoAtual.listas.limite);\n}\n\n// Transações\nif (usoAtual.transacoes) {\n  msg += formatarUso('Transações', '💰', usoAtual.transacoes.usado, usoAtual.transacoes.limite);\n}\n\n// Agendamentos (NOVO)\nif (usoAtual.agendamentos) {\n  msg += formatarUso('Agendamentos', '📅', usoAtual.agendamentos.usado, usoAtual.agendamentos.limite);\n}\n\n// Pesquisas Web\nif (usoAtual.pesquisas_web && usoAtual.pesquisas_web.limite > 0) {\n  msg += formatarUso('Pesquisas Web', '🔍', usoAtual.pesquisas_web.usado, usoAtual.pesquisas_web.limite);\n}\n\n// RAG\nif (usoAtual.rag && usoAtual.rag.limite > 0) {\n  msg += formatarUso('Consultas RAG', '🧠', usoAtual.rag.usado, usoAtual.rag.limite);\n}\n\n// Documentos\nif (usoAtual.documentos && usoAtual.documentos.limite > 0) {\n  msg += formatarUso('Documentos', '📄', usoAtual.documentos.usado, usoAtual.documentos.limite);\n}\n\nmsg += `━━━━━━━━━━━━━━━━━━━━━\\n\\n`;\n\n// LINK PARA O PORTAL\nmsg += `🌐 *Para mais informações:*\\n`;\nmsg += `Acesse o portal e veja detalhes do seu plano, histórico e muito mais!\\n\\n`;\nmsg += `👉 https://sara.iagenes.com.br\\n\\n`;\nmsg += `_Faça login com seu e-mail e senha cadastrados._`;\n\n// ============================================\n// RETORNAR\n// ============================================\nreturn [{\n  json: {\n    whatsapp_id,\n    telefone,\n    mensagem_formatada: msg,\n    dados_brutos: dados\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        272,
+        -32
+      ],
+      "id": "6fa1057f-262b-40bf-893a-58c1df318df2",
+      "name": "Parser Resposta"
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "whatsapp_id "
+            },
+            {
+              "name": "telefone"
+            },
+            {
+              "name": "instancia"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -128,
+        -32
+      ],
+      "id": "a4f66cbb-69a4-4d10-a0cb-1736692dd6e6",
+      "name": "Execute Workflow Trigger"
+    },
+    {
+      "parameters": {
+        "resource": "messages-api",
+        "instanceName": "={{ $('Execute Workflow Trigger').item.json.instancia }}",
+        "remoteJid": "={{ $json.telefone }}",
+        "messageText": "={{ $json.mensagem_formatada }}",
+        "options_message": {}
+      },
+      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "typeVersion": 1,
+      "position": [
+        480,
+        -32
+      ],
+      "id": "882a23b4-3126-45aa-aa38-3f8cbf9a2ede",
+      "name": "Mensagem #meuuso",
+      "credentials": {
+        "evolutionApi": {
+          "id": "U78J5QaTvwO0ynKA",
+          "name": "Evolution SARA_SaaS"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Execute Workflow Trigger": [
+      {
+        "json": {
+          "whatsapp_id ": "5516997515087",
+          "telefone": "5516997515087@s.whatsapp.net",
+          "instancia": "SARA_SaaS"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Busca Info Planos": {
+      "main": [
+        [
+          {
+            "node": "Parser Resposta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "Busca Info Planos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parser Resposta": {
+      "main": [
+        [
+          {
+            "node": "Mensagem #meuuso",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "6c615599-4029-428f-bb54-ca736ed2acdf",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2162172325255cd265a19f3178f77abb9ab7ec9c7a1d869ba2d2925c11389625"
+  },
+  "id": "kQ64YHlVoK7ybX3kU1cz1",
+  "tags": []
+}

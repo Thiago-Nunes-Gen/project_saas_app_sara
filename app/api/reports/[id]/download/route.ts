@@ -31,7 +31,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     }
     const uid = userData.user.id;
     const isAdmin = !!userData.user.user_metadata?.isAdmin;
-    console.log('[Download API] Usuário autenticado:', uid, 'Admin:', isAdmin);
+
 
     // Busca o cliente vinculado ao usuário auth para obter o client_id correto
     const { data: clientData, error: clientErr } = await supabaseAdmin
@@ -46,7 +46,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     }
 
     const clientId = clientData.id;
-    console.log('[Download API] Client ID localizado:', clientId);
+
 
     // Busca o relatório
     const { data: report, error: reportErr } = await supabaseAdmin
@@ -64,7 +64,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
       return NextResponse.json({ error: 'Not found' }, { status: 404 });
     }
 
-    console.log('[Download API] Relatório encontrado:', report.id, 'Proprietário:', report.client_id);
+
 
     // Checagem de propriedade real (compara Client ID com Client ID)
     if (report.client_id !== clientId && !isAdmin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
@@ -78,7 +78,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     fileKey = fileKey.replace(/^\/?relatorios\//, '');
 
     // Gera signed URL (tempo em segundos)
-    console.log('[Download API] Gerando signed URL para:', fileKey);
+
     const { data: signed, error: signedErr } = await supabaseAdmin
       .storage
       .from('relatorios')
@@ -94,7 +94,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
       // 3. Timestamps com ligeira variação (Date.now() executado em momentos diferentes)
 
       if (signedErr.message === 'Object not found' || signedErr.message?.includes('not found')) {
-        console.log('[Download API] Iniciando recuperação inteligente de arquivo...');
+
 
         // Extrai o timestamp esperado do nome do arquivo original (assumindo formato ..._1769xyz.pdf)
         // Pega a sequência de dígitos logo antes do .pdf
@@ -130,7 +130,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
             }
 
             if (bestMatch) {
-              console.log(`[Download API] Arquivo recuperado! Original: ${fileKey} | Encontrado: ${bestMatch} (Diff: ${minDiff}ms)`);
+
 
               const { data: smartSigned, error: smartErr } = await supabaseAdmin
                 .storage
@@ -155,10 +155,9 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
       return NextResponse.json({ error: 'Arquivo não encontrado no servidor' }, { status: 404 });
     }
     // Tipagem flexível pois a resposta pode variar: usa cast para evitar erro de compilação
-    console.log('[Download API] Dados do signed original:', signed);
     const anySigned: any = signed;
     const url = anySigned?.signedUrl ?? anySigned?.signedURL ?? anySigned;
-    console.log('[Download API] URL extraída (Original):', url);
+
     if (!url) {
       console.error('[Download API] Falha ao extrair URL de:', signed);
       return NextResponse.json({ error: 'Não foi possível gerar signed URL' }, { status: 500 });

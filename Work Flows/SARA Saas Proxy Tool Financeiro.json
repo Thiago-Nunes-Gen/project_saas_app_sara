@@ -1,0 +1,431 @@
+{
+  "name": "SARA Saas Proxy Tool Financeiro",
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "return { json: $json };\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        -80
+      ],
+      "id": "34eaee53-96b1-4244-93e2-625f442ab92f",
+      "name": "Pass Through"
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "whatsapp_id"
+            },
+            {
+              "name": "acao"
+            },
+            {
+              "name": "descricao"
+            },
+            {
+              "name": "valor"
+            },
+            {
+              "name": "transacao_id"
+            },
+            {
+              "name": "categoria"
+            },
+            {
+              "name": "forma_pagamento"
+            },
+            {
+              "name": "data"
+            },
+            {
+              "name": "data_inicio"
+            },
+            {
+              "name": "data_fim"
+            },
+            {
+              "name": "client_id"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -800,
+        16
+      ],
+      "id": "ecfd62bb-3bd9-49ef-9c10-64b2a37afaa6",
+      "name": "Trigger Financeiro"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "pRnxa6KnhtpVUFl5rwugL",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/pRnxa6KnhtpVUFl5rwugL",
+          "cachedResultName": "SARA SaaS - Financeiro Dedicado v2.0"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "whatsapp_id": "={{ $json.whatsapp_id }}",
+            "acao": "={{ $json.acao }}",
+            "descricao": "={{ $json.descricao }}",
+            "valor": "={{ $json.valor }}",
+            "transacao_id": "={{ $json.transacao_id }}",
+            "categoria": "={{ $json.categoria }}",
+            "forma_pagamento": "={{ $json.forma_pagamento }}",
+            "data": "={{ $json.data }}",
+            "data_inicio": "={{ $json.data_inicio }}",
+            "data_fim": "={{ $json.data_fim }}",
+            "client_id": "={{ $json.client_id }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "whatsapp_id",
+              "displayName": "whatsapp_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "acao",
+              "displayName": "acao",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "descricao",
+              "displayName": "descricao",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "valor",
+              "displayName": "valor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "transacao_id",
+              "displayName": "transacao_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "categoria",
+              "displayName": "categoria",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "forma_pagamento",
+              "displayName": "forma_pagamento",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "data",
+              "displayName": "data",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "data_inicio",
+              "displayName": "data_inicio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "data_fim",
+              "displayName": "data_fim",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "client_id",
+              "displayName": "client_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        400,
+        -80
+      ],
+      "id": "d05be952-5e38-4d1f-8065-152e2b6bfaff",
+      "name": "Call 'SARA SaaS - Financeiro Dedicado v2.0'"
+    },
+    {
+      "parameters": {
+        "jsCode": "// =====================================================\n// FINANCE GUARD v3.1 - CORRIGIDO PARA N8N\n// Ajustado para estrutura real do Merge\n// =====================================================\n\n// ===============================\n// 1. CAPTURAR DADOS CORRETOS\n// ===============================\n\n// Input original (do trigger) - vem do Merge\nconst input = $input.first().json;\n\n// Histórico (últimas 10 transações) - vem do nó SQL anterior\nconst historicoItems = $items(\"Busca Contexto\");\nconst historico = historicoItems.map(item => item.json);\n\n// ===============================\n// 2. VALIDAÇÃO DE IDENTIDADE\n// ===============================\nif (!input.client_id) {\n  return {\n    json: {\n      status: 'erro',\n      erro_tecnico: true,\n      motivo: 'client_id_ausente',\n      mensagem_formatada:\n        '❌ Não consegui identificar seu cadastro. Tente novamente.'\n    }\n  };\n}\n\n// ===============================\n// 3. DADOS SEGUROS\n// ===============================\nconst acao = input.acao;\nconst transacaoIdInformada = input.transacao_id;\nconst descricao = input.descricao;\nconst valor = input.valor;\n\n// ===============================\n// 4. FLAGS DE VALIDAÇÃO\n// ===============================\nlet podeExecutar = true;\nlet motivoBloqueio = null;\nlet avisos = [];\nlet transacaoResolvida = null;\n\n// ===============================\n// 5. RESOLUÇÃO DE CONTEXTO AVANÇADA\n// ===============================\nif (['editar_transacao', 'excluir_transacao'].includes(acao)) {\n  \n  if (!transacaoIdInformada) {\n    \n    // 5.1 ÚLTIMA TRANSAÇÃO (padrão)\n    if (historico.length > 0) {\n      const ultima = historico[0];\n      transacaoResolvida = {\n        id: ultima.transaction_id,\n        descricao: ultima.description,\n        valor: ultima.amount,\n        data: ultima.date,\n        tipo: ultima.tipo\n      };\n      \n      input.transacao_id = ultima.transaction_id;\n      input.transacao_resolvida_por = 'ultima';\n      avisos.push(`Identifiquei: \"${ultima.description}\" (última transação)`);\n    }\n    \n    // 5.2 BUSCA POR DESCRIÇÃO (se usuário mencionou algo específico)\n    if (descricao && descricao.trim() !== '') {\n      const descLower = descricao.toLowerCase().trim();\n      \n      // Remove acentos para busca melhor\n      const normalizar = (str) => {\n        return str.toLowerCase()\n          .normalize('NFD')\n          .replace(/[\\u0300-\\u036f]/g, '')\n          .trim();\n      };\n      \n      const descNormalizada = normalizar(descricao);\n      \n      // Filtra histórico por match de descrição\n      const matches = historico.filter(t => \n        normalizar(t.description).includes(descNormalizada) ||\n        descNormalizada.includes(normalizar(t.description))\n      );\n      \n      if (matches.length === 1) {\n        // Match único - resolve automaticamente\n        transacaoResolvida = {\n          id: matches[0].transaction_id,\n          descricao: matches[0].description,\n          valor: matches[0].amount,\n          data: matches[0].date,\n          tipo: matches[0].tipo\n        };\n        \n        input.transacao_id = matches[0].transaction_id;\n        input.transacao_resolvida_por = 'descricao_unica';\n        avisos.push(`Identifiquei: \"${matches[0].description}\"`);\n        \n      } else if (matches.length > 1) {\n        // Múltiplos matches - pede confirmação\n        podeExecutar = false;\n        motivoBloqueio = 'multiplas_transacoes_encontradas';\n        \n        input.opcoes_encontradas = matches.slice(0, 5).map(m => ({\n          id: m.transaction_id,\n          descricao: m.description,\n          valor: m.amount,\n          data: m.date\n        }));\n      }\n    }\n    \n    // 5.3 SE NÃO RESOLVEU - BLOQUEIA\n    if (!transacaoResolvida && !motivoBloqueio) {\n      podeExecutar = false;\n      motivoBloqueio = 'transacao_nao_identificada';\n    }\n  }\n}\n\n// ===============================\n// 6. VALIDAÇÕES DE ENTRADA\n// ===============================\n\n// 6.1 Validar VALOR (se presente)\nif (valor !== null && valor !== undefined && valor !== '') {\n  const valorNum = Number(String(valor).replace(/[R$\\s]/g, '').replace(',', '.'));\n  \n  if (isNaN(valorNum)) {\n    podeExecutar = false;\n    motivoBloqueio = 'valor_invalido';\n  } else if (valorNum <= 0) {\n    podeExecutar = false;\n    motivoBloqueio = 'valor_zero_ou_negativo';\n  } else if (valorNum > 999999999) {\n    podeExecutar = false;\n    motivoBloqueio = 'valor_muito_alto';\n  }\n}\n\n// 6.2 Validar DESCRIÇÃO (para registro)\nif (['registrar_receita', 'registrar_despesa'].includes(acao)) {\n  \n  if (!descricao || String(descricao).trim() === '') {\n    podeExecutar = false;\n    motivoBloqueio = 'descricao_obrigatoria';\n  } else if (String(descricao).length > 200) {\n    podeExecutar = false;\n    motivoBloqueio = 'descricao_muito_longa';\n  }\n}\n\n// 6.3 Validar DATAS (se presente)\nif (input.data || input.data_inicio || input.data_fim) {\n  \n  const validarData = (d) => {\n    if (!d) return true; // opcional\n    return /^\\d{4}-\\d{2}-\\d{2}$/.test(d) || /^\\d{2}\\/\\d{2}\\/\\d{4}$/.test(d);\n  };\n  \n  if (!validarData(input.data)) {\n    podeExecutar = false;\n    motivoBloqueio = 'data_invalida';\n  }\n  if (!validarData(input.data_inicio)) {\n    podeExecutar = false;\n    motivoBloqueio = 'data_inicio_invalida';\n  }\n  if (!validarData(input.data_fim)) {\n    podeExecutar = false;\n    motivoBloqueio = 'data_fim_invalida';\n  }\n}\n\n// ===============================\n// 7. SUGESTÕES INTELIGENTES\n// ===============================\n\n// 7.1 Avisar sobre gastos altos\nif (['registrar_despesa'].includes(acao) && valor) {\n  const valorNum = Number(String(valor).replace(/[R$\\s]/g, '').replace(',', '.'));\n  \n  if (valorNum >= 500) {\n    avisos.push('💡 Gasto considerável! Lembre-se de categorizar corretamente.');\n  }\n  if (valorNum >= 1000) {\n    avisos.push('🚨 Gasto alto detectado! Confirme se está tudo certo.');\n  }\n}\n\n// ===============================\n// 8. MENSAGENS DE ERRO PERSONALIZADAS\n// ===============================\nconst mensagensErro = {\n  'transacao_nao_identificada': \n    '⚠️ Não consegui identificar qual transação você quer editar/excluir.\\n' +\n    'Tente assim: \"editar transação #123\" ou me diga mais detalhes da transação.',\n  \n  'multiplas_transacoes_encontradas':\n    '⚠️ Encontrei várias transações com essa descrição:\\n\\n' +\n    (input.opcoes_encontradas || []).map((o, i) => \n      `${i+1}. #${o.id} - ${o.descricao} (R$ ${Number(o.valor).toFixed(2)}) - ${o.data}`\n    ).join('\\n') +\n    '\\n\\nInforme o número da transação (#ID) que deseja editar.',\n  \n  'valor_invalido':\n    '⚠️ O valor informado não está correto.\\n' +\n    'Use formato: 150 ou 150.50',\n  \n  'valor_zero_ou_negativo':\n    '⚠️ O valor deve ser maior que zero.\\n' +\n    'Exemplo: R$ 50,00',\n  \n  'valor_muito_alto':\n    '⚠️ Esse valor parece muito alto!\\n' +\n    'Confirme se digitou corretamente.',\n  \n  'descricao_obrigatoria':\n    '⚠️ Preciso de uma descrição para registrar.\\n' +\n    'Exemplo: \"Mercado\", \"Uber\", \"Salário\"',\n  \n  'descricao_muito_longa':\n    '⚠️ A descrição está muito longa (máx 200 caracteres).\\n' +\n    'Tente ser mais conciso.',\n  \n  'data_invalida':\n    '⚠️ Data inválida.\\n' +\n    'Use formato: DD/MM/AAAA ou AAAA-MM-DD',\n  \n  'data_inicio_invalida':\n    '⚠️ Data de início inválida.\\n' +\n    'Use formato: DD/MM/AAAA ou AAAA-MM-DD',\n  \n  'data_fim_invalida':\n    '⚠️ Data final inválida.\\n' +\n    'Use formato: DD/MM/AAAA ou AAAA-MM-DD'\n};\n\n// ===============================\n// 9. RETORNO ESTRUTURADO\n// ===============================\nreturn {\n  json: {\n    ...input,\n    pode_executar: podeExecutar,\n    motivo_bloqueio: motivoBloqueio,\n    mensagem_erro: motivoBloqueio ? mensagensErro[motivoBloqueio] : null,\n    avisos: avisos.length > 0 ? avisos : null,\n    transacao_resolvida: transacaoResolvida\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        0
+      ],
+      "id": "15c9fada-7987-45ba-9280-34bbd52359d9",
+      "name": "Finance Guard (Context Resolver)"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "fc298967-8183-430a-af72-3d1d157b7aac",
+              "leftValue": "={{ $json.pode_executar }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -16,
+        0
+      ],
+      "id": "960c3e01-f9c8-4a66-9c36-25444a3bd681",
+      "name": "Finance Guard – Pode Executar?"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {
+          "includeUnpaired": true
+        }
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -416,
+        0
+      ],
+      "id": "29d9f600-338e-408c-ab78-44bcbc85368d",
+      "name": "Merge Input + Context."
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Busca últimas 10 transações do histórico\n  select * from pegar_ultimas_transacoes(\n    '{{ $json.client_id }}'::uuid,\n    10\n  );",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -608,
+        -112
+      ],
+      "id": "635e5a04-4094-47e8-9c96-84c680147d6b",
+      "name": "Busca Contexto",
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "2xQBC6Q6FS0TLYyI",
+          "name": "Postgres_Zero"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return {\n  json: {\n    output: {\n      mensagens: [\n        $json.mensagem_formatada ||\n        '⚠️ Preciso de mais detalhes para continuar.'\n      ]\n    }\n  }\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        192,
+        144
+      ],
+      "id": "8405916c-d89d-4a40-96a9-d28dcdc12d98",
+      "name": "mensagem info"
+    }
+  ],
+  "pinData": {
+    "Trigger Financeiro": [
+      {
+        "json": {
+          "whatsapp_id": "5516997515087",
+          "acao": "registrar_despesa",
+          "descricao": "Livro de finanças",
+          "valor": "50.00",
+          "transacao_id": "",
+          "categoria": "",
+          "forma_pagamento": "",
+          "data": "2026-01-23",
+          "data_inicio": "",
+          "data_fim": "",
+          "client_id": "5516997515087"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Trigger Financeiro": {
+      "main": [
+        [
+          {
+            "node": "Busca Contexto",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge Input + Context.",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Pass Through": {
+      "main": [
+        [
+          {
+            "node": "Call 'SARA SaaS - Financeiro Dedicado v2.0'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finance Guard (Context Resolver)": {
+      "main": [
+        [
+          {
+            "node": "Finance Guard – Pode Executar?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finance Guard – Pode Executar?": {
+      "main": [
+        [
+          {
+            "node": "Pass Through",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "mensagem info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Input + Context.": {
+      "main": [
+        [
+          {
+            "node": "Finance Guard (Context Resolver)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Busca Contexto": {
+      "main": [
+        [
+          {
+            "node": "Merge Input + Context.",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "c59466d4-105a-4423-83ab-ba16d1df9517",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2162172325255cd265a19f3178f77abb9ab7ec9c7a1d869ba2d2925c11389625"
+  },
+  "id": "CN5-qI4v6m7u1rIXL_YFS",
+  "tags": []
+}

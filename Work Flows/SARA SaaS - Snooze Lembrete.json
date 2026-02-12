@@ -1,0 +1,103 @@
+{
+  "name": "SARA SaaS - Snooze Lembrete",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "whatsapp_id"
+            },
+            {
+              "name": "lembrete_id",
+              "type": "number"
+            },
+            {
+              "name": "minutos",
+              "type": "number"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "bf50937d-24a4-4fa0-b81e-4d2d11b1d4ed",
+      "name": "Trigger Snooze"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT saas_adiar_lembrete(\n  '{{ $json.whatsapp_id }}',\n  {{ $json.lembrete_id }},\n  {{ $json.minutos }}\n) as resultado;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        208,
+        0
+      ],
+      "id": "30dfbd91-6780-47e6-a7c2-b0612146a334",
+      "name": "Executar Snooze",
+      "credentials": {
+        "postgres": {
+          "id": "2xQBC6Q6FS0TLYyI",
+          "name": "Postgres_Zero"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\nlet resultado = input.resultado;\n\nif (typeof resultado === 'string') {\n  try {\n    resultado = JSON.parse(resultado);\n  } catch (e) {\n    resultado = { status: 'erro', msg: 'Erro ao processar' };\n  }\n}\n\nreturn { json: resultado };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "3019999c-e626-4f20-ab11-59f0d1873309",
+      "name": "Parser Resultado"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Trigger Snooze": {
+      "main": [
+        [
+          {
+            "node": "Executar Snooze",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Executar Snooze": {
+      "main": [
+        [
+          {
+            "node": "Parser Resultado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "0d2a970b-e41b-43ff-8fea-0fc8a78f57f4",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2162172325255cd265a19f3178f77abb9ab7ec9c7a1d869ba2d2925c11389625"
+  },
+  "id": "4VWcU4Qx70-HEjt-aOMYK",
+  "tags": []
+}

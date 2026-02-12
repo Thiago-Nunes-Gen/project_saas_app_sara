@@ -1,0 +1,156 @@
+{
+  "name": "SARA SaaS - Comando #meuuso",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT obter_info_uso('{{ $json.whatsapp_id }}') as obter_info_uso;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -16,
+        0
+      ],
+      "id": "d54e1c3c-62f9-4179-98e3-0f01771df5e4",
+      "name": "Buscar Info Uso",
+      "credentials": {
+        "postgres": {
+          "id": "2xQBC6Q6FS0TLYyI",
+          "name": "Postgres_Zero"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "whatsapp_id"
+            },
+            {
+              "name": "client_id"
+            },
+            {
+              "name": "telefone"
+            },
+            {
+              "name": "mensagem"
+            },
+            {
+              "name": "instancia"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -224,
+        0
+      ],
+      "id": "18a34528-1f66-424e-b4db-ab7ae8cab127",
+      "name": "Execute Workflow Trigger"
+    },
+    {
+      "parameters": {
+        "resource": "messages-api",
+        "instanceName": "={{ $('Execute Workflow Trigger').item.json.instancia }}",
+        "remoteJid": "={{ $json.telefone }}",
+        "messageText": "={{ $json.mensagem_formatada }}",
+        "options_message": {}
+      },
+      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "typeVersion": 1,
+      "position": [
+        368,
+        0
+      ],
+      "id": "859c95bd-35e6-4c8d-84eb-f8247abe834c",
+      "name": "Mensagem #meuuso",
+      "credentials": {
+        "evolutionApi": {
+          "id": "U78J5QaTvwO0ynKA",
+          "name": "Evolution SARA_SaaS"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// =====================================================\n// PARSER #MEUUSO - FORMATADOR DE INFORMAÇÃO DE PLANO\n// Versão: 1.2 - Incluído RAG e Pesquisa Web\n// =====================================================\n\n// ===============================\n// 1. BUSCAR DADOS DO TRIGGER E SQL\n// ===============================\nconst triggerData = $('Execute Workflow Trigger').item.json;\nconst sqlResult = $input.first().json;\nconst dados = sqlResult.obter_info_uso || sqlResult;\n\n// Se houve erro no SQL\nif (!dados || dados.status === 'erro') {\n  return [{\n    json: {\n      whatsapp_id: triggerData.whatsapp_id,\n      telefone: triggerData.telefone,\n      mensagem_formatada: '❌ Não consegui buscar informações do seu plano. Tente novamente.'\n    }\n  }];\n}\n\n// ===============================\n// 2. EXTRAIR DADOS\n// ===============================\nconst plano = dados.plano || {};\nconst uso = dados.uso || {};\nconst renovacao = dados.renovacao || {};\nconst alerta = dados.alerta || {};\n\nconst lembretes = uso.lembretes || {};\nconst listas = uso.listas || {};\nconst transacoes = uso.transacoes || {};\nconst rag = uso.rag || {};\nconst pesquisa = uso.pesquisa || {};\n\n// ===============================\n// 3. FUNÇÃO PARA GERAR BARRA DE PROGRESSO\n// ===============================\nfunction gerarBarra(percentual, largura = 10) {\n  if (percentual === null || percentual === undefined) return '░░░░░░░░░░';\n  \n  const cheios = Math.round((percentual / 100) * largura);\n  const vazios = largura - cheios;\n  \n  let emoji = '🟩'; // Verde (ok)\n  if (percentual >= 90) emoji = '🟥'; // Vermelho (crítico)\n  else if (percentual >= 80) emoji = '🟨'; // Amarelo (atenção)\n  \n  return emoji.repeat(cheios) + '⬜'.repeat(vazios);\n}\n\n// ===============================\n// 4. FUNÇÃO PARA FORMATAR NÚMERO\n// ===============================\nfunction formatarUso(usado, limite, ilimitado) {\n  if (ilimitado) return `${usado}/∞`;\n  return `${usado}/${limite}`;\n}\n\n// ===============================\n// 5. MONTAR MENSAGEM PRINCIPAL\n// ===============================\n\nlet msg = '';\n\n// Cabeçalho\nmsg += `╔══════════════════╗\\n`;\nmsg += `  📊 *MEU PLANO - ${plano.nome}*\\n`;\nmsg += `╚══════════════════╝\\n\\n`;\n\n// Status do plano\nmsg += `Status: _${plano.status}_\\n`;\nmsg += `━━━━━━━━━━━━━━━━━━\\n\\n`;\n\n// ===============================\n// SEÇÃO: LEMBRETES\n// ===============================\nmsg += `📝 *Lembretes*\\n`;\nif (lembretes.ilimitado) {\n  msg += `∞ Ilimitado\\n`;\n  msg += `Você criou ${lembretes.usado} lembretes\\n`;\n} else {\n  msg += `${formatarUso(lembretes.usado, lembretes.limite, lembretes.ilimitado)} (${lembretes.percentual}%)\\n`;\n  msg += `${gerarBarra(lembretes.percentual)}\\n`;\n  msg += `_Disponível: ${lembretes.disponivel}_\\n`;\n}\nmsg += `\\n`;\n\n// ===============================\n// SEÇÃO: LISTAS\n// ===============================\nmsg += `📋 *Listas*\\n`;\nif (listas.ilimitado) {\n  msg += `∞ Ilimitado\\n`;\n  msg += `Você criou ${listas.usado} listas\\n`;\n} else {\n  msg += `${formatarUso(listas.usado, listas.limite, listas.ilimitado)} (${listas.percentual}%)\\n`;\n  msg += `${gerarBarra(listas.percentual)}\\n`;\n  msg += `_Disponível: ${listas.disponivel}_\\n`;\n}\nmsg += `\\n`;\n\n// ===============================\n// SEÇÃO: TRANSAÇÕES\n// ===============================\nmsg += `💰 *Transações (Este Mês)*\\n`;\nif (transacoes.ilimitado) {\n  msg += `∞ Ilimitado\\n`;\n  msg += `Você registrou ${transacoes.usado} transações\\n`;\n} else {\n  msg += `${formatarUso(transacoes.usado, transacoes.limite, transacoes.ilimitado)} (${transacoes.percentual}%)\\n`;\n  msg += `${gerarBarra(transacoes.percentual)}\\n`;\n  msg += `_Disponível: ${transacoes.disponivel}_\\n`;\n}\nmsg += `\\n`;\n\n// ===============================\n// SEÇÃO: RAG (DOCUMENTOS)\n// ===============================\nmsg += `📚 *Consultas em Documentos*\\n`;\nif (rag.ilimitado) {\n  msg += `∞ Ilimitado\\n`;\n  msg += `Você fez ${rag.consultas_usado} consultas\\n`;\n  msg += `Documentos: ${rag.documentos_usado}/${rag.documentos_limite <= 0 ? '∞' : rag.documentos_limite}\\n`;\n} else {\n  msg += `${formatarUso(rag.consultas_usado, rag.consultas_limite, rag.ilimitado)} (${rag.consultas_percentual}%)\\n`;\n  msg += `${gerarBarra(rag.consultas_percentual)}\\n`;\n  msg += `_Disponível: ${rag.consultas_disponivel}_\\n`;\n  msg += `_Docs salvos: ${rag.documentos_usado}/${rag.documentos_limite}_\\n`;\n}\nmsg += `\\n`;\n\n// ===============================\n// SEÇÃO: PESQUISA WEB\n// ===============================\nmsg += `🔍 *Pesquisas na Web*\\n`;\nif (pesquisa.ilimitado) {\n  msg += `∞ Ilimitado\\n`;\n  msg += `Você fez ${pesquisa.usado} pesquisas\\n`;\n} else {\n  msg += `${formatarUso(pesquisa.usado, pesquisa.limite, pesquisa.ilimitado)} (${pesquisa.percentual}%)\\n`;\n  msg += `${gerarBarra(pesquisa.percentual)}\\n`;\n  msg += `_Disponível: ${pesquisa.disponivel}_\\n`;\n}\n\nmsg += `\\n━━━━━━━━━━━━━━━━━━\\n\\n`;\n\n// ===============================\n// SEÇÃO: RENOVAÇÃO\n// ===============================\nmsg += `🔄 *Renovação*\\n`;\nmsg += `Data: ${renovacao.data}\\n`;\n\nif (renovacao.dias_restantes > 0) {\n  msg += `⏰ Faltam ${renovacao.dias_restantes} dia${renovacao.dias_restantes > 1 ? 's' : ''}\\n`;\n} else if (renovacao.dias_restantes === 0) {\n  msg += `⏰ Renova hoje!\\n`;\n} else {\n  msg += `⏰ Vencido há ${Math.abs(renovacao.dias_restantes)} dia${Math.abs(renovacao.dias_restantes) > 1 ? 's' : ''}\\n`;\n}\n\nmsg += `\\n━━━━━━━━━━━━━━━━━━\\n\\n`;\n\n// ===============================\n// SEÇÃO: ALERTAS\n// ===============================\n\nif (alerta.nivel === 'critico') {\n  msg += `🚨 *ALERTA CRÍTICO*\\n`;\n  msg += `Você está perto do limite!\\n`;\n  msg += `Considere fazer upgrade.\\n`;\n  msg += `Digite *#planos* para ver opções.\\n\\n`;\n  \n} else if (alerta.nivel === 'atencao') {\n  msg += `⚠️ *ATENÇÃO*\\n`;\n  msg += `${alerta.mensagem}\\n`;\n  msg += `Digite *#planos* para ver opções.\\n\\n`;\n  \n} else if (plano.nome === 'FREE') {\n  msg += `💡 *Dica*\\n`;\n  msg += `Quer mais recursos?\\n`;\n  msg += `Upgrade para *STARTER* por apenas R$ 19,90/mês!\\n`;\n  msg += `Digite *#planos* para saber mais.\\n\\n`;\n}\n\n// ===============================\n// RODAPÉ\n// ===============================\nmsg += `━━━━━━━━━━━━━━━━━━\\n`;\nmsg += `💬 Precisa de ajuda? Estou aqui!`;\n\n// ===============================\n// 6. RETORNAR RESULTADO\n// ===============================\nreturn [{\n  json: {\n    whatsapp_id: triggerData.whatsapp_id,\n    telefone: triggerData.telefone,\n    client_id: triggerData.client_id,\n    mensagem_formatada: msg,\n    dados_brutos: dados // Para debug\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        176,
+        0
+      ],
+      "id": "a4cda556-3319-479e-b1a3-f00a2acba92c",
+      "name": "Parser Mensagem"
+    }
+  ],
+  "pinData": {
+    "Execute Workflow Trigger": [
+      {
+        "json": {
+          "whatsapp_id": "5516997515087",
+          "client_id": "fb90a55c-c784-47a1-ab94-4348f65e3a4b",
+          "telefone": "5516997515087@s.whatsapp.net",
+          "mensagem": "#meuuso",
+          "instancia": "SARA_SaaS"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Buscar Info Uso": {
+      "main": [
+        [
+          {
+            "node": "Parser Mensagem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "Buscar Info Uso",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parser Mensagem": {
+      "main": [
+        [
+          {
+            "node": "Mensagem #meuuso",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "ce58c754-2c3d-45e2-b533-313ba3713caa",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2162172325255cd265a19f3178f77abb9ab7ec9c7a1d869ba2d2925c11389625"
+  },
+  "id": "31kGFp87eBrxsrEYNi7-K",
+  "tags": []
+}

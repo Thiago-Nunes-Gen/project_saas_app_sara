@@ -96,9 +96,7 @@ export async function POST(request: Request) {
       )
     }
 
-    console.log('[API whatsapp/connect] existingClient:', existingClient)
-    console.log('[API whatsapp/connect] user.id:', user.id)
-    console.log('[API whatsapp/connect] whatsapp_id:', whatsapp_id)
+
 
     if (existingClient) {
       // Atualiza o cliente existente com o WhatsApp
@@ -127,7 +125,7 @@ export async function POST(request: Request) {
       })
     } else {
       // Cria novo cliente
-      console.log('[API whatsapp/connect] Criando novo cliente...')
+
 
       // Busca os limites do plano FREE
       const { data: freePlan, error: planError } = await supabase
@@ -170,7 +168,7 @@ export async function POST(request: Request) {
         max_web_searches_month: planLimits.max_web_searches_month
       }
 
-      console.log('[API whatsapp/connect] Insert data:', insertData)
+
 
       const { data: newClient, error: insertError } = await supabase
         .from('saas_clients')
@@ -186,7 +184,7 @@ export async function POST(request: Request) {
         )
       }
 
-      console.log('[API whatsapp/connect] Cliente criado:', newClient)
+
 
       return NextResponse.json({
         success: true,

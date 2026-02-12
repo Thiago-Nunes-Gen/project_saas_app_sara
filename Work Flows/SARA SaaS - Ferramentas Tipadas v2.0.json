@@ -1,0 +1,439 @@
+{
+  "name": "SARA SaaS - Ferramentas Tipadas v2.0",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "whatsapp_id"
+            },
+            {
+              "name": "funcao"
+            },
+            {
+              "name": "acao"
+            },
+            {
+              "name": "param1"
+            },
+            {
+              "name": "param2"
+            },
+            {
+              "name": "param3"
+            },
+            {
+              "name": "param4"
+            },
+            {
+              "name": "param5"
+            },
+            {
+              "name": "param6"
+            },
+            {
+              "name": "param7"
+            },
+            {
+              "name": "param8"
+            },
+            {
+              "name": "param9"
+            },
+            {
+              "name": "param10"
+            },
+            {
+              "name": "param11"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        128,
+        784
+      ],
+      "id": "bf99c39c-b97e-4245-a30b-44bde5f8f8c3",
+      "name": "Trigger Ferramentas"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.funcao }}",
+                    "rightValue": "lembretes",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "b36f0cf4-7d1b-49ee-a6c9-b361259b597c"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "lembretes"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.funcao }}",
+                    "rightValue": "listas",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "1895cdb3-4fa4-4c9c-8cf7-440fe99476a4"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "listas"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.funcao }}",
+                    "rightValue": "cliente",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "99f75e82-4014-492a-ba9f-af671f2f28da"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "cliente"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "f95e07b5-0f24-4bec-9879-9bd283f712aa",
+                    "leftValue": "={{ $json.funcao }}",
+                    "rightValue": "agenda",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "agenda"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        160,
+        1008
+      ],
+      "id": "6d194f70-03a4-4edc-9aae-d106968a2c8f",
+      "name": "Roteador de Funcao"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT saas_onboarding(\n  '{{ $json.whatsapp_id }}',\n  {{ $json.param1 ? \"'\" + $json.param1.replace(/'/g, \"''\") + \"'\" : \"NULL\" }}\n) as resultado;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        496,
+        1120
+      ],
+      "id": "cd5ade19-580d-4307-959c-0437b88c3b9a",
+      "name": "SQL Cliente",
+      "credentials": {
+        "postgres": {
+          "id": "2xQBC6Q6FS0TLYyI",
+          "name": "Postgres_Zero"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\n\nlet resultado = input.resultado;\n\nif (typeof resultado === 'string') {\n  try {\n    resultado = JSON.parse(resultado);\n  } catch (e) {\n    resultado = { status: 'erro', msg: 'Erro ao processar resposta' };\n  }\n}\n\nconst output = {\n  status: resultado.status || 'erro',\n  msg: resultado.msg || '',\n  dados: resultado.dados || null\n};\n\nconsole.log('=== SARA Ferramentas Tipadas ===');\nconsole.log('Status:', output.status);\nconsole.log('Mensagem:', output.msg);\n\nreturn { json: output };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        768,
+        1120
+      ],
+      "id": "0f167985-9f8a-4ad8-bd0f-8f5fe6408871",
+      "name": "Parser Resposta"
+    },
+    {
+      "parameters": {
+        "content": "## SARA SaaS - Ferramentas Tipadas v1.0\n\nEntrada:\n- whatsapp_id: ID do cliente\n- funcao: lembretes | listas | financeiro | cliente\n- acao: Acao especifica da funcao\n- param1-6: Parametros da acao\n\nSaida padronizada:\n{\n  status: sucesso | erro,\n  msg: Mensagem amigavel,\n  dados: { ... }\n}",
+        "height": 376,
+        "width": 432,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -368,
+        768
+      ],
+      "typeVersion": 1,
+      "id": "f6f52566-1555-496e-8a95-14738e8ab8dd",
+      "name": "Documentacao"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT saas_lembretes(\n  '{{ $json.whatsapp_id }}',\n  '{{ $json.acao }}',\n  {{ ($json.param1 && $json.param1 !== '' && $json.param1 !== 'false') ? \"'\" + $json.param1.replace(/'/g, \"''\") + \"'\" : \"NULL\" }},\n  {{ ($json.param2 && $json.param2 !== '' && $json.param2 !== 'false') ? \"'\" + $json.param2.replace(/'/g, \"''\") + \"'\" : \"NULL\" }},\n  {{ ($json.param3 && $json.param3 !== '' && $json.param3 !== 'false') ? \"'\" + $json.param3 + \"'::date\" : \"NULL\" }},\n  {{ ($json.param4 && $json.param4 !== '' && $json.param4 !== 'false') ? \"'\" + $json.param4 + \"'::time\" : \"'09:00:00'::time\" }},\n  {{ ($json.param5 && $json.param5 !== '' && $json.param5 !== 'false') ? \"'\" + $json.param5 + \"'\" : \"'media'\" }},\n  {{ ($json.param6 && $json.param6 !== '' && $json.param6 !== 'false') ? \"'\" + $json.param6 + \"'\" : \"'unico'\" }},\n  {{ ($json.param7 && $json.param7 !== '' && $json.param7 !== 'false') ? $json.param7 + \"::bigint\" : \"NULL\" }}\n) as resultado;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        496,
+        736
+      ],
+      "id": "460a76a7-2624-4f3c-9043-8c44af4f831b",
+      "name": "SQL Lembretes",
+      "credentials": {
+        "postgres": {
+          "id": "2xQBC6Q6FS0TLYyI",
+          "name": "Postgres_Zero"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT saas_listas(\n  '{{ $json.whatsapp_id }}',\n  '{{ $json.acao }}',\n  {{ ($json.param1 && $json.param1 !== 'false') ? \"'\" + $json.param1.replace(/'/g, \"''\") + \"'\" : \"NULL\" }},\n  {{ ($json.param2 && $json.param2 !== 'false') ? \"'\" + $json.param2.replace(/'/g, \"''\") + \"'\" : \"NULL\" }},\n  {{ ($json.param3 && $json.param3 !== 'false') ? \"'\" + $json.param3 + \"'\" : \"NULL\" }}\n) as resultado;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        496,
+        928
+      ],
+      "id": "98592591-d4fa-427f-a461-42ad0d5527d7",
+      "name": "SQL Listas",
+      "credentials": {
+        "postgres": {
+          "id": "2xQBC6Q6FS0TLYyI",
+          "name": "Postgres_Zero"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// =====================================================\n// PARSER LEMBRETES v2.1 (SARA) - COM CAPITALIZE\n// =====================================================\n\n// ===============================\n// FUNÇÕES AUXILIARES (DEVEM ESTAR NO INÍCIO)\n// ===============================\nfunction capitalize(str) {\n  if (!str) return \"\";\n  return str.charAt(0).toUpperCase() + str.slice(1);\n}\n\nfunction formatarDataHora(dataHora) {\n  if (!dataHora) return \"\";\n  \n  const dt = new Date(dataHora);\n  const dia = String(dt.getDate()).padStart(2, '0');\n  const mes = String(dt.getMonth() + 1).padStart(2, '0');\n  const ano = dt.getFullYear();\n  const hora = String(dt.getHours()).padStart(2, '0');\n  const min = String(dt.getMinutes()).padStart(2, '0');\n  \n  return `${dia}/${mes}/${ano} às ${hora}:${min}`;\n}\n\n// ===============================\n// 1. DADOS DO INPUT\n// ===============================\nconst sqlItem = $input.first().json;\nconst resultado = sqlItem.resultado ?? null;\n\n// Pega whatsapp_id e client_id do próprio input ou do resultado\nconst whatsapp_id = sqlItem.whatsapp_id ?? resultado?.whatsapp_id ?? \"\";\nconst client_id = sqlItem.client_id ?? resultado?.client_id ?? \"\";\n\n// ===============================\n// 2. ERRO ESTRUTURAL\n// ===============================\nif (!resultado || !resultado.status) {\n  return [{\n    whatsapp_id,\n    client_id,\n    status: \"erro\",\n    mensagem_formatada: \"Ops, tive um problema técnico ao processar seu lembrete.\\nTente novamente em instantes.\"\n  }];\n}\n\n// ===============================\n// 3. ERRO FUNCIONAL\n// ===============================\nif (resultado.status === \"erro\") {\n  return [{\n    whatsapp_id,\n    client_id,\n    status: \"erro\",\n    mensagem_formatada: `❌ ${resultado.msg ?? \"Não consegui processar seu lembrete.\"}`\n  }];\n}\n\n// ===============================\n// 4. CRIAR LEMBRETE\n// ===============================\nif (resultado.msg?.includes(\"criado\")) {\n  const dados = resultado.dados ?? {};\n  \n  let msg = `========================\\n`;\n  msg += `✅ *Lembrete Criado!*\\n`;\n  msg += `========================\\n`;\n  msg += `📌 *${capitalize(dados.titulo)}*\\n`;\n  \n  // Data e hora vêm separados!\n  if (dados.data && dados.hora) {\n    msg += `📅 ${dados.data} às ${dados.hora}\\n`;\n  } else if (dados.data_hora) {\n    msg += `📅 ${formatarDataHora(dados.data_hora)}\\n`;\n  }\n  \n  if (dados.recorrencia && dados.recorrencia !== 'nenhuma') {\n    msg += `🔁 Recorrência: _${dados.recorrencia}_\\n`;\n  }\n  \n  msg += `========================`;\n  \n  return [{\n    whatsapp_id,\n    client_id,\n    status: \"sucesso\",\n    mensagem_formatada: msg\n  }];\n}\n\n// ===============================\n// 5. LISTAR LEMBRETES\n// ===============================\nif (resultado.dados && (resultado.dados.hoje || resultado.dados.amanha || resultado.dados.proximos)) {\n  const dados = resultado.dados;\n  const hoje = dados.hoje ?? [];\n  const amanha = dados.amanha ?? [];\n  const proximos = dados.proximos ?? [];\n  \n  const totalLembretes = hoje.length + amanha.length + proximos.length;\n  \n  if (totalLembretes === 0) {\n    return [{\n      whatsapp_id,\n      client_id,\n      status: \"sucesso\",\n      mensagem_formatada: \"📭 Você não tem lembretes ativos no momento.\"\n    }];\n  }\n  \n  let msg = `========================\\n`;\n  msg += `📋 *Seus Lembretes* (${totalLembretes})\\n`;\n  msg += `========================\\n\\n`;\n  \n  // HOJE\n  if (hoje.length > 0) {\n    msg += `📅 *HOJE*\\n\\n`;\n    hoje.forEach((l, index) => {\n      msg += `${index + 1}. *${capitalize(l.titulo)}*\\n`;\n      msg += `   ⏰ ${l.hora}\\n`;\n      \n      if (l.descricao) {\n        msg += `   📝 ${capitalize(l.descricao)}\\n`;\n      }\n      \n      if (l.recorrencia && l.recorrencia !== 'nenhuma') {\n        msg += `   🔁 ${l.recorrencia}\\n`;\n      }\n      \n      if (index < hoje.length - 1) {\n        msg += `\\n`;\n      }\n    });\n    \n    if (amanha.length > 0 || proximos.length > 0) {\n      msg += `\\n------------------------\\n`;\n    }\n  }\n  \n  // AMANHÃ\n  if (amanha.length > 0) {\n    msg += `\\n📅 *AMANHÃ*\\n\\n`;\n    amanha.forEach((l, index) => {\n      msg += `${index + 1}. *${capitalize(l.titulo)}*\\n`;\n      msg += `   ⏰ ${l.hora}\\n`;\n      \n      if (l.descricao) {\n        msg += `   📝 ${capitalize(l.descricao)}\\n`;\n      }\n      \n      if (index < amanha.length - 1) {\n        msg += `\\n`;\n      }\n    });\n    \n    if (proximos.length > 0) {\n      msg += `\\n------------------------\\n`;\n    }\n  }\n  \n  // PRÓXIMOS\n  if (proximos.length > 0) {\n    msg += `\\n📅 *PRÓXIMOS DIAS*\\n\\n`;\n    proximos.forEach((l, index) => {\n      msg += `${index + 1}. *${capitalize(l.titulo)}*\\n`;\n      msg += `   📅 ${l.data} às ${l.hora}\\n`;\n      \n      if (l.descricao) {\n        msg += `   📝 ${capitalize(l.descricao)}\\n`;\n      }\n      \n      if (index < proximos.length - 1) {\n        msg += `\\n`;\n      }\n    });\n  }\n  \n  msg += `\\n========================`;\n  \n  return [{\n    whatsapp_id,\n    client_id,\n    status: \"sucesso\",\n    mensagem_formatada: msg\n  }];\n}\n\n// ===============================\n// 6. EDITAR LEMBRETE\n// ===============================\nif (resultado.msg?.includes(\"editado\") || resultado.msg?.includes(\"atualizado\")) {\n  const dados = resultado.dados ?? {};\n  \n  let msg = `========================\\n`;\n  msg += `✏️ *Lembrete Atualizado!*\\n`;\n  msg += `========================\\n`;\n  \n  if (dados.titulo) {\n    msg += `📌 *${capitalize(dados.titulo)}*\\n`;\n  }\n  \n  if (dados.data && dados.hora) {\n    msg += `📅 ${dados.data} às ${dados.hora}\\n`;\n  }\n  \n  msg += `========================`;\n  \n  return [{\n    whatsapp_id,\n    client_id,\n    status: \"sucesso\",\n    mensagem_formatada: msg\n  }];\n}\n\n// ===============================\n// 7. COMPLETAR LEMBRETE\n// ===============================\nif (resultado.msg?.includes(\"completado\") || resultado.msg?.includes(\"concluído\")) {\n  const dados = resultado.dados ?? {};\n  \n  let msg = `========================\\n`;\n  msg += `✅ *Lembrete Concluído!*\\n`;\n  msg += `========================\\n`;\n  \n  if (dados.titulo) {\n    msg += `📌 ${capitalize(dados.titulo)}\\n`;\n  }\n  \n  msg += `========================`;\n  \n  return [{\n    whatsapp_id,\n    client_id,\n    status: \"sucesso\",\n    mensagem_formatada: msg\n  }];\n}\n\n// ===============================\n// 8. CANCELAR LEMBRETE\n// ===============================\nif (resultado.msg?.includes(\"cancelado\")) {\n  const dados = resultado.dados ?? {};\n  \n  let msg = `========================\\n`;\n  msg += `🚫 *Lembrete Cancelado!*\\n`;\n  msg += `========================\\n`;\n  \n  if (dados.titulo) {\n    msg += `📌 ${capitalize(dados.titulo)}\\n`;\n  }\n  \n  msg += `========================`;\n  \n  return [{\n    whatsapp_id,\n    client_id,\n    status: \"sucesso\",\n    mensagem_formatada: msg\n  }];\n}\n\n// ===============================\n// 9. SNOOZE\n// ===============================\nif (resultado.msg?.includes(\"adiado\") || resultado.msg?.includes(\"snooze\")) {\n  const dados = resultado.dados ?? {};\n  \n  let msg = `========================\\n`;\n  msg += `⏰ *Lembrete Adiado!*\\n`;\n  msg += `========================\\n`;\n  \n  if (dados.titulo) {\n    msg += `📌 ${capitalize(dados.titulo)}\\n`;\n  }\n  \n  if (dados.nova_hora) {\n    msg += `🔔 Vai tocar às ${dados.nova_hora}\\n`;\n  }\n  \n  msg += `========================`;\n  \n  return [{\n    whatsapp_id,\n    client_id,\n    status: \"sucesso\",\n    mensagem_formatada: msg\n  }];\n}\n\n// ===============================\n// 10. FALLBACK GENÉRICO\n// ===============================\nreturn [{\n  whatsapp_id,\n  client_id,\n  status: \"sucesso\",\n  mensagem_formatada: `✅ ${resultado.msg ?? \"Lembrete processado com sucesso!\"}`\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        768,
+        736
+      ],
+      "id": "79626d2e-f463-44c5-8b3b-6e7ff0486779",
+      "name": "Parser Lembretes"
+    },
+    {
+      "parameters": {
+        "jsCode": "// =====================================================\n// PARSER LISTAS v1.1 (SARA) - CORRIGIDO\n// =====================================================\n\n// ===============================\n// 1. DADOS DO INPUT\n// ===============================\nconst sqlItem = $input.first().json;\nconst resultado = sqlItem.resultado ?? null;\n\n// Pega whatsapp_id e client_id do próprio input ou do resultado\nconst whatsapp_id = sqlItem.whatsapp_id ?? resultado?.whatsapp_id ?? \"\";\nconst client_id = sqlItem.client_id ?? resultado?.client_id ?? \"\";\n\n// ===============================\n// 2. ERRO ESTRUTURAL\n// ===============================\nif (!resultado || !resultado.status) {\n  return [{\n    whatsapp_id,\n    client_id,\n    status: \"erro\",\n    mensagem_formatada: \"Ops, tive um problema técnico ao processar sua lista.\\nTente novamente em instantes.\"\n  }];\n}\n\n// ===============================\n// 3. ERRO FUNCIONAL\n// ===============================\nif (resultado.status === \"erro\") {\n  return [{\n    whatsapp_id,\n    client_id,\n    status: \"erro\",\n    mensagem_formatada: `❌ ${resultado.msg ?? \"Não consegui processar sua lista.\"}`\n  }];\n}\n\n// ===============================\n// 4. CRIAR LISTA\n// ===============================\nif (resultado.msg?.includes(\"Lista criada\")) {\n  const dados = resultado.dados ?? {};\n  \n  let msg = `========================\\n`;\n  msg += `✅ *Lista Criada!*\\n`;\n  msg += `========================\\n`;\n  msg += `📋 *${dados.titulo}*\\n`;\n  msg += `========================`;\n  \n  return [{\n    whatsapp_id,\n    client_id,\n    status: \"sucesso\",\n    mensagem_formatada: msg\n  }];\n}\n\n// ===============================\n// 5. ADICIONAR ITENS\n// ===============================\nif (resultado.msg?.includes(\"adicionado\")) {\n  const dados = resultado.dados ?? {};\n  const qtd = dados.itens_adicionados ?? 1;\n  \n  let msg = `========================\\n`;\n  msg += qtd > 1 \n    ? `✅ *${qtd} Itens Adicionados!*\\n`\n    : `✅ *Item Adicionado!*\\n`;\n  msg += `========================\\n`;\n  msg += `📊 Total de itens: ${dados.total_itens}\\n`;\n  msg += `========================`;\n  \n  return [{\n    whatsapp_id,\n    client_id,\n    status: \"sucesso\",\n    mensagem_formatada: msg\n  }];\n}\n\n// ===============================\n// 6. LISTAR UMA LISTA ESPECÍFICA\n// ===============================\nif (resultado.lista && resultado.itens) {\n  const titulo = resultado.lista;\n  const itens = resultado.itens ?? [];\n  \n  if (itens.length === 0) {\n    let msg = `========================\\n`;\n    msg += `📋 *${titulo}*\\n`;\n    msg += `========================\\n`;\n    msg += `📭 Lista vazia.\\n`;\n    msg += `Adicione itens!\\n`;\n    msg += `========================`;\n    \n    return [{\n      whatsapp_id,\n      client_id,\n      status: \"sucesso\",\n      mensagem_formatada: msg\n    }];\n  }\n  \n  let msg = `========================\\n`;\n  msg += `📋 *${titulo}*\\n`;\n  msg += `========================\\n\\n`;\n  \n  itens.forEach((item, index) => {\n    if (item.feito) {\n      msg += `✅ ~${item.texto}~\\n`;\n    } else {\n      msg += `⬜ ${item.texto}\\n`;\n    }\n  });\n  \n  const feitos = itens.filter(i => i.feito).length;\n  const total = itens.length;\n  \n  msg += `\\n========================\\n`;\n  msg += `Progresso: ${feitos}/${total} itens`;\n  \n  return [{\n    whatsapp_id,\n    client_id,\n    status: \"sucesso\",\n    mensagem_formatada: msg\n  }];\n}\n\n// ===============================\n// 7. LISTAR TODAS AS LISTAS\n// ===============================\nif (resultado.dados && Array.isArray(resultado.dados)) {\n  const listas = resultado.dados;\n  \n  if (listas.length === 0) {\n    return [{\n      whatsapp_id,\n      client_id,\n      status: \"sucesso\",\n      mensagem_formatada: \"📭 Você não tem listas criadas ainda.\"\n    }];\n  }\n  \n  let msg = `========================\\n`;\n  msg += `📋 *Suas Listas* (${listas.length})\\n`;\n  msg += `========================\\n\\n`;\n  \n  listas.forEach((lista, index) => {\n    msg += `${index + 1}. *${lista.titulo}*\\n`;\n    msg += `   📊 ${lista.total_itens} itens\\n`;\n    \n    if (index < listas.length - 1) {\n      msg += `------------------------\\n`;\n    }\n  });\n  \n  msg += `\\n========================`;\n  \n  return [{\n    whatsapp_id,\n    client_id,\n    status: \"sucesso\",\n    mensagem_formatada: msg\n  }];\n}\n\n// ===============================\n// 8. MARCAR ITEM COMO FEITO (🆕 MOSTRA LISTA ATUALIZADA)\n// ===============================\nif (resultado.msg?.includes(\"marcado como feito\")) {\n  const dados = resultado;\n  \n  // Se retornou a lista atualizada, mostra ela\n  if (dados.lista && dados.itens) {\n    const titulo = dados.lista;\n    const itens = dados.itens ?? [];\n    \n    let msg = `========================\\n`;\n    \n    // Mensagem de confirmação\n    if (dados.itens_marcados > 1) {\n      msg += `✅ *${dados.itens_marcados} Itens Marcados!*\\n`;\n    } else {\n      msg += `✅ *Item Marcado!*\\n`;\n    }\n    \n    msg += `========================\\n`;\n    msg += `📋 *${titulo}*\\n`;\n    msg += `========================\\n\\n`;\n    \n    itens.forEach((item, index) => {\n      if (item.feito) {\n        msg += `✅ ~${item.texto}~\\n`;\n      } else {\n        msg += `⬜ ${item.texto}\\n`;\n      }\n    });\n    \n    const feitos = itens.filter(i => i.feito).length;\n    const total = itens.length;\n    \n    msg += `\\n========================\\n`;\n    msg += `Progresso: ${feitos}/${total} itens`;\n    \n    return [{\n      whatsapp_id,\n      client_id,\n      status: \"sucesso\",\n      mensagem_formatada: msg\n    }];\n  }\n  \n  // Fallback (se não retornou lista completa)\n  return [{\n    whatsapp_id,\n    client_id,\n    status: \"sucesso\",\n    mensagem_formatada: `✅ ${resultado.msg}`\n  }];\n}\n\n// ===============================\n// 9. REMOVER ITEM\n// ===============================\nif (resultado.msg?.includes(\"removido\")) {\n  const dados = resultado.dados ?? {};\n  \n  let msg = `========================\\n`;\n  msg += `🗑️ *Item Removido!*\\n`;\n  msg += `========================\\n`;\n  msg += `📊 Itens restantes: ${dados.total_itens}\\n`;\n  msg += `========================`;\n  \n  return [{\n    whatsapp_id,\n    client_id,\n    status: \"sucesso\",\n    mensagem_formatada: msg\n  }];\n}\n\n// ===============================\n// 10. EXCLUIR LISTA\n// ===============================\nif (resultado.msg?.includes(\"excluída\")) {\n  return [{\n    whatsapp_id,\n    client_id,\n    status: \"sucesso\",\n    mensagem_formatada: `🗑️ ${resultado.msg}`\n  }];\n}\n\n// ===============================\n// 11. FALLBACK GENÉRICO\n// ===============================\nreturn [{\n  whatsapp_id,\n  client_id,\n  status: \"sucesso\",\n  mensagem_formatada: `✅ ${resultado.msg ?? \"Lista processada com sucesso!\"}`\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        768,
+        928
+      ],
+      "id": "03842735-1b3a-443f-b5b6-88c574e696f3",
+      "name": "Parser Listas"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT saas_agenda(\n  '{{ $json.whatsapp_id }}',\n  '{{ $json.acao }}',\n  {{ ($json.param1 && $json.param1 !== '' && $json.param1 !== 'false') ? \"'\" + $json.param1.replace(/'/g, \"''\") + \"'\" : 'NULL' }},\n  {{ ($json.param2 && $json.param2 !== '' && $json.param2 !== 'false') ? \"'\" + $json.param2.replace(/'/g, \"''\") + \"'\" : 'NULL' }},\n  {{ ($json.param3 && $json.param3 !== '' && $json.param3 !== 'false') ? \"'\" + $json.param3.replace(/'/g, \"''\") + \"'\" : 'NULL' }},\n  {{ ($json.param4 && $json.param4 !== '' && $json.param4 !== 'false') ? \"'\" + $json.param4 + \"'::date\" : 'NULL' }},\n  {{ ($json.param5 && $json.param5 !== '' && $json.param5 !== 'false') ? \"'\" + $json.param5 + \"'::time\" : \"'09:00'::time\" }},\n  {{ ($json.param6 && $json.param6 !== '' && $json.param6 !== 'false') ? \"'\" + $json.param6 + \"'::date\" : 'NULL' }},\n  {{ ($json.param7 && $json.param7 !== '' && $json.param7 !== 'false') ? \"'\" + $json.param7 + \"'::time\" : 'NULL' }},\n  {{ ($json.param8 && $json.param8 !== '' && $json.param8 !== 'false') ? $json.param8 : 'false' }},\n  {{ ($json.param9 && $json.param9 !== '' && $json.param9 !== 'false') ? $json.param9 : '30' }},\n  {{ ($json.param10 && $json.param10 !== '' && $json.param10 !== 'false') ? \"'\" + $json.param10 + \"'\" : \"'media'\" }},\n  {{ ($json.param11 && $json.param11 !== '' && $json.param11 !== 'false') ? $json.param11 + '::bigint' : 'NULL' }}\n) as resultado;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        496,
+        1328
+      ],
+      "id": "b881479e-e1dd-42b5-af7c-b6e81afc7383",
+      "name": "SQL Agenda",
+      "credentials": {
+        "postgres": {
+          "id": "2xQBC6Q6FS0TLYyI",
+          "name": "Postgres_Zero"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\nconst resultado = input.resultado || input;\nconst whatsapp_id = $('Trigger Ferramentas').first().json.whatsapp_id;\nconst client_id = $('Trigger Ferramentas').first().json.client_id;\n\n// ERRO\nif (resultado.status === 'erro') {\n  return [{\n    whatsapp_id,\n    client_id,\n    status: \"erro\",\n    mensagem_formatada: `❌ *Erro:* ${resultado.msg}`\n  }];\n}\n\n// CONFLITO COM OUTRO COMPROMISSO\nif (resultado.status === 'conflito') {\n  let msg = `⚠️ *Conflito de Horário!*\\n\\n`;\n  msg += `${resultado.msg}\\n\\n`;\n  \n  if (resultado.conflitos) {\n    msg += `📅 Compromissos no mesmo horário:\\n`;\n    resultado.conflitos.forEach(c => {\n      msg += `• ${c.titulo} (${c.inicio} - ${c.fim})\\n`;\n    });\n  }\n  \n  return [{\n    whatsapp_id,\n    client_id,\n    status: \"conflito\",\n    mensagem_formatada: msg\n  }];\n}\n\n// SUCESSO COM AVISO (lembretes no horário)\nif (resultado.status === 'sucesso_com_aviso') {\n  const dados = resultado.dados || {};\n  \n  let msg = `========================\\n`;\n  msg += `✅ *Compromisso Criado!*\\n`;\n  msg += `========================\\n`;\n  msg += `📌 *${dados.titulo}*\\n`;\n  msg += `📅 ${dados.data} das ${dados.inicio} às ${dados.fim}\\n`;\n  if (dados.local) msg += `📍 ${dados.local}\\n`;\n  msg += `========================\\n\\n`;\n  \n  msg += `⚠️ *Atenção:* Você tem lembretes nesse horário:\\n`;\n  resultado.lembretes_conflito.forEach(l => {\n    msg += `• ${l.titulo} às ${l.hora}\\n`;\n  });\n  msg += `\\nDeseja reagendá-los?`;\n  \n  return [{\n    whatsapp_id,\n    client_id,\n    status: \"sucesso_com_aviso\",\n    mensagem_formatada: msg\n  }];\n}\n\n// CRIAR COMPROMISSO\nif (resultado.msg?.includes(\"Compromisso criado\")) {\n  const dados = resultado.dados || {};\n  \n  let msg = `========================\\n`;\n  msg += `✅ *Compromisso Criado!*\\n`;\n  msg += `========================\\n`;\n  msg += `📌 *${dados.titulo}*\\n`;\n  msg += `📅 ${dados.data} das ${dados.inicio} às ${dados.fim}\\n`;\n  if (dados.local) msg += `📍 ${dados.local}\\n`;\n  msg += `========================`;\n  \n  return [{\n    whatsapp_id,\n    client_id,\n    status: \"sucesso\",\n    mensagem_formatada: msg\n  }];\n}\n\n// LISTAR COMPROMISSOS\nif (resultado.dados?.hoje !== undefined) {\n  const { hoje, amanha, semana } = resultado.dados;\n  \n  let msg = `========================\\n`;\n  msg += `📅 *Sua Agenda*\\n`;\n  msg += `========================\\n\\n`;\n  \n  // Hoje\n  msg += `📌 *HOJE*\\n`;\n  if (!hoje || hoje.length === 0) {\n    msg += `   _Nenhum compromisso_\\n`;\n  } else {\n    hoje.forEach((c, i) => {\n      msg += `${i + 1}. ${c.inicio}-${c.fim} *${c.titulo}*\\n`;\n      if (c.local) msg += `   📍 ${c.local}\\n`;\n    });\n  }\n  \n  // Amanhã\n  msg += `\\n📌 *AMANHÃ*\\n`;\n  if (!amanha || amanha.length === 0) {\n    msg += `   _Nenhum compromisso_\\n`;\n  } else {\n    amanha.forEach((c, i) => {\n      msg += `${i + 1}. ${c.inicio}-${c.fim} *${c.titulo}*\\n`;\n    });\n  }\n  \n  // Próximos dias\n  if (semana && semana.length > 0) {\n    msg += `\\n📌 *PRÓXIMOS DIAS*\\n`;\n    semana.forEach((c, i) => {\n      msg += `${i + 1}. ${c.data} ${c.inicio}-${c.fim} *${c.titulo}*\\n`;\n    });\n  }\n  \n  msg += `\\n========================`;\n  \n  return [{\n    whatsapp_id,\n    client_id,\n    status: \"sucesso\",\n    mensagem_formatada: msg\n  }];\n}\n\n// EDITAR\nif (resultado.msg?.includes(\"atualizado\")) {\n  const dados = resultado.dados || {};\n  \n  let msg = `✏️ *Compromisso Atualizado!*\\n\\n`;\n  msg += `📌 *${dados.titulo}*\\n`;\n  msg += `📅 ${dados.data} das ${dados.inicio} às ${dados.fim}`;\n  \n  return [{\n    whatsapp_id,\n    client_id,\n    status: \"sucesso\",\n    mensagem_formatada: msg\n  }];\n}\n\n// CONCLUIR\nif (resultado.msg?.includes(\"concluído\")) {\n  return [{\n    whatsapp_id,\n    client_id,\n    status: \"sucesso\",\n    mensagem_formatada: `✅ Compromisso *${resultado.dados?.titulo}* concluído! 🎉`\n  }];\n}\n\n// CANCELAR\nif (resultado.msg?.includes(\"cancelado\")) {\n  return [{\n    whatsapp_id,\n    client_id,\n    status: \"sucesso\",\n    mensagem_formatada: `❌ Compromisso *${resultado.dados?.titulo}* cancelado.`\n  }];\n}\n\n// Fallback\nreturn [{\n  whatsapp_id,\n  client_id,\n  status: \"info\",\n  mensagem_formatada: resultado.msg || \"Operação realizada.\"\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        768,
+        1328
+      ],
+      "id": "76cdbe24-9096-45fc-8978-3cbab1e8576b",
+      "name": "Parser Agenda"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Trigger Ferramentas": {
+      "main": [
+        [
+          {
+            "node": "Roteador de Funcao",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Roteador de Funcao": {
+      "main": [
+        [
+          {
+            "node": "SQL Lembretes",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "SQL Listas",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "SQL Cliente",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "SQL Agenda",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SQL Cliente": {
+      "main": [
+        [
+          {
+            "node": "Parser Resposta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parser Resposta": {
+      "main": [
+        []
+      ]
+    },
+    "SQL Lembretes": {
+      "main": [
+        [
+          {
+            "node": "Parser Lembretes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SQL Listas": {
+      "main": [
+        [
+          {
+            "node": "Parser Listas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SQL Agenda": {
+      "main": [
+        [
+          {
+            "node": "Parser Agenda",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "timezone": "America/Sao_Paulo",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "389ad35b-2420-4445-b203-6a896976cce1",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2162172325255cd265a19f3178f77abb9ab7ec9c7a1d869ba2d2925c11389625"
+  },
+  "id": "mYnzL7JE59xAAohG",
+  "tags": []
+}

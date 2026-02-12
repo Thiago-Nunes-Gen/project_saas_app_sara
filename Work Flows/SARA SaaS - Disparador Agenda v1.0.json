@@ -1,0 +1,262 @@
+{
+  "name": "SARA SaaS - Disparador Agenda v1.0",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 1
+            }
+          ]
+        }
+      },
+      "id": "39185ca0-bdab-41b8-89c6-8333ff3f94d6",
+      "name": "A cada 1 minuto",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -880,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM saas_buscar_compromissos_pendentes()",
+        "options": {}
+      },
+      "id": "1a0a1c50-5f64-430c-9ca3-635bae9f6a85",
+      "name": "Busca Pendentes no Banco",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -656,
+        64
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "2xQBC6Q6FS0TLYyI",
+          "name": "Postgres_Zero"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Dados já vêm separados do PostgreSQL\n// Apenas formata para os próximos nós com nomes amigáveis\n\nconst items = $input.all();\n\nreturn items.map(item => {\n  const d = item.json;\n  \n  // Formata horários\n  const startDate = new Date(d.start_at);\n  const endDate = new Date(d.end_at);\n  const horaInicio = startDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' });\n  const horaFim = endDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' });\n  \n  return {\n    json: {\n      // IDs\n      id: d.appointment_id,\n      client_id: d.client_id,\n      whatsapp_id: d.whatsapp_id,\n      \n      // Dados do compromisso (nomes amigáveis)\n      titulo: d.appointment_title,\n      descricao: d.appointment_description,\n      local: d.appointment_location,\n      hora_inicio: horaInicio,\n      hora_fim: horaFim,\n      prioridade: d.priority,\n      \n      // Dados do cliente\n      nome_cliente: d.client_name,\n      apelido: d.client_apelido,\n      bot_nome: 'SARA'\n    }\n  };\n});"
+      },
+      "id": "a5c6b239-c324-4e72-b2ab-59408ea548a6",
+      "name": "Separa Itens (Split)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -208,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "messages-api",
+        "instanceName": "SARA_SaaS",
+        "remoteJid": "={{ $json.whatsapp_id }}",
+        "messageText": "={{\n`┏━━━━━━━━━━━━━━━━━━━┓\n   📅  *COMPROMISSO*\n┗━━━━━━━━━━━━━━━━━━━┛\n\n📌 *${$json.titulo}*\n${$json.descricao ? '└ ' + $json.descricao + '\\n' : ''}\n🕐 *${$json.hora_inicio} - ${$json.hora_fim}*\n${$json.local ? '📍 ' + $json.local + '\\n' : ''}${$json.prioridade === 'alta' ? '\\n🔴 Prioridade Alta!' : ''}\n\n━━━━━━━━━━━━━━━━━━━\n•${$json.bot_nome}• Sempre ao seu lado 💫`\n}}",
+        "options_message": {
+          "delay": "={{ Math.floor(Math.random() * 2001) + 3000 }}"
+        }
+      },
+      "id": "0c14976c-8cd3-4132-a4b5-b90795d7c94a",
+      "name": "Envia WhatsApp",
+      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "typeVersion": 1,
+      "position": [
+        -16,
+        -80
+      ],
+      "credentials": {
+        "evolutionApi": {
+          "id": "U78J5QaTvwO0ynKA",
+          "name": "Evolution SARA_SaaS"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $('Separa Itens (Split)').item.json;\n\nreturn {\n  json: {\n    session_id: item.whatsapp_id.replace('@s.whatsapp.net', ''),\n    message: {\n      type: 'ai',\n      content: `📅 COMPROMISSO - ${item.titulo}`,\n      additional_kwargs: {\n        compromisso_id: item.id,\n        compromisso_titulo: item.titulo,\n        tipo: 'compromisso_notificado'\n      },\n      response_metadata: {}\n    }\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        176,
+        -80
+      ],
+      "id": "e2df3054-21ce-4027-badd-da332e1979c1",
+      "name": "Prepara Histórico"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT saas_log_compromisso_enviado(\n  '{{ $json.session_id }}',\n  {{ $json.message.additional_kwargs.compromisso_id }},\n  '{{ $json.message.additional_kwargs.compromisso_titulo }}'\n);",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        352,
+        -80
+      ],
+      "id": "a3c41372-b37e-4132-b116-5d3a464d5baa",
+      "name": "Registra no Histórico",
+      "credentials": {
+        "postgres": {
+          "id": "2xQBC6Q6FS0TLYyI",
+          "name": "Postgres_Zero"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "tem-dados",
+              "leftValue": "={{ $json.appointment_id }}",
+              "rightValue": "sucesso",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "05a41804-df38-4dcd-93e6-22f17adaec5a",
+      "name": "Tem Compromisso?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -432,
+        64
+      ]
+    }
+  ],
+  "pinData": {
+    "A cada 1 minuto": [
+      {
+        "json": {
+          "timestamp": "2026-01-29T18:01:25.003-03:00",
+          "Readable date": "January 29th 2026, 6:01:25 pm",
+          "Readable time": "6:01:25 pm",
+          "Day of week": "Thursday",
+          "Year": "2026",
+          "Month": "January",
+          "Day of month": "29",
+          "Hour": "18",
+          "Minute": "01",
+          "Second": "25",
+          "Timezone": "America/Sao_Paulo (UTC-03:00)"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "A cada 1 minuto": {
+      "main": [
+        [
+          {
+            "node": "Busca Pendentes no Banco",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Busca Pendentes no Banco": {
+      "main": [
+        [
+          {
+            "node": "Tem Compromisso?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Separa Itens (Split)": {
+      "main": [
+        [
+          {
+            "node": "Envia WhatsApp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Envia WhatsApp": {
+      "main": [
+        [
+          {
+            "node": "Prepara Histórico",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepara Histórico": {
+      "main": [
+        [
+          {
+            "node": "Registra no Histórico",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registra no Histórico": {
+      "main": [
+        []
+      ]
+    },
+    "Tem Compromisso?": {
+      "main": [
+        [
+          {
+            "node": "Separa Itens (Split)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "timezone": "America/Sao_Paulo",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "1019aa7e-d9f2-4554-bafc-420f8d83d437",
+  "meta": {
+    "instanceId": "2162172325255cd265a19f3178f77abb9ab7ec9c7a1d869ba2d2925c11389625"
+  },
+  "id": "BdY-ktFGv5-awEgq_ymDr",
+  "tags": []
+}

@@ -1,0 +1,1366 @@
+{
+  "name": "SARA SaaS - Relatórios v4.0",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "sara-relatorios",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -752,
+        0
+      ],
+      "id": "f04970a2-ae58-48e6-a877-81f870d8aa28",
+      "name": "Webhook",
+      "webhookId": "166c0c4b-9fbc-483d-aa99-bb7d7e5dd2ba"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.report_type }}",
+                    "rightValue": "financeiro_completo",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "b35c6202-d98e-407c-afb4-f391c8eff4ac"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "financeiro_completo"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "9d25012f-ad6f-4c37-a404-e472e5ced39a",
+                    "leftValue": "={{ $json.report_type }}",
+                    "rightValue": "financeiro_receitas",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "financeiro_receitas"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "43e7d988-277b-432e-b4a6-ce33d9aaac0c",
+                    "leftValue": "={{ $json.report_type }}",
+                    "rightValue": "financeiro_despesas",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "financeiro_despesas"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "561cfab3-2a8d-45fd-8ad2-6828022517de",
+                    "leftValue": "={{ $json.report_type }}",
+                    "rightValue": "listas_pendentes",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "listas_pendentes"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "f0826ffc-cb3e-412a-be61-07f7938b4ed6",
+                    "leftValue": "={{ $json.report_type }}",
+                    "rightValue": "lembretes",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "lembretes"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -224,
+        -48
+      ],
+      "id": "34edc3bf-9164-4f23-997c-d6323fb064fd",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  id,\n  type,\n  description,\n  amount,\n  category,\n  payment_method,\n  date,\n  created_at\nFROM saas_finance_transactions\nWHERE client_id = '{{ $json.client_id }}'\n  AND date >= '{{ $json.period_start }}'\n  AND date <= '{{ $json.period_end }}'\nORDER BY date DESC;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        368,
+        -576
+      ],
+      "id": "26e6acf1-50de-4296-84f2-26d83ce170a7",
+      "name": "Buscar Todas Transações (Financeiro Completo)",
+      "credentials": {
+        "postgres": {
+          "id": "2xQBC6Q6FS0TLYyI",
+          "name": "Postgres_Zero"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  id,\n  type,\n  description,\n  amount,\n  category,\n  date,\n  created_at\nFROM saas_finance_transactions\nWHERE client_id = '{{ $json.client_id }}'\n  AND type = 'income'\n  AND date >= '{{ $json.period_start }}'\n  AND date <= '{{ $json.period_end }}'\nORDER BY date DESC;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        368,
+        -336
+      ],
+      "id": "8f2ce9fb-7d35-49c6-8c02-0882ad738c93",
+      "name": "Buscar Só Receitas",
+      "credentials": {
+        "postgres": {
+          "id": "2xQBC6Q6FS0TLYyI",
+          "name": "Postgres_Zero"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  id,\n  type,\n  description,\n  amount,\n  category,\n  payment_method,\n  date,\n  created_at\nFROM saas_finance_transactions\nWHERE client_id = '{{ $json.client_id }}'\n  AND type = 'expense'\n  AND date >= '{{ $json.period_start }}'\n  AND date <= '{{ $json.period_end }}'\nORDER BY date DESC;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        368,
+        -128
+      ],
+      "id": "def6787a-caf2-4c41-8dd5-e365d813517a",
+      "name": "Buscar Só Despesas",
+      "credentials": {
+        "postgres": {
+          "id": "2xQBC6Q6FS0TLYyI",
+          "name": "Postgres_Zero"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  id,\n  title,\n  items,\n  created_at,\n  updated_at\nFROM saas_lists\nWHERE client_id = '{{ $json.client_id }}'\n  AND is_archived = false\nORDER BY updated_at DESC;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        368,
+        96
+      ],
+      "id": "58b00d1c-fbac-4a7b-8643-02e595abff0b",
+      "name": "Buscar Listas Pendentes",
+      "credentials": {
+        "postgres": {
+          "id": "2xQBC6Q6FS0TLYyI",
+          "name": "Postgres_Zero"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Pega TODAS as transações que vieram do Postgres\nconst transactions = $input.all();\n\n// Pega dados do webhook através do nó \"Dados\"\nconst dadosWebhook = $('Dados').item.json;\n\n// Calcular totais\nlet totalReceitas = 0;\nlet totalDespesas = 0;\nconst categorias = {};\n\nfor (const item of transactions) {\n  const t = item.json;\n  const amount = parseFloat(t.amount) || 0;\n  \n  if (t.type === 'income') {\n    totalReceitas += amount;\n  } else if (t.type === 'expense') {\n    totalDespesas += amount;\n    // Agrupar por categoria\n    const cat = t.category || 'Outros';\n    categorias[cat] = (categorias[cat] || 0) + amount;\n  }\n}\n\n// Ordenar categorias por valor\nconst categoriasOrdenadas = Object.entries(categorias)\n  .sort((a, b) => b[1] - a[1])\n  .map(([nome, valor]) => ({\n    nome,\n    valor,\n    percentual: totalDespesas > 0 ? ((valor / totalDespesas) * 100).toFixed(1) : '0.0'\n  }));\n\nconst saldo = totalReceitas - totalDespesas;\nconst percentualEconomia = totalReceitas > 0 \n  ? ((saldo / totalReceitas) * 100).toFixed(1) \n  : '0.0';\n\n// Monta o prompt para a IA\nconst prompt = `Você é a SARA, assistente financeira pessoal. Analise os dados financeiros abaixo e forneça insights educativos e motivacionais.\n\n**DADOS FINANCEIROS:**\n- Total de Receitas: R$ ${totalReceitas.toFixed(2)}\n- Total de Despesas: R$ ${totalDespesas.toFixed(2)}\n- Saldo Final: R$ ${saldo.toFixed(2)}\n- Taxa de Economia: ${percentualEconomia}%\n- Total de Transações: ${transactions.length}\n\n**GASTOS POR CATEGORIA:**\n${categoriasOrdenadas.map(c => `- ${c.nome}: R$ ${c.valor.toFixed(2)} (${c.percentual}%)`).join('\\n')}\n\n**INSTRUÇÕES:**\nRetorne APENAS um JSON válido (sem markdown, sem \\`\\`\\`json) com esta estrutura:\n{\n  \"resumo\": \"Parágrafo único de 2-3 frases resumindo a situação financeira\",\n  \"positivos\": [\"ponto 1\", \"ponto 2\", \"ponto 3\"],\n  \"atencao\": [\"ponto 1\", \"ponto 2\", \"ponto 3\"],\n  \"dicas\": [\"dica 1\", \"dica 2\", \"dica 3\"],\n  \"motivacao\": \"Uma frase motivacional sobre finanças\",\n  \"insight_curto\": \"Resumo em uma linha (máx 60 caracteres)\"\n}\n\n**REGRAS:**\n- Seja educativo, não apenas descritivo\n- Use tom motivacional e encorajador\n- Cada ponto deve ter 1-2 frases completas\n- Foque em ações práticas nas dicas\n- Seja específico com os números fornecidos`;\n\nreturn {\n  json: {\n    // Dados do webhook\n    client_id: dadosWebhook.client_id,\n    client_name: dadosWebhook.client_name,\n    whatsapp_id: dadosWebhook.whatsapp_id,\n    report_type: dadosWebhook.report_type,\n    period_start: dadosWebhook.period_start,\n    period_end: dadosWebhook.period_end,\n    file_format: dadosWebhook.file_format,\n    \n    // Dados calculados\n    total_receitas: totalReceitas,\n    total_despesas: totalDespesas,\n    saldo: saldo,\n    percentual_economia: percentualEconomia,\n    categorias: categoriasOrdenadas,\n    total_transacoes: transactions.length,\n    transacoes: transactions.map(t => t.json),\n    \n    // Para o prompt da IA\n    maior_gasto_categoria: categoriasOrdenadas[0]?.nome || 'N/A',\n    maior_gasto_valor: categoriasOrdenadas[0]?.valor || 0,\n    \n    // Prompt para a IA\n    prompt_ia: prompt\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        -336
+      ],
+      "id": "65a0bbe6-dbbf-4c0f-b739-200d77a3f0a0",
+      "name": "Preparar Dados"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "Analise",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=Você é a SARA, assistente financeira pessoal. Analise os dados financeiros abaixo e gere insights em português brasileiro, de forma amigável e educativa.\n\n## Dados do período {{ $item(\"0\").$node[\"Dados\"].json[\"body\"][\"period_start\"] }} a {{ $item(\"0\").$node[\"Dados\"].json[\"body\"][\"period_end\"] }} :  \n- **Cliente:** {{ $item(\"0\").$node[\"Dados\"].json[\"body\"][\"client_name\"] }} \n- **Total Receitas:** R$ {{ $json.total_receitas.toFixed(2) }} \n- **Total Despesas:** R$ {{ $json.total_despesas.toFixed(2) }} \n- **Saldo:** R$ {{ $json.saldo.toFixed(2) }} \n- **Economia:** {{ $json.percentual_economia }}% da receita - **Maior gasto:** {{ $json.maior_gasto_categoria }} (R$ {{ $json.maior_gasto_valor.toFixed(2) }}) \n- **Categorias de gastos:** {{ JSON.stringify($json.categorias) }} \n- **Total de transações:** {{ $json.total_transacoes }}  ## Gere uma análise com:  1. **Resumo executivo** (2-3 frases diretas) 2. **Pontos positivos** (máximo 3 itens) 3. **Pontos de atenção** (máximo 3 itens) 4. **Dicas personalizadas** (máximo 3 dicas práticas) 5. **Frase motivacional** (1 frase inspiradora)  ## Formato de resposta (APENAS JSON, sem texto adicional):  {   \"resumo\": \"texto do resumo aqui\",   \"positivos\": [\"ponto 1\", \"ponto 2\"],   \"atencao\": [\"alerta 1\", \"alerta 2\"],   \"dicas\": [\"dica 1\", \"dica 2\", \"dica 3\"],   \"motivacao\": \"frase motivacional aqui\",   \"insight_curto\": \"uma frase resumo para preview\" }"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        928,
+        -336
+      ],
+      "id": "04fa936c-a924-4863-945f-cfee6b6f4abd",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        848,
+        -128
+      ],
+      "id": "bb0f3c8e-736c-49e3-857c-a8dc7210dd4a",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "rd7lfGY1RwqFs6Kg",
+          "name": "OpenAi Gênesis"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Pega o resultado da IA\nconst aiResponse = $input.item.json.output || $input.item.json.text || '';\n\n// Pega os dados que vieram do nó \"Preparar Dados\"\nconst dadosPreparados = $('Preparar Dados').item.json;\n\n// Remove markdown e espaços\nlet jsonText = aiResponse.trim();\njsonText = jsonText.replace(/```json\\n?/g, '');\njsonText = jsonText.replace(/```\\n?/g, '');\njsonText = jsonText.trim();\n\n// Faz parse do JSON\nlet insights;\ntry {\n  insights = JSON.parse(jsonText);\n} catch (error) {\n  // Se der erro no parse, cria insights padrão\n  insights = {\n    resumo: \"Análise financeira do período.\",\n    positivos: [\"Dados registrados com sucesso\"],\n    atencao: [\"Mantenha o controle financeiro\"],\n    dicas: [\"Continue registrando suas transações\"],\n    motivacao: \"Pequenos passos levam a grandes conquistas\",\n    insight_curto: \"Continue assim!\"\n  };\n}\n\n// Retorna TODOS os dados necessários para o HTML\nreturn {\n  json: {\n    // Dados do cliente\n    client_name: dadosPreparados.client_name,\n    client_phone: dadosPreparados.whatsapp_id,\n    \n    // Dados financeiros\n    total_receitas: dadosPreparados.total_receitas,\n    total_despesas: dadosPreparados.total_despesas,\n    saldo: dadosPreparados.saldo,\n    percentual_economia: dadosPreparados.percentual_economia,\n    categorias: dadosPreparados.categorias,\n    total_transacoes: dadosPreparados.total_transacoes,\n    transacoes: dadosPreparados.transacoes,\n    maior_gasto_categoria: dadosPreparados.maior_gasto_categoria,\n    maior_gasto_valor: dadosPreparados.maior_gasto_valor,\n    \n    // Insights da IA\n    insights: insights,\n    insights_summary: insights.insight_curto\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1280,
+        -336
+      ],
+      "id": "d8c4154b-1331-4474-bc49-887866b6de34",
+      "name": "Extrair JSON"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": true,\n  \"report_id\": \"{{ $json.id }}\",\n  \"file_url\": \"{{ $json.file_url }}\",\n  \"message\": \"Relatório gerado com sucesso!\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        3520,
+        -48
+      ],
+      "id": "914abc5d-e490-4cb3-b62d-78414ee34f72",
+      "name": "Responde"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://vkohkliecwxxruceocxo.supabase.co/storage/v1/object/relatorios/relatorio_{{ new Date().getTime() }}.pdf",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2640,
+        -336
+      ],
+      "id": "89fc823f-4d81-4964-a839-6f9241b06033",
+      "name": "Upload Supabase Storage",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "E1CHpDPCWcsNpole",
+          "name": "Supabase_zero"
+        },
+        "httpHeaderAuth": {
+          "id": "cf48lBw8TSjkmR6K",
+          "name": "supabase_lista_thiago"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO saas_reports (\n  client_id, type, period_start, period_end, file_key, file_type, file_size, is_public, status, created_at\n) VALUES (\n  '{{ $node[\"Dados\"].json[\"client_id\"] }}',\n  '{{ $node[\"Dados\"].json[\"report_type\"] }}',\n  '{{ $node[\"Dados\"].json[\"period_start\"] }}',\n  '{{ $node[\"Dados\"].json[\"period_end\"] }}',\n  '{{ $json.file_key }}',\n  'pdf',\n  {{ $json.file_size }},\n  false,\n  'completed',\n  NOW()\n) RETURNING id, file_key;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3008,
+        -336
+      ],
+      "id": "e4120857-2a6a-475d-ab6c-7b8c37df04ba",
+      "name": "Salvar Relatório no Banco",
+      "credentials": {
+        "postgres": {
+          "id": "2xQBC6Q6FS0TLYyI",
+          "name": "Postgres_Zero"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://master_gotenberg:3000/forms/chromium/convert/html",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Gotenberg-Output-Filename",
+              "value": "=relatorio_financeiro_{{ $item(\"0\").$node[\"Dados\"].json[\"body\"][\"client_name\"] }}_{{ $item(\"0\").$node[\"Dados\"].json[\"body\"][\"period_start\"] }}_a_{{ $item(\"0\").$node[\"Dados\"].json[\"body\"][\"period_end\"] }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "files",
+              "inputDataFieldName": "data"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2224,
+        -336
+      ],
+      "id": "9a950146-ab7e-463d-9232-344d30604f04",
+      "name": "gerador_pdf_gotenberg",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "operation": "toBinary",
+        "sourceProperty": "html_base64",
+        "options": {
+          "fileName": "index.html",
+          "mimeType": "text/html"
+        }
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        2016,
+        -336
+      ],
+      "id": "532bd40e-6d9e-439c-b858-2670a1d8db9b",
+      "name": "conversor_base_64"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7e6612ba-5c7f-49e0-97f4-b1336e3c9cf7",
+              "name": "html_base64",
+              "value": "={{ $json.html.base64Encode()}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1824,
+        -336
+      ],
+      "id": "0ff174a6-d4d3-430a-806e-eb273e20ddcb",
+      "name": "set_dado_base_64"
+    },
+    {
+      "parameters": {
+        "html": "{{ $json.relatorio_pdf_html }}"
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        1632,
+        -336
+      ],
+      "id": "44585321-14b4-4063-b9d2-7bc093098e5e",
+      "name": "gerador_html_pdf"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "eb01c2a8-a9de-4525-95cb-f50f7cc325a0",
+              "name": "client_id",
+              "value": "={{ $json.body.client_id }}",
+              "type": "string"
+            },
+            {
+              "id": "7501f469-1cf3-4dc9-9e96-138287cbeb58",
+              "name": "whatsapp_id",
+              "value": "={{ $json.body.whatsapp_id }}",
+              "type": "string"
+            },
+            {
+              "id": "77d8eb84-6e79-4065-b050-ecf175cc5ac0",
+              "name": "report_type",
+              "value": "={{ $json.body.report_type }}",
+              "type": "string"
+            },
+            {
+              "id": "c315ed65-7198-4473-a8d0-2826696d072d",
+              "name": "period_start",
+              "value": "={{ $json.body.period_start }}",
+              "type": "string"
+            },
+            {
+              "id": "2e596989-1a9d-40f4-a3d5-181ada4182cd",
+              "name": "period_end",
+              "value": "={{ $json.body.period_end }}",
+              "type": "string"
+            },
+            {
+              "id": "0b2a4398-363a-4046-8923-73628d2ac6af",
+              "name": "file_format",
+              "value": "={{ $json.body.file_format }}",
+              "type": "string"
+            },
+            {
+              "id": "f3245b01-02b8-4141-adb0-313887a1b289",
+              "name": "client_name",
+              "value": "={{ $json.body.client_name }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -464,
+        0
+      ],
+      "id": "333986cc-5f4c-4835-bdf9-3b67608cec49",
+      "name": "Dados"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  id,\n  title,\n  description,\n  remind_at,\n  priority,\n  type,\n  status,\n  created_at\nFROM saas_reminders\nWHERE client_id = '{{ $json.client_id }}'\n  AND remind_at >= '{{ $json.period_start }}'\n  AND remind_at <= '{{ $json.period_end }}'\nORDER BY remind_at ASC;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        368,
+        288
+      ],
+      "id": "1af6cfed-2abc-47c2-b833-1eff59aa4268",
+      "name": "Buscar Lembretes",
+      "credentials": {
+        "postgres": {
+          "id": "2xQBC6Q6FS0TLYyI",
+          "name": "Postgres_Zero"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Pega o binário original recebido do Gotenberg\nconst binaryData = $input.item.binary.data;\n\n// Pega dados do relatório\nconst dadosRelatorio = $('Preparar Dados').item.json;\n\n// Gera nome único do arquivo\nconst timestamp = new Date().getTime();\nconst fileName = `relatorio_${dadosRelatorio.report_type}_${timestamp}.pdf`;\nconst filePath = `${dadosRelatorio.client_id}/${fileName}`;\n\n// Retorna o binário original INTACTO, apenas atualizando o nome\nreturn {\n  json: {\n    client_id: dadosRelatorio.client_id,\n    report_type: dadosRelatorio.report_type,\n    period_start: dadosRelatorio.period_start,\n    period_end: dadosRelatorio.period_end,\n    fileName: fileName,\n    filePath: filePath\n  },\n  binary: {\n    data: {\n      ...binaryData, // Mantém o arquivo original (data, mimeType)\n      fileName: fileName // Só atualiza o nome\n    }\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2432,
+        -336
+      ],
+      "id": "6c572bcd-8de8-4e0f-b2c3-b47285e3d692",
+      "name": "Preparar Upload Storage"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Function node: Normalizar file_key e file_size\nconst prep = $node[\"Preparar Upload Storage\"] ? $node[\"Preparar Upload Storage\"].json : null;\nconst up = $node[\"Upload Supabase Storage\"] ? $node[\"Upload Supabase Storage\"].json : null;\n\n// Tenta obter o key/size nas fontes possíveis\nconst fileKey = prep?.filePath || up?.Key || up?.key || $json.file_key || null;\nconst fileSize = prep?.fileSize || up?.fileSize || up?.Size || up?.size || $json.file_size || 0;\n\nif (!fileKey) {\n  throw new Error('fileKey não encontrado em Preparar Upload Storage nem Upload Supabase Storage');\n}\n\n// Retorna item com os campos normalizados\nreturn [{\n  json: {\n    ...$json,\n    file_key: fileKey,\n    file_size: fileSize\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2816,
+        -336
+      ],
+      "id": "a596ad9a-36c3-4108-b283-636486b4dd3e",
+      "name": "Normalizar Arquivo"
+    },
+    {
+      "parameters": {
+        "jsCode": "/* PREPARAR DADOS LISTAS - CAMPOS CORRIGIDOS */\nconst listasRaw = $input.all();\nconst dadosWebhook = $('Dados').first().json;\nconst clientName = dadosWebhook.client_name || 'Cliente';\n\n// --- CONTROLE DE TEMPO (FUSO SÃO PAULO) ---\nconst timeZone = 'America/Sao_Paulo';\nconst agora = new Date();\nconst fmt = (opts) => new Intl.DateTimeFormat('pt-BR', { timeZone, ...opts }).format(agora);\n\nconst contextoTempo = {\n  diaSemana: fmt({ weekday: 'long' }),\n  horaAtual: fmt({ hour: '2-digit', minute: '2-digit' }),\n  dataFormatada: fmt({ day: '2-digit', month: '2-digit', year: 'numeric' })\n};\n\n// Processamento das listas\nlet totalListas = listasRaw.length;\nlet totalItens = 0;\nlet itensPendentes = 0;\nlet itensConcluidos = 0;\n\nconst listasProcessadas = listasRaw.map(item => {\n  const l = item.json;\n  let itemsArray = [];\n  if (Array.isArray(l.items)) itemsArray = l.items;\n  else if (typeof l.items === 'string') {\n    try { itemsArray = JSON.parse(l.items); } catch(e) { itemsArray = []; }\n  }\n  \n  itemsArray.forEach(i => {\n    totalItens++;\n    // CORRIGIDO: usa 'feito' OU 'checked' OU 'completed'\n    const isDone = i.feito === true || i.checked === true || i.completed === true;\n    if (isDone) itensConcluidos++; else itensPendentes++;\n  });\n\n  return {\n    title: l.title,\n    items: itemsArray,\n    total: itemsArray.length,\n    updated_at: new Date(l.updated_at).toLocaleDateString('pt-BR')\n  };\n});\n\nconst prompt = `CONTEXTO TEMPORAL (Brasil):\n- HOJE: ${contextoTempo.diaSemana}, ${contextoTempo.dataFormatada}\n- HORA: ${contextoTempo.horaAtual}\n\nVocê é a SARA, coach de produtividade pessoal de ${clientName}.\n\nDADOS DAS LISTAS:\n- Total de Listas: ${totalListas}\n- Itens Pendentes: ${itensPendentes}\n- Itens Concluídos: ${itensConcluidos}\n- Taxa de Conclusão: ${totalItens > 0 ? Math.round((itensConcluidos/totalItens)*100) : 0}%\n\nLISTAS ATIVAS:\n${listasProcessadas.map(l => {\n  const pendentes = l.items.filter(i => !(i.feito === true || i.checked === true || i.completed === true)).length;\n  return `• ${l.title}: ${pendentes} pendentes`;\n}).join('\\n')}\n\nRetorne APENAS JSON:\n{\n  \"resumo\": \"Análise de 2-3 frases sobre organização e progresso\",\n  \"positivos\": [\"Até 3 pontos positivos\"],\n  \"atencao\": [\"Até 3 pontos de atenção\"],\n  \"dicas\": [\"Dica anti-procrastinação\", \"Dica de organização\", \"Dica motivacional\"],\n  \"motivacao\": \"Frase inspiradora sobre produtividade\"\n}`;\n\nreturn {\n  json: {\n    ...dadosWebhook,\n    report_type: 'listas',\n    client_name: clientName,\n    stats: { totalListas, totalItens, itensPendentes, itensConcluidos },\n    listas: listasProcessadas,\n    prompt_ia: prompt\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        704,
+        96
+      ],
+      "id": "49b9f800-abf2-4b18-b416-e7bb8f95d801",
+      "name": "Preparar Dados Listas"
+    },
+    {
+      "parameters": {
+        "jsCode": "/* PREPARAR DADOS LEMBRETES - VERSÃO MELHORADA */\nconst lembretes = $input.all();\nconst dadosWebhook = $('Dados').first().json;\nconst clientName = dadosWebhook.client_name || 'Cliente';\n\n// --- CONTROLE DE TEMPO (FUSO SÃO PAULO) ---\nconst timeZone = 'America/Sao_Paulo';\nconst agora = new Date();\nconst fmt = (opts) => new Intl.DateTimeFormat('pt-BR', { timeZone, ...opts }).format(agora);\n\nconst contextoTempo = {\n  diaSemana: fmt({ weekday: 'long' }),\n  horaAtual: fmt({ hour: '2-digit', minute: '2-digit' }),\n  dataFormatada: fmt({ day: '2-digit', month: '2-digit', year: 'numeric' })\n};\n\n// Processamento\nlet total = lembretes.length;\nlet prioridadeAlta = 0;\nconst passados = [];\nconst futuros = [];\n\nconst agoraTimestamp = agora.getTime();\n\nlembretes.forEach(item => {\n  const l = item.json;\n  if (l.priority === 'high') prioridadeAlta++;\n  \n  const dataItem = new Date(l.remind_at);\n  const dataItemStr = dataItem.toLocaleString('pt-BR', { \n    timeZone, \n    day: '2-digit', \n    month: '2-digit', \n    hour: '2-digit', \n    minute: '2-digit' \n  }) + (l.priority === 'high' ? ' 🔥' : '');\n\n  const itemProcessado = {\n    title: l.title,\n    description: l.description || '',\n    priority: l.priority,\n    dateStr: dataItemStr,\n    iso: l.remind_at\n  };\n\n  if (dataItem.getTime() < agoraTimestamp) {\n    passados.push(itemProcessado);\n  } else {\n    futuros.push(itemProcessado);\n  }\n});\n\n// Ordenação\npassados.sort((a, b) => new Date(b.iso) - new Date(a.iso));\nfuturos.sort((a, b) => new Date(a.iso) - new Date(b.iso));\n\n// Prompt melhorado com foco em gestão de tempo\nconst prompt = `CONTEXTO TEMPORAL (Brasil):\n- AGORA: ${contextoTempo.diaSemana}, ${contextoTempo.dataFormatada} às ${contextoTempo.horaAtual}\n\nVocê é a SARA, assistente de produtividade de ${clientName}.\n\nRESUMO DOS LEMBRETES:\n- Total: ${total} lembretes\n- Próximos (pendentes): ${futuros.length}\n- Alta Prioridade: ${prioridadeAlta}\n- Já passados: ${passados.length}\n\nPRÓXIMOS COMPROMISSOS:\n${futuros.slice(0, 5).map(l => `• [${l.dateStr}] ${l.title}${l.priority === 'high' ? ' 🔥' : ''}`).join('\\n') || '(Nenhum)'}\n\nHISTÓRICO RECENTE (já notificados):\n${passados.slice(0, 3).map(l => `• [${l.dateStr}] ${l.title}`).join('\\n') || '(Nenhum)'}\n\nINSTRUÇÕES:\nAnalise os compromissos focando em GESTÃO DE TEMPO e PROATIVIDADE.\n\nRetorne APENAS um JSON válido:\n{\n  \"resumo\": \"Análise de 2-3 frases sobre a agenda e gestão de compromissos\",\n  \"positivos\": [\"Até 3 pontos positivos - organização, lembretes importantes agendados\"],\n  \"atencao\": [\"Até 3 alertas - muitos compromissos no mesmo dia, lembretes atrasados\"],\n  \"dicas\": [\n    \"Dica de gestão de tempo\",\n    \"Dica de preparação\",\n    \"Dica de equilíbrio\"\n  ],\n  \"motivacao\": \"Frase inspiradora sobre aproveitar bem o tempo\"\n}`;\n\nreturn {\n  json: {\n    ...dadosWebhook,\n    report_type: 'lembretes',\n    client_name: clientName,\n    stats: { \n      total, \n      prioridadeAlta, \n      totalPassados: passados.length, \n      totalFuturos: futuros.length \n    },\n    lembretes_passados: passados.slice(0, 10),\n    lembretes_futuros: futuros,\n    prompt_ia: prompt\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        704,
+        288
+      ],
+      "id": "b8085994-3cbb-4537-8480-e331ae9cb3d6",
+      "name": "Preparar Dados Lembretes"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        848,
+        400
+      ],
+      "id": "ddf934f0-2471-45cd-b599-199539ff0b04",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "rd7lfGY1RwqFs6Kg",
+          "name": "OpenAi Gênesis"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "Analise",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.prompt_ia }}"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        960,
+        192
+      ],
+      "id": "0cf09986-0e61-41b7-a53d-d9c7011c3d22",
+      "name": "Analise Listas e Lembretes"
+    },
+    {
+      "parameters": {
+        "jsCode": "/* \n   ESTE NÓ RECUPERA O CONTEXTO PERDIDO PELA IA \n   Ele busca ativamente nos nós anteriores para saber \n   se o fluxo veio de \"Listas\" ou \"Lembretes\".\n*/\n\n// 1. Pega e Limpa a Resposta da IA\nconst rawResponse = $input.item.json.response || $input.item.json.text || $input.item.json.output || \"{}\";\nlet insights = {};\ntry {\n  const cleanJson = rawResponse.replace(/```json/g, '').replace(/```/g, '').trim();\n  insights = JSON.parse(cleanJson);\n} catch (e) {\n  insights = { resumo: \"Não foi possível processar a análise da IA.\" };\n}\n\n// 2. RECUPERAÇÃO DE CONTEXTO (A MÁGICA 🎩)\nlet contexto = {};\n\n// Tenta pegar dados do nó de LISTAS\ntry {\n  // .first() pega o primeiro item do nó. Se o nó não rodou, isso cai no catch.\n  const dadosListas = $('Preparar Dados Listas').first().json;\n  if (dadosListas && dadosListas.report_type) {\n    contexto = dadosListas;\n  }\n} catch (erroListas) {\n  // Não veio de listas, ignora.\n}\n\n// Se não achou em listas, tenta pegar de LEMBRETES\nif (!contexto.report_type) {\n  try {\n    const dadosLembretes = $('Preparar Dados Lembretes').first().json;\n    if (dadosLembretes && dadosLembretes.report_type) {\n      contexto = dadosLembretes;\n    }\n  } catch (erroLembretes) {\n    // Não veio de lembretes também.\n  }\n}\n\n// Última chance: Tenta pareamento padrão do n8n (caso funcione)\nif (!contexto.report_type && $input.item.pairedItem) {\n  contexto = $input.item.pairedItem.item.json;\n}\n\n// Validação final para debug\nif (!contexto.report_type) {\n  // Se ainda assim estiver vazio, forçamos um erro descritivo visível no n8n\n  // ou criamos um fallback para não quebrar o HTML\n  contexto = { \n    report_type: 'erro_contexto', \n    client_name: 'Cliente', \n    stats: {}, \n    listas: [], \n    lembretes: [] \n  };\n}\n\n// 3. Entrega o pacote completo pro HTML\nreturn {\n  json: {\n    ...contexto, // Aqui vão estar as listas, lembretes, client_name...\n    insights     // E aqui a análise da IA\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1296,
+        192
+      ],
+      "id": "b28ec6d1-e4d2-4520-975b-25bbe620eaed",
+      "name": "Extrair JSON Lembretes e Listas"
+    },
+    {
+      "parameters": {
+        "jsCode": "/* GERADOR HTML - LISTAS E LEMBRETES - ESTILO IDÊNTICO AO FINANCEIRO */\nconst dados = $input.item.json;\nconst insights = dados.insights || {};\nconst timeZone = 'America/Sao_Paulo';\n\nconst formatarData = () => {\n  return new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });\n};\n\nconst formatarDataCurta = () => {\n  return new Date().toLocaleDateString('pt-BR');\n};\n\nconst clientName = dados.client_name || 'Cliente';\nconst reportType = dados.report_type || 'relatorio';\n\nlet titulo = 'Relatório';\nlet subtitulo = '';\nlet conteudoHTML = '';\n\n// ============ RELATÓRIO DE LISTAS ============\nif (dados.report_type === 'listas' || dados.listas) {\n  titulo = 'Relatório de Listas';\n  subtitulo = `${dados.stats?.totalListas || 0} listas • ${dados.stats?.totalItens || 0} itens`;\n  \n  const listas = dados.listas || [];\n  \n  // Cards de resumo\n  const cardsResumo = `\n    <div class=\"summary-cards\">\n      <div class=\"card\">\n        <div class=\"card-label\">Listas Ativas</div>\n        <div class=\"card-value\">${dados.stats?.totalListas || 0}</div>\n      </div>\n      <div class=\"card\">\n        <div class=\"card-label\">Pendentes</div>\n        <div class=\"card-value\">${dados.stats?.itensPendentes || 0}</div>\n      </div>\n      <div class=\"card\">\n        <div class=\"card-label\">Concluídos</div>\n        <div class=\"card-value\">${dados.stats?.itensConcluidos || 0}</div>\n        <div class=\"card-badge\">${dados.stats?.totalItens > 0 ? Math.round((dados.stats.itensConcluidos / dados.stats.totalItens) * 100) : 0}% completo</div>\n      </div>\n    </div>\n  `;\n  \n  // Grid de listas (2 colunas)\n  const listasGrid = listas.map(lista => {\n    const items = lista.items || [];\n    const concluidos = items.filter(i => i.feito === true || i.checked === true || i.completed === true).length;\n    \n    const itensHtml = items.map(item => {\n      const done = item.feito === true || item.checked === true || item.completed === true;\n      const texto = item.texto || item.text || item.title || item.name || 'Item';\n      return `\n        <div class=\"lista-item ${done ? 'done' : ''}\">\n          <span class=\"lista-check\">${done ? '☑' : '☐'}</span>\n          <span class=\"lista-texto\">${texto}</span>\n        </div>\n      `;\n    }).join('');\n    \n    return `\n      <div class=\"lista-card\">\n        <div class=\"lista-header\">\n          <div class=\"lista-title\">${lista.title}</div>\n          <div class=\"lista-badge\">${concluidos}/${items.length}</div>\n        </div>\n        <div class=\"lista-items\">\n          ${itensHtml || '<div class=\"empty-msg\">Lista vazia</div>'}\n        </div>\n      </div>\n    `;\n  }).join('');\n  \n  conteudoHTML = `\n    ${cardsResumo}\n    \n    <div class=\"info-box\">\n      <div class=\"info-box-title\">Resumo</div>\n      <div class=\"info-box-text\">${insights.resumo || 'Suas listas estão organizadas.'}</div>\n    </div>\n    \n    <div class=\"section\">\n      <div class=\"section-title\">Suas Listas</div>\n      <div class=\"listas-grid\">\n        ${listasGrid || '<div class=\"empty-msg\">Nenhuma lista encontrada</div>'}\n      </div>\n    </div>\n  `;\n\n// ============ RELATÓRIO DE LEMBRETES ============\n} else if (dados.report_type === 'lembretes') {\n  titulo = 'Relatório de Lembretes';\n  subtitulo = `${dados.stats?.total || 0} lembretes`;\n  \n  const lembretes = dados.lembretes_futuros || [];\n  \n  // Cards de resumo\n  const cardsResumo = `\n    <div class=\"summary-cards\">\n      <div class=\"card\">\n        <div class=\"card-label\">Próximos</div>\n        <div class=\"card-value\">${dados.stats?.totalFuturos || 0}</div>\n      </div>\n      <div class=\"card\">\n        <div class=\"card-label\">Alta Prioridade</div>\n        <div class=\"card-value\">${dados.stats?.prioridadeAlta || 0}</div>\n      </div>\n      <div class=\"card\">\n        <div class=\"card-label\">Concluídos</div>\n        <div class=\"card-value\">${dados.stats?.totalPassados || 0}</div>\n      </div>\n    </div>\n  `;\n  \n  // Grid de lembretes\n  const lembretesGrid = lembretes.map(l => `\n    <div class=\"lembrete-card ${l.priority === 'high' ? 'high' : ''}\">\n      <div class=\"lembrete-header\">\n        <div class=\"lembrete-title\">${l.title}</div>\n        ${l.priority === 'high' ? '<div class=\"lembrete-tag\">URGENTE</div>' : ''}\n      </div>\n      ${l.description ? `<div class=\"lembrete-desc\">${l.description}</div>` : ''}\n      <div class=\"lembrete-date\">${l.dateStr}</div>\n    </div>\n  `).join('') || '<div class=\"empty-msg\">Nenhum lembrete pendente</div>';\n  \n  conteudoHTML = `\n    ${cardsResumo}\n    \n    <div class=\"info-box\">\n      <div class=\"info-box-title\">Resumo</div>\n      <div class=\"info-box-text\">${insights.resumo || 'Sua agenda está organizada.'}</div>\n    </div>\n    \n    <div class=\"section\">\n      <div class=\"section-title\">Próximos Compromissos</div>\n      <div class=\"listas-grid\">\n        ${lembretesGrid}\n      </div>\n    </div>\n  `;\n}\n\n// ============ INSIGHTS (SEGUNDA PÁGINA) ============\nconst insightsHTML = `\n  <div class=\"insights-page\">\n    <div class=\"insights-header\">\n      <h2>Análise da SARA</h2>\n      <p>Dicas personalizadas de produtividade</p>\n    </div>\n    \n    <div class=\"insight-block\">\n      <div class=\"insight-block-title\">Pontos Positivos</div>\n      <ul class=\"insight-list\">\n        ${(insights.positivos || ['Você está no caminho certo!']).map(p => `<li>${p}</li>`).join('')}\n      </ul>\n    </div>\n    \n    <div class=\"insight-block\">\n      <div class=\"insight-block-title\">Pontos de Atenção</div>\n      <ul class=\"insight-list\">\n        ${(insights.atencao || ['Continue mantendo o foco']).map(a => `<li>${a}</li>`).join('')}\n      </ul>\n    </div>\n    \n    <div class=\"insight-block\">\n      <div class=\"insight-block-title\">Dicas de Produtividade</div>\n      <ul class=\"insight-list\">\n        ${(insights.dicas || ['Use a técnica Pomodoro: 25min focado + 5min pausa']).map(d => `<li>${d}</li>`).join('')}\n      </ul>\n    </div>\n    \n    <div class=\"motivacao-box\">\n      <div class=\"motivacao-text\">\"${insights.motivacao || 'Pequenos passos diários levam a grandes conquistas!'}\"</div>\n    </div>\n  </div>\n`;\n\n// ============ HTML COMPLETO ============\nconst html = `\n<!DOCTYPE html>\n<html lang=\"pt-BR\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>${titulo}</title>\n  <style>\n    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');\n    \n    * { margin: 0; padding: 0; box-sizing: border-box; }\n    \n    body {\n      font-family: 'Inter', -apple-system, sans-serif;\n      background: white;\n      color: #1e293b;\n      line-height: 1.5;\n      -webkit-font-smoothing: antialiased;\n    }\n    \n    .page { width: 210mm; margin: 0 auto; background: white; }\n    \n    /* HEADER */\n    .header {\n      padding: 32px 48px 24px 48px;\n      border-bottom: 1px solid #e2e8f0;\n    }\n    .header-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }\n    .header-left h1 { font-size: 24px; font-weight: 700; color: #0f172a; margin-bottom: 4px; }\n    .header-subtitle { font-size: 14px; color: #64748b; }\n    .header-right { text-align: right; }\n    .client-name { font-size: 16px; font-weight: 600; color: #0f172a; margin-bottom: 2px; }\n    .client-phone { font-size: 13px; color: #64748b; }\n    .header-meta { display: flex; gap: 24px; font-size: 13px; color: #64748b; }\n    \n    /* CONTENT */\n    .content { padding: 32px 48px; }\n    \n    /* CARDS RESUMO */\n    .summary-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 32px; }\n    .card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; }\n    .card-label { font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; font-weight: 500; }\n    .card-value { font-size: 28px; font-weight: 700; color: #0f172a; margin-bottom: 4px; }\n    .card-badge { display: inline-block; background: #0f172a; color: white; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 600; }\n    \n    /* INFO BOX */\n    .info-box { background: #f8fafc; border-left: 3px solid #0f172a; padding: 20px; margin-bottom: 32px; border-radius: 4px; }\n    .info-box-title { font-size: 13px; font-weight: 600; color: #0f172a; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }\n    .info-box-text { font-size: 14px; color: #475569; line-height: 1.6; }\n    \n    /* SECTIONS */\n    .section { margin-bottom: 32px; }\n    .section-title { font-size: 16px; font-weight: 600; color: #0f172a; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid #e2e8f0; }\n    \n    /* GRID DE LISTAS/LEMBRETES */\n    .listas-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }\n    \n    /* CARD DE LISTA */\n    .lista-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; page-break-inside: avoid; }\n    .lista-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #e2e8f0; }\n    .lista-title { font-size: 15px; font-weight: 600; color: #0f172a; }\n    .lista-badge { background: #0f172a; color: white; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 600; }\n    .lista-items { display: grid; gap: 8px; }\n    .lista-item { display: flex; align-items: flex-start; padding: 6px 0; font-size: 14px; color: #475569; }\n    .lista-item.done { color: #94a3b8; }\n    .lista-item.done .lista-texto { text-decoration: line-through; }\n    .lista-check { margin-right: 10px; font-size: 14px; }\n    \n    /* CARD DE LEMBRETE */\n    .lembrete-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px 20px; page-break-inside: avoid; }\n    .lembrete-card.high { border-left: 3px solid #ef4444; }\n    .lembrete-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }\n    .lembrete-title { font-size: 15px; font-weight: 600; color: #0f172a; }\n    .lembrete-tag { background: #fecaca; color: #991b1b; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; }\n    .lembrete-desc { font-size: 13px; color: #64748b; margin-bottom: 8px; }\n    .lembrete-date { font-size: 12px; color: #94a3b8; font-weight: 500; }\n    \n    .empty-msg { font-style: italic; color: #94a3b8; text-align: center; padding: 20px; }\n    \n    /* INSIGHTS PAGE */\n    .insights-page { page-break-before: always; padding: 32px 48px; }\n    .insights-header { margin-bottom: 32px; padding-bottom: 16px; border-bottom: 2px solid #e2e8f0; }\n    .insights-header h2 { font-size: 20px; font-weight: 700; color: #0f172a; margin-bottom: 4px; }\n    .insights-header p { font-size: 13px; color: #64748b; }\n    \n    .insight-block { margin-bottom: 24px; }\n    .insight-block-title { font-size: 14px; font-weight: 600; color: #0f172a; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }\n    .insight-list { list-style: none; padding: 0; }\n    .insight-list li { padding: 8px 0 8px 20px; position: relative; color: #475569; line-height: 1.6; font-size: 14px; }\n    .insight-list li::before { content: '•'; position: absolute; left: 6px; color: #0f172a; font-weight: bold; }\n    \n    .motivacao-box { background: #f8fafc; border-left: 3px solid #0f172a; padding: 20px; margin-top: 32px; border-radius: 4px; }\n    .motivacao-text { font-size: 15px; font-weight: 500; color: #1e293b; font-style: italic; line-height: 1.6; }\n    \n    /* FOOTER */\n    .footer { padding: 24px 48px; text-align: center; border-top: 1px solid #e2e8f0; font-size: 12px; color: #94a3b8; }\n    .footer-brand { font-weight: 600; color: #64748b; margin-bottom: 4px; }\n  </style>\n</head>\n<body>\n  <div class=\"page\">\n    <div class=\"header\">\n      <div class=\"header-top\">\n        <div class=\"header-left\">\n          <h1>${titulo}</h1>\n          <div class=\"header-subtitle\">${subtitulo}</div>\n        </div>\n        <div class=\"header-right\">\n          <div class=\"client-name\">${clientName}</div>\n        </div>\n      </div>\n      <div class=\"header-meta\">\n        <span>Gerado em ${formatarDataCurta()}</span>\n      </div>\n    </div>\n    \n    <div class=\"content\">\n      ${conteudoHTML}\n    </div>\n    \n    <div class=\"footer\">\n      <div class=\"footer-brand\">SARA</div>\n      <div>Relatório gerado automaticamente</div>\n    </div>\n  </div>\n  \n  <div class=\"page\">\n    ${insightsHTML}\n    \n    <div class=\"footer\">\n      <div class=\"footer-brand\">SARA</div>\n      <div>Relatório confidencial • ${formatarDataCurta()}</div>\n    </div>\n  </div>\n</body>\n</html>\n`;\n\nconst clientId = dados.client_id || '';\nconst fileName = `relatorio_${reportType}_${clientName.replace(/\\s+/g, '_')}_${clientId}.pdf`;\n\nreturn [{ \n  json: { \n    relatorio_pdf_html: html, \n    fileName: fileName,\n    report_type: reportType,\n    client_name: clientName\n  } \n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1504,
+        192
+      ],
+      "id": "1dc2e50c-e65e-40a1-8411-5dc599bd5c39",
+      "name": "Preparar HTML do Relatório Lembretes e Listas1"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Pega os dados do nó anterior\nconst dados = $input.item.json;\n\n// Formata valores monetários\nconst formatarMoeda = (valor) => {\n  return new Intl.NumberFormat('pt-BR', {\n    style: 'currency',\n    currency: 'BRL'\n  }).format(valor);\n};\n\n// Formata data\nconst formatarData = (data) => {\n  return new Date(data).toLocaleDateString('pt-BR', {\n    day: '2-digit',\n    month: 'long',\n    year: 'numeric'\n  });\n};\n\n// Formata data curta\nconst formatarDataCurta = (data) => {\n  return new Date(data).toLocaleDateString('pt-BR');\n};\n\n// Pega mês/ano do período\nconst getMesAno = () => {\n  const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', \n                 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];\n  const agora = new Date();\n  return `${meses[agora.getMonth()]} de ${agora.getFullYear()}`;\n};\n\n// Gera o HTML do relatório\nconst html = `\n<!DOCTYPE html>\n<html lang=\"pt-BR\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>Relatório Financeiro</title>\n  <style>\n    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');\n    \n    * {\n      margin: 0;\n      padding: 0;\n      box-sizing: border-box;\n    }\n    \n    body {\n      font-family: 'Inter', -apple-system, sans-serif;\n      background: white;\n      color: #1e293b;\n      line-height: 1.5;\n      -webkit-font-smoothing: antialiased;\n    }\n    \n    .page {\n      width: 210mm;\n      margin: 0 auto;\n      background: white;\n    }\n    \n    /* HEADER MINIMALISTA */\n    .header {\n      padding: 32px 48px 24px 48px;\n      border-bottom: 1px solid #e2e8f0;\n    }\n    \n    .header-top {\n      display: flex;\n      justify-content: space-between;\n      align-items: flex-start;\n      margin-bottom: 20px;\n    }\n    \n    .header-left h1 {\n      font-size: 24px;\n      font-weight: 700;\n      color: #0f172a;\n      margin-bottom: 4px;\n    }\n    \n    .header-subtitle {\n      font-size: 14px;\n      color: #64748b;\n    }\n    \n    .header-right {\n      text-align: right;\n    }\n    \n    .client-name {\n      font-size: 16px;\n      font-weight: 600;\n      color: #0f172a;\n      margin-bottom: 2px;\n    }\n    \n    .client-phone {\n      font-size: 13px;\n      color: #64748b;\n    }\n    \n    .header-meta {\n      display: flex;\n      gap: 24px;\n      font-size: 13px;\n      color: #64748b;\n    }\n    \n    /* CONTENT */\n    .content {\n      padding: 32px 48px;\n    }\n    \n    /* CARDS RESUMO */\n    .summary-cards {\n      display: grid;\n      grid-template-columns: repeat(3, 1fr);\n      gap: 16px;\n      margin-bottom: 32px;\n    }\n    \n    .card {\n      background: #f8fafc;\n      border: 1px solid #e2e8f0;\n      border-radius: 8px;\n      padding: 20px;\n    }\n    \n    .card-label {\n      font-size: 12px;\n      color: #64748b;\n      text-transform: uppercase;\n      letter-spacing: 0.5px;\n      margin-bottom: 8px;\n      font-weight: 500;\n    }\n    \n    .card-value {\n      font-size: 28px;\n      font-weight: 700;\n      color: #0f172a;\n      margin-bottom: 4px;\n    }\n    \n    .card-badge {\n      display: inline-block;\n      background: #0f172a;\n      color: white;\n      padding: 4px 10px;\n      border-radius: 4px;\n      font-size: 11px;\n      font-weight: 600;\n    }\n    \n    /* RESUMO BOX */\n    .info-box {\n      background: #f8fafc;\n      border-left: 3px solid #0f172a;\n      padding: 20px;\n      margin-bottom: 32px;\n      border-radius: 4px;\n    }\n    \n    .info-box-title {\n      font-size: 13px;\n      font-weight: 600;\n      color: #0f172a;\n      margin-bottom: 8px;\n      text-transform: uppercase;\n      letter-spacing: 0.5px;\n    }\n    \n    .info-box-text {\n      font-size: 14px;\n      color: #475569;\n      line-height: 1.6;\n    }\n    \n    /* SECTIONS */\n    .section {\n      margin-bottom: 32px;\n    }\n    \n    .section-title {\n      font-size: 16px;\n      font-weight: 600;\n      color: #0f172a;\n      margin-bottom: 16px;\n      padding-bottom: 8px;\n      border-bottom: 1px solid #e2e8f0;\n    }\n    \n    /* CATEGORIAS */\n    .categorias-list {\n      display: grid;\n      gap: 8px;\n    }\n    \n    .categoria-item {\n      display: flex;\n      justify-content: space-between;\n      align-items: center;\n      padding: 12px 16px;\n      background: #f8fafc;\n      border-radius: 4px;\n    }\n    \n    .categoria-nome {\n      font-size: 14px;\n      color: #1e293b;\n      font-weight: 500;\n    }\n    \n    .categoria-right {\n      display: flex;\n      align-items: center;\n      gap: 16px;\n    }\n    \n    .categoria-valor {\n      font-size: 14px;\n      font-weight: 600;\n      color: #0f172a;\n    }\n    \n    .categoria-percent {\n      background: #e2e8f0;\n      color: #475569;\n      padding: 4px 10px;\n      border-radius: 4px;\n      font-size: 12px;\n      font-weight: 600;\n      min-width: 50px;\n      text-align: center;\n    }\n    \n    /* TRANSAÇÕES TABLE */\n    .transactions-table {\n      width: 100%;\n      border-collapse: collapse;\n      font-size: 13px;\n    }\n    \n    .transactions-table thead {\n      border-bottom: 2px solid #e2e8f0;\n    }\n    \n    .transactions-table th {\n      padding: 10px 12px;\n      text-align: left;\n      font-size: 11px;\n      text-transform: uppercase;\n      letter-spacing: 0.5px;\n      color: #64748b;\n      font-weight: 600;\n      background: #f8fafc;\n    }\n    \n    .transactions-table td {\n      padding: 12px;\n      border-bottom: 1px solid #f1f5f9;\n      color: #475569;\n    }\n    \n    .transaction-valor {\n      font-weight: 600;\n    }\n    \n    .transaction-income {\n      color: #0f172a;\n    }\n    \n    .transaction-expense {\n      color: #64748b;\n    }\n    \n    /* INSIGHTS - ÚLTIMA PÁGINA */\n    .insights-page {\n      page-break-before: always;\n      padding: 32px 48px;\n    }\n    \n    .insights-header {\n      margin-bottom: 32px;\n      padding-bottom: 16px;\n      border-bottom: 2px solid #e2e8f0;\n    }\n    \n    .insights-header h2 {\n      font-size: 20px;\n      font-weight: 700;\n      color: #0f172a;\n      margin-bottom: 4px;\n    }\n    \n    .insights-header p {\n      font-size: 13px;\n      color: #64748b;\n    }\n    \n    .insight-block {\n      margin-bottom: 24px;\n    }\n    \n    .insight-block-title {\n      font-size: 14px;\n      font-weight: 600;\n      color: #0f172a;\n      margin-bottom: 12px;\n      text-transform: uppercase;\n      letter-spacing: 0.5px;\n    }\n    \n    .insight-list {\n      list-style: none;\n      padding: 0;\n    }\n    \n    .insight-list li {\n      padding: 8px 0 8px 20px;\n      position: relative;\n      color: #475569;\n      line-height: 1.6;\n      font-size: 14px;\n    }\n    \n    .insight-list li::before {\n      content: '•';\n      position: absolute;\n      left: 6px;\n      color: #0f172a;\n      font-weight: bold;\n    }\n    \n    .motivacao-box {\n      background: #f8fafc;\n      border-left: 3px solid #0f172a;\n      padding: 20px;\n      margin-top: 32px;\n      border-radius: 4px;\n    }\n    \n    .motivacao-text {\n      font-size: 15px;\n      font-weight: 500;\n      color: #1e293b;\n      font-style: italic;\n      line-height: 1.6;\n    }\n    \n    /* FOOTER */\n    .footer {\n      padding: 24px 48px;\n      text-align: center;\n      border-top: 1px solid #e2e8f0;\n      font-size: 12px;\n      color: #94a3b8;\n    }\n    \n    .footer-brand {\n      font-weight: 600;\n      color: #64748b;\n      margin-bottom: 4px;\n    }\n  </style>\n</head>\n<body>\n  <div class=\"page\">\n    <!-- HEADER -->\n    <div class=\"header\">\n      <div class=\"header-top\">\n        <div class=\"header-left\">\n          <h1>Relatório Financeiro</h1>\n          <div class=\"header-subtitle\">Período: ${getMesAno()}</div>\n        </div>\n        <div class=\"header-right\">\n          <div class=\"client-name\">${dados.client_name || 'Cliente'}</div>\n          <div class=\"client-phone\">${dados.client_phone || ''}</div>\n        </div>\n      </div>\n      <div class=\"header-meta\">\n        <span>${dados.total_transacoes} transações</span>\n        <span>•</span>\n        <span>Gerado em ${formatarDataCurta(new Date())}</span>\n      </div>\n    </div>\n    \n    <!-- CONTENT -->\n    <div class=\"content\">\n      <!-- CARDS RESUMO -->\n      <div class=\"summary-cards\">\n        <div class=\"card\">\n          <div class=\"card-label\">Receitas</div>\n          <div class=\"card-value\">${formatarMoeda(dados.total_receitas)}</div>\n        </div>\n        \n        <div class=\"card\">\n          <div class=\"card-label\">Despesas</div>\n          <div class=\"card-value\">${formatarMoeda(dados.total_despesas)}</div>\n        </div>\n        \n        <div class=\"card\">\n          <div class=\"card-label\">Saldo</div>\n          <div class=\"card-value\">${formatarMoeda(dados.saldo)}</div>\n          <div class=\"card-badge\">${dados.percentual_economia}% economizado</div>\n        </div>\n      </div>\n      \n      <!-- RESUMO -->\n      <div class=\"info-box\">\n        <div class=\"info-box-title\">Resumo do Período</div>\n        <div class=\"info-box-text\">${dados.insights.resumo}</div>\n      </div>\n      \n      <!-- CATEGORIAS -->\n      <div class=\"section\">\n        <div class=\"section-title\">Gastos por Categoria</div>\n        <div class=\"categorias-list\">\n          ${dados.categorias.map(cat => `\n            <div class=\"categoria-item\">\n              <div class=\"categoria-nome\">${cat.nome || 'Sem categoria'}</div>\n              <div class=\"categoria-right\">\n                <div class=\"categoria-valor\">${formatarMoeda(cat.valor)}</div>\n                <div class=\"categoria-percent\">${cat.percentual}%</div>\n              </div>\n            </div>\n          `).join('')}\n        </div>\n      </div>\n      \n      <!-- TRANSAÇÕES -->\n      <div class=\"section\">\n        <div class=\"section-title\">Histórico de Transações</div>\n        <table class=\"transactions-table\">\n          <thead>\n            <tr>\n              <th style=\"width: 100px;\">Data</th>\n              <th>Descrição</th>\n              <th style=\"width: 120px;\">Categoria</th>\n              <th style=\"width: 110px; text-align: right;\">Valor</th>\n            </tr>\n          </thead>\n          <tbody>\n            ${dados.transacoes.map(t => `\n              <tr>\n                <td>${formatarDataCurta(t.date)}</td>\n                <td>${t.description}</td>\n                <td>${t.category || '—'}</td>\n                <td style=\"text-align: right;\">\n                  <span class=\"transaction-valor ${t.type === 'income' ? 'transaction-income' : 'transaction-expense'}\">\n                    ${t.type === 'income' ? '+' : '−'} ${formatarMoeda(parseFloat(t.amount))}\n                  </span>\n                </td>\n              </tr>\n            `).join('')}\n          </tbody>\n        </table>\n      </div>\n    </div>\n    \n    <div class=\"footer\">\n      <div class=\"footer-brand\">SARA</div>\n      <div>Relatório gerado automaticamente</div>\n    </div>\n  </div>\n  \n  <!-- PÁGINA DE INSIGHTS -->\n  <div class=\"page\">\n    <div class=\"insights-page\">\n      <div class=\"insights-header\">\n        <h2>Análise Detalhada da SARA</h2>\n        <p>Insights personalizados sobre sua saúde financeira</p>\n      </div>\n      \n      <div class=\"insight-block\">\n        <div class=\"insight-block-title\">Pontos Positivos</div>\n        <ul class=\"insight-list\">\n          ${dados.insights.positivos.map(p => `<li>${p}</li>`).join('')}\n        </ul>\n      </div>\n      \n      <div class=\"insight-block\">\n        <div class=\"insight-block-title\">Pontos de Atenção</div>\n        <ul class=\"insight-list\">\n          ${dados.insights.atencao.map(a => `<li>${a}</li>`).join('')}\n        </ul>\n      </div>\n      \n      <div class=\"insight-block\">\n        <div class=\"insight-block-title\">Recomendações</div>\n        <ul class=\"insight-list\">\n          ${dados.insights.dicas.map(d => `<li>${d}</li>`).join('')}\n        </ul>\n      </div>\n      \n      <div class=\"motivacao-box\">\n        <div class=\"motivacao-text\">\"${dados.insights.motivacao}\"</div>\n      </div>\n    </div>\n    \n    <div class=\"footer\">\n      <div class=\"footer-brand\">SARA</div>\n      <div>Relatório confidencial • ${formatarDataCurta(new Date())}</div>\n    </div>\n  </div>\n</body>\n</html>\n`;\n\n// Retorna o HTML pronto\nreturn [{\n  json: {\n    relatorio_pdf_html: html,\n    ...dados\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1456,
+        -336
+      ],
+      "id": "11f562b8-951d-4237-8321-abab7a77e408",
+      "name": "Preparar HTML do Relatório Financeiro"
+    },
+    {
+      "parameters": {
+        "operation": "toBinary",
+        "sourceProperty": "html_base64",
+        "options": {
+          "fileName": "index.html",
+          "mimeType": "text/html"
+        }
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        2048,
+        192
+      ],
+      "id": "6d616b5d-6c7f-4695-8857-d2d6d8cd45f9",
+      "name": "conversor_base_"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7e6612ba-5c7f-49e0-97f4-b1336e3c9cf7",
+              "name": "html_base64",
+              "value": "={{ $json.html.base64Encode()}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1872,
+        192
+      ],
+      "id": "0e63a650-a781-49ff-80c7-7a566b613afd",
+      "name": "set_dado_base_"
+    },
+    {
+      "parameters": {
+        "html": "{{ $json.relatorio_pdf_html }}"
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        1696,
+        192
+      ],
+      "id": "1c99c328-26ab-489e-83fc-c15a3e00913c",
+      "name": "gerador_html_pdf1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://master_gotenberg:3000/forms/chromium/convert/html",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Gotenberg-Output-Filename",
+              "value": "=relatorio_{{ $node[\"Webhook\"].json[\"body\"][\"report_type\"] }}_{{ $node[\"Webhook\"].json[\"body\"][\"client_name\"] }}_{{ $node[\"Webhook\"].json[\"body\"][\"client_id\"] }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "files",
+              "inputDataFieldName": "data"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2256,
+        192
+      ],
+      "id": "b053273d-e4d6-40ba-bb3b-5d0461e96892",
+      "name": "gerador_pdf_gotenberg Listas e Lembretes",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Pega binário do PDF\nconst binaryData = $input.item.binary.data;\n\n// 2. Busca dados da Raiz e higieniza nome\nconst rootData = $('Dados').first().json;\nif (!rootData.client_id || !rootData.report_type) throw new Error(\"Dados perdidos!\");\n\n// Remove acentos e espaços do nome para ficar seguro no arquivo\nconst safeName = (rootData.client_name || 'Cliente')\n  .normalize(\"NFD\").replace(/[\\u0300-\\u036f]/g, \"\")\n  .replace(/[^a-zA-Z0-9]/g, \"_\");\n\nconst timestamp = new Date().getTime();\n// Formato: relatorio_listas_Thiago_17400000.pdf\nconst fileName = `relatorio_${rootData.report_type}_${safeName}_${timestamp}.pdf`;\nconst filePath = `${rootData.client_id}/${fileName}`;\n\nreturn {\n  json: {\n    client_id: rootData.client_id,\n    report_type: rootData.report_type,\n    period_start: rootData.period_start,\n    period_end: rootData.period_end,\n    fileName: fileName,\n    filePath: filePath\n  },\n  binary: {\n    data: {\n      ...binaryData,\n      fileName: fileName\n    }\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2448,
+        192
+      ],
+      "id": "9305bcaa-e52b-4257-8f74-2979782c0826",
+      "name": "Preparar Upload Storage Listas e Lembretes"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://vkohkliecwxxruceocxo.supabase.co/storage/v1/object/relatorios/relatorio_{{ new Date().getTime() }}.pdf",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2640,
+        192
+      ],
+      "id": "f11bb128-f9ec-4d7f-8828-4c50e9f4395a",
+      "name": "Upload Supabase Storage Listas e Lembretes",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "E1CHpDPCWcsNpole",
+          "name": "Supabase_zero"
+        },
+        "httpHeaderAuth": {
+          "id": "cf48lBw8TSjkmR6K",
+          "name": "supabase_lista_thiago"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Function node: Normalizar file_key e file_size\nconst prep = $node[\"Preparar Upload Storage Listas e Lembretes\"] ? $node[\"Preparar Upload Storage Listas e Lembretes\"].json : null;\nconst up = $node[\"Upload Supabase Storage Listas e Lembretes\"] ? $node[\"Upload Supabase Storage Listas e Lembretes\"].json : null;\n\n// Tenta obter o key/size nas fontes possíveis\nconst fileKey = prep?.filePath || up?.Key || up?.key || $json.file_key || null;\nconst fileSize = prep?.fileSize || up?.fileSize || up?.Size || up?.size || $json.file_size || 0;\n\nif (!fileKey) {\n  throw new Error('fileKey não encontrado em Preparar Upload Storage nem Upload Supabase Storage');\n}\n\n// Retorna item com os campos normalizados\nreturn [{\n  json: {\n    ...$json,\n    file_key: fileKey,\n    file_size: fileSize\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2816,
+        192
+      ],
+      "id": "2658fa10-a6bf-49eb-9fef-8df81e99b234",
+      "name": "Normalizar Arquivo Listas e Lembretes"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO saas_reports (\n  client_id, type, period_start, period_end, file_key, file_type, file_size, is_public, status, created_at\n) VALUES (\n  '{{ $node[\"Dados\"].json[\"client_id\"] }}',\n  '{{ $node[\"Dados\"].json[\"report_type\"] }}',\n  '{{ $node[\"Dados\"].json[\"period_start\"] }}',\n  '{{ $node[\"Dados\"].json[\"period_end\"] }}',\n  '{{ $json.file_key }}',\n  'pdf',\n  {{ $json.file_size }},\n  false,\n  'completed',\n  NOW()\n) RETURNING id, file_key;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3008,
+        192
+      ],
+      "id": "717e30c2-4745-4c20-8ba0-532e64449f33",
+      "name": "Salvar Relatório no Banco Listas e Lembretes",
+      "credentials": {
+        "postgres": {
+          "id": "2xQBC6Q6FS0TLYyI",
+          "name": "Postgres_Zero"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const lembretes = $input.all();\nconst dadosWebhook = $('Dados').first().json;\nconst clientName = dadosWebhook.client_name || 'Cliente';\n\nlet total = lembretes.length;\nlet prioridadeAlta = 0;\n\nconst lembretesProcessados = lembretes.map(item => {\n  const l = item.json;\n  if (l.priority === 'high') prioridadeAlta++;\n  \n  const dataFormatada = new Date(l.remind_at).toLocaleDateString('pt-BR', {\n    day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'\n  });\n\n  return {\n    title: l.title,\n    description: l.description || '', // Agora pegamos a descrição\n    priority: l.priority,\n    date: dataFormatada\n  };\n});\n\n// Prompt Rico com Descrições\nconst prompt = `Você é a SARA, assistente pessoal de ${clientName}.\nAnalise os lembretes futuros.\n\nLEMBRETES:\n${lembretesProcessados.map(l => `- [${l.date}] ${l.title} (${l.priority}): ${l.description}`).join('\\n')}\n\nINSTRUÇÕES:\n1. Saude ${clientName} pelo nome.\n2. Dê prioridade total aos itens de \"priority: high\".\n3. Cite os prazos mais próximos.\n4. Retorne JSON { resumo, positivos, atencao, dicas, motivacao, insight_curto }.`;\n\nreturn {\n  json: {\n    ...dadosWebhook,\n    report_type: 'lembretes',\n    client_name: clientName,\n    stats: { total, prioridadeAlta },\n    lembretes: lembretesProcessados,\n    prompt_ia: prompt\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        432,
+        544
+      ],
+      "id": "e094596d-e5a7-4b78-8561-78858d630bf7",
+      "name": "Preparar Dados Lembretes1",
+      "disabled": true
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "master-n8n.0wtkoy.easypanel.host",
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+            "content-length": "212",
+            "accept": "*/*",
+            "accept-encoding": "gzip, deflate, br, zstd",
+            "accept-language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7",
+            "content-type": "application/json",
+            "origin": "http://localhost:3000",
+            "priority": "u=1, i",
+            "referer": "http://localhost:3000/",
+            "sec-ch-ua": "\"Not(A:Brand\";v=\"8\", \"Chromium\";v=\"144\", \"Google Chrome\";v=\"144\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\"",
+            "sec-fetch-dest": "empty",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-site": "cross-site",
+            "x-forwarded-for": "177.127.212.99",
+            "x-forwarded-host": "master-n8n.0wtkoy.easypanel.host",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "500cb9286842",
+            "x-real-ip": "177.127.212.99"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "client_id": "40e65486-70f8-447e-ac2a-33a6e8ef9c14",
+            "whatsapp_id": "5516997515087",
+            "report_type": "listas_pendentes",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "file_format": "pdf",
+            "client_name": "Thiago"
+          },
+          "webhookUrl": "https://master-n8n.0wtkoy.easypanel.host/webhook/sara-relatorios",
+          "executionMode": "production"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Dados",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Buscar Todas Transações (Financeiro Completo)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Buscar Só Receitas",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Buscar Só Despesas",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Buscar Listas Pendentes",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Buscar Lembretes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Todas Transações (Financeiro Completo)": {
+      "main": [
+        [
+          {
+            "node": "Preparar Dados",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Só Receitas": {
+      "main": [
+        [
+          {
+            "node": "Preparar Dados",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Só Despesas": {
+      "main": [
+        [
+          {
+            "node": "Preparar Dados",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Listas Pendentes": {
+      "main": [
+        [
+          {
+            "node": "Preparar Dados Listas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar Dados": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Extrair JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extrair JSON": {
+      "main": [
+        [
+          {
+            "node": "Preparar HTML do Relatório Financeiro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload Supabase Storage": {
+      "main": [
+        [
+          {
+            "node": "Normalizar Arquivo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Salvar Relatório no Banco": {
+      "main": [
+        [
+          {
+            "node": "Responde",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "conversor_base_64": {
+      "main": [
+        [
+          {
+            "node": "gerador_pdf_gotenberg",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "set_dado_base_64": {
+      "main": [
+        [
+          {
+            "node": "conversor_base_64",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "gerador_html_pdf": {
+      "main": [
+        [
+          {
+            "node": "set_dado_base_64",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dados": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "gerador_pdf_gotenberg": {
+      "main": [
+        [
+          {
+            "node": "Preparar Upload Storage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Lembretes": {
+      "main": [
+        [
+          {
+            "node": "Preparar Dados Lembretes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar Upload Storage": {
+      "main": [
+        [
+          {
+            "node": "Upload Supabase Storage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalizar Arquivo": {
+      "main": [
+        [
+          {
+            "node": "Salvar Relatório no Banco",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Analise Listas e Lembretes",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar Dados Listas": {
+      "main": [
+        [
+          {
+            "node": "Analise Listas e Lembretes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar Dados Lembretes": {
+      "main": [
+        [
+          {
+            "node": "Analise Listas e Lembretes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analise Listas e Lembretes": {
+      "main": [
+        [
+          {
+            "node": "Extrair JSON Lembretes e Listas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extrair JSON Lembretes e Listas": {
+      "main": [
+        [
+          {
+            "node": "Preparar HTML do Relatório Lembretes e Listas1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar HTML do Relatório Financeiro": {
+      "main": [
+        [
+          {
+            "node": "gerador_html_pdf",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "conversor_base_": {
+      "main": [
+        [
+          {
+            "node": "gerador_pdf_gotenberg Listas e Lembretes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "set_dado_base_": {
+      "main": [
+        [
+          {
+            "node": "conversor_base_",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar HTML do Relatório Lembretes e Listas1": {
+      "main": [
+        [
+          {
+            "node": "gerador_html_pdf1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "gerador_html_pdf1": {
+      "main": [
+        [
+          {
+            "node": "set_dado_base_",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "gerador_pdf_gotenberg Listas e Lembretes": {
+      "main": [
+        [
+          {
+            "node": "Preparar Upload Storage Listas e Lembretes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar Upload Storage Listas e Lembretes": {
+      "main": [
+        [
+          {
+            "node": "Upload Supabase Storage Listas e Lembretes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload Supabase Storage Listas e Lembretes": {
+      "main": [
+        [
+          {
+            "node": "Normalizar Arquivo Listas e Lembretes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalizar Arquivo Listas e Lembretes": {
+      "main": [
+        [
+          {
+            "node": "Salvar Relatório no Banco Listas e Lembretes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Salvar Relatório no Banco Listas e Lembretes": {
+      "main": [
+        [
+          {
+            "node": "Responde",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "5337f9a9-39ef-4777-aecf-a68f6f765ea3",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2162172325255cd265a19f3178f77abb9ab7ec9c7a1d869ba2d2925c11389625"
+  },
+  "id": "lNgwOHIU0ao4qsYtXKZBN",
+  "tags": []
+}

@@ -59,7 +59,7 @@ export async function middleware(request: NextRequest) {
 
   // Rotas protegidas - redireciona para login se não autenticado
   const protectedRoutes = ['/dashboard']
-  const isProtectedRoute = protectedRoutes.some(route => 
+  const isProtectedRoute = protectedRoutes.some(route =>
     request.nextUrl.pathname.startsWith(route)
   )
 
@@ -71,7 +71,7 @@ export async function middleware(request: NextRequest) {
 
   // Rotas de auth - redireciona para dashboard se já autenticado
   const authRoutes = ['/auth/login', '/auth/cadastro']
-  const isAuthRoute = authRoutes.some(route => 
+  const isAuthRoute = authRoutes.some(route =>
     request.nextUrl.pathname.startsWith(route)
   )
 
@@ -100,6 +100,6 @@ export const config = {
      * - favicon.ico (favicon file)
      * - public files (public directory)
      */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|api/|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }

@@ -1,0 +1,745 @@
+{
+  "name": "SARA SaaS - Portal Checkout v1.1",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "sara-portal-checkout",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -3376,
+        256
+      ],
+      "id": "f62e18a7-77d8-4ca5-97fd-ec8c1864213f",
+      "name": "Webhook Portal Checkout",
+      "webhookId": "sara-portal-checkout"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body || $input.first().json;\n\n// Validar dados obrigatórios\nconst required = ['client_id', 'plano_id', 'billing'];\nfor (const field of required) {\n  if (!body[field]) {\n    throw new Error(`Campo obrigatório ausente: ${field}`);\n  }\n}\n\nconst billing = body.billing;\nconst billingRequired = ['nome', 'cpf_cnpj', 'email', 'cep', 'endereco', 'numero', 'bairro', 'cidade', 'estado'];\nfor (const field of billingRequired) {\n  if (!billing[field]) {\n    throw new Error(`Campo de billing obrigatório ausente: ${field}`);\n  }\n}\n\nreturn [{\n  json: {\n    client_id: body.client_id,\n    whatsapp_id: body.whatsapp_id,\n    plano_id: body.plano_id,\n    billing: {\n      nome: billing.nome,\n      cpf_cnpj: billing.cpf_cnpj,\n      email: billing.email,\n      cep: billing.cep,\n      endereco: billing.endereco,\n      numero: billing.numero,\n      bairro: billing.bairro,\n      cidade: billing.cidade,\n      estado: billing.estado\n    },\n    origem: 'portal'\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2912,
+        144
+      ],
+      "id": "09934c1a-82e5-4a7e-9331-ce1cb70285be",
+      "name": "Parser Dados"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id, name, price_monthly FROM saas_plans WHERE id = '{{ $json.plano_id }}' AND is_active = true;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -2704,
+        144
+      ],
+      "id": "c97a08c1-1b38-4c52-8647-ee8930a6b907",
+      "name": "Buscar Plano",
+      "credentials": {
+        "postgres": {
+          "id": "2xQBC6Q6FS0TLYyI",
+          "name": "Postgres_Zero"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "check-plano-exists",
+              "leftValue": "={{ $json.id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -2496,
+        144
+      ],
+      "id": "992f7872-78d5-4f6a-b158-c14da1422621",
+      "name": "Plano Existe?"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE saas_clients SET\n  billing_name = '{{ $('Parser Dados').item.json.billing.nome }}',\n  billing_email = '{{ $('Parser Dados').item.json.billing.email }}',\n  billing_cpf_cnpj = '{{ $('Parser Dados').item.json.billing.cpf_cnpj }}',\n  billing_postal_code = '{{ $('Parser Dados').item.json.billing.cep }}',\n  billing_address = '{{ $('Parser Dados').item.json.billing.endereco }}',\n  billing_address_number = '{{ $('Parser Dados').item.json.billing.numero }}',\n  billing_neighborhood = '{{ $('Parser Dados').item.json.billing.bairro }}',\n  billing_city = '{{ $('Parser Dados').item.json.billing.cidade }}',\n  billing_state = '{{ $('Parser Dados').item.json.billing.estado }}',\n  subscription_flow_plan = '{{ $('Parser Dados').item.json.plano_id }}',\n  updated_at = NOW()\nWHERE id = '{{ $('Parser Dados').item.json.client_id }}'::uuid\nRETURNING id, asaas_customer_id, whatsapp_id;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -2288,
+        64
+      ],
+      "id": "7c3876be-2e06-40a8-96bb-7d15db761ab6",
+      "name": "Salvar Billing",
+      "credentials": {
+        "postgres": {
+          "id": "2xQBC6Q6FS0TLYyI",
+          "name": "Postgres_Zero"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "check-customer-exists",
+              "leftValue": "={{ $json.asaas_customer_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -2080,
+        64
+      ],
+      "id": "3329c03c-a3ba-445d-9880-0b765fa0375a",
+      "name": "Customer Asaas Existe?"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://sandbox.asaas.com/api/v3/customers",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"name\": \"{{ $('Parser Dados').item.json.billing.nome }}\",\n  \"cpfCnpj\": \"{{ $('Parser Dados').item.json.billing.cpf_cnpj }}\",\n  \"email\": \"{{ $('Parser Dados').item.json.billing.email }}\",\n  \"mobilePhone\": \"{{ ($('Parser Dados').item.json.whatsapp_id || $('Salvar Billing').item.json.whatsapp_id).replace(/^55/, '') }}\",\n  \"postalCode\": \"{{ $('Parser Dados').item.json.billing.cep }}\",\n  \"address\": \"{{ $('Parser Dados').item.json.billing.endereco }}\",\n  \"addressNumber\": \"{{ $('Parser Dados').item.json.billing.numero }}\",\n  \"province\": \"{{ $('Parser Dados').item.json.billing.bairro }}\",\n  \"externalReference\": \"{{ $('Parser Dados').item.json.client_id }}\",\n  \"notificationDisabled\": false\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -1856,
+        144
+      ],
+      "id": "746001a1-4ebf-4299-b091-68b30260edde",
+      "name": "Criar Customer Asaas",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "cEiYCnzVNzSJDABB",
+          "name": "asaas_saas_sara"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE saas_clients SET asaas_customer_id = '{{ $json.id }}' WHERE id = '{{ $('Parser Dados').item.json.client_id }}'::uuid;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -1664,
+        144
+      ],
+      "id": "ff617f10-ed56-48cf-a015-cc850f76e150",
+      "name": "Salvar Customer ID",
+      "credentials": {
+        "postgres": {
+          "id": "2xQBC6Q6FS0TLYyI",
+          "name": "Postgres_Zero"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://sandbox.asaas.com/api/v3/subscriptions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"customer\": \"{{ $('Criar Customer Asaas').item.json.id || $('Salvar Billing').item.json.asaas_customer_id }}\",\n  \"billingType\": \"UNDEFINED\",\n  \"value\": {{ $('Buscar Plano').item.json.price_monthly }},\n  \"nextDueDate\": \"{{ $now.toFormat('yyyy-MM-dd') }}\",\n  \"cycle\": \"MONTHLY\",\n  \"description\": \"SARA - Plano {{ $('Buscar Plano').item.json.name }}\",\n  \"externalReference\": \"{{ $('Parser Dados').item.json.plano_id }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -1472,
+        144
+      ],
+      "id": "e8f56e82-200e-4e4f-8219-770857f2ae7e",
+      "name": "Criar Assinatura Asaas",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "cEiYCnzVNzSJDABB",
+          "name": "asaas_saas_sara"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE saas_clients SET\n  asaas_subscription_id = '{{ $json.subscription_id }}',\n  subscription_flow_step = NULL,\n  subscription_flow_started_at = NULL\nWHERE id = '{{ $('Parser Dados').item.json.client_id }}'::uuid;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -1360,
+        -32
+      ],
+      "id": "2b266b3b-0a5e-4377-a62f-87d27fff33fe",
+      "name": "Salvar Subscription ID",
+      "credentials": {
+        "postgres": {
+          "id": "2xQBC6Q6FS0TLYyI",
+          "name": "Postgres_Zero"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://sandbox.asaas.com/api/v3/payments?subscription={{ $('Criar Assinatura (Customer Existe)').item.json.id }}&status=PENDING",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -1120,
+        -32
+      ],
+      "id": "d347cf79-37b5-4e2d-bbc3-28fbe8cd7f95",
+      "name": "Buscar Link Pagamento",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "cEiYCnzVNzSJDABB",
+          "name": "asaas_saas_sara"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const pagamentos = $input.first().json;\nconst assinatura = $('Criar Assinatura (Customer Existe)').first().json;\nconst plano = $('Buscar Plano').first().json;\n\nlet paymentUrl = null;\n\nif (pagamentos.data && pagamentos.data.length > 0) {\n  paymentUrl = pagamentos.data[0].invoiceUrl;\n}\n\nif (!paymentUrl) {\n  paymentUrl = `https://www.asaas.com/c/${assinatura.id}`;\n}\n\nreturn [{\n  json: {\n    success: true,\n    subscription_id: assinatura.id,\n    payment_url: paymentUrl,\n    plano: {\n      id: plano.id,\n      nome: plano.name,\n      preco: plano.price_monthly\n    }\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -928,
+        -32
+      ],
+      "id": "51f2d07e-c67d-4529-8199-335803a130c0",
+      "name": "Preparar Resposta Sucesso"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        -576,
+        64
+      ],
+      "id": "89c2bcf5-3b2b-4f55-8b5c-9a3d4319beb0",
+      "name": "Responder Sucesso"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\"success\": false, \"error\": \"Plano não encontrado ou inativo\"}",
+        "options": {
+          "responseCode": 404
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        -2288,
+        256
+      ],
+      "id": "3570afc5-5454-4ac3-b5c7-c10154051248",
+      "name": "Responder Erro Plano"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://sandbox.asaas.com/api/v3/subscriptions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"customer\": \"{{ $('Salvar Billing').item.json.asaas_customer_id }}\",\n  \"billingType\": \"CREDIT_CARD\",\n  \"value\": {{ $('Buscar Plano').item.json.price_monthly }},\n  \"nextDueDate\": \"{{ $now.toFormat('yyyy-MM-dd') }}\",\n  \"cycle\": \"MONTHLY\",\n  \"description\": \"SARA - Plano {{ $('Buscar Plano').item.json.name }}\",\n  \"externalReference\": \"{{ $('Parser Dados').item.json.plano_id }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -1760,
+        -32
+      ],
+      "id": "da1b4599-e7cd-4f5b-b3da-28f0f21ad533",
+      "name": "Criar Assinatura (Customer Existe)",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "cEiYCnzVNzSJDABB",
+          "name": "asaas_saas_sara"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "merge-subscription",
+              "name": "subscription_id",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1552,
+        -32
+      ],
+      "id": "9815eb5c-23d2-4e6b-ad50-560563fca783",
+      "name": "Merge Subscription"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE saas_clients SET\n  asaas_subscription_id = '{{ $json.subscription_id }}',\n  subscription_flow_step = NULL,\n  subscription_flow_started_at = NULL\nWHERE id = '{{ $('Parser Dados').item.json.client_id }}'::uuid;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -1280,
+        144
+      ],
+      "id": "ad575532-f0f4-4b92-8097-a5ea5949a3f9",
+      "name": "Salvar Subscription ID (Novo)",
+      "credentials": {
+        "postgres": {
+          "id": "2xQBC6Q6FS0TLYyI",
+          "name": "Postgres_Zero"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://sandbox.asaas.com/api/v3/payments?subscription={{ $('Criar Assinatura Asaas').item.json.id }}&status=PENDING",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -1072,
+        144
+      ],
+      "id": "9fe7a3df-84bd-4b55-a01f-766f4894aada",
+      "name": "Buscar Link Pagamento (Novo)",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "cEiYCnzVNzSJDABB",
+          "name": "asaas_saas_sara"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const pagamentos = $input.first().json;\nconst assinatura = $('Criar Assinatura Asaas').first().json;\nconst plano = $('Buscar Plano').first().json;\n\nlet paymentUrl = null;\n\nif (pagamentos.data && pagamentos.data.length > 0) {\n  paymentUrl = pagamentos.data[0].invoiceUrl;\n}\n\nif (!paymentUrl) {\n  paymentUrl = `https://www.asaas.com/c/${assinatura.id}`;\n}\n\nreturn [{\n  json: {\n    success: true,\n    subscription_id: assinatura.id,\n    payment_url: paymentUrl,\n    plano: {\n      id: plano.id,\n      nome: plano.name,\n      preco: plano.price_monthly\n    }\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -880,
+        144
+      ],
+      "id": "299a7a95-76dc-437e-a5f5-4e5cb772d9a4",
+      "name": "Preparar Resposta Sucesso (Novo)"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "588f5464-1cb3-42d4-960b-d9e519f4f417",
+              "leftValue": "={{ $json.headers['x-webhook-secret'] }}",
+              "rightValue": "iyC+smqrNimWHjk4uKtPch5BBgSZK4I8k2rjuv8zrDY=",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -3184,
+        256
+      ],
+      "id": "e9926018-9e5e-495c-90d4-12a988a3881b",
+      "name": "Validar Secret"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"error\": \"Forbidden - Invalid webhook secret\"\n}",
+        "options": {
+          "responseCode": 403
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -2976,
+        352
+      ],
+      "id": "5b5035d9-a7e9-408c-a7ae-6dbe2cbe3cd1",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "pinData": {
+    "Webhook Portal Checkout": [
+      {
+        "json": {
+          "headers": {
+            "host": "master-n8n.0wtkoy.easypanel.host",
+            "user-agent": "node",
+            "content-length": "367",
+            "accept": "*/*",
+            "accept-encoding": "br, gzip, deflate",
+            "accept-language": "*",
+            "content-type": "application/json",
+            "sec-fetch-mode": "cors",
+            "x-forwarded-for": "3.93.11.116",
+            "x-forwarded-host": "master-n8n.0wtkoy.easypanel.host",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "500cb9286842",
+            "x-invocation-id": "gru1::gbjj7-1770842845733-54948f03d0a6",
+            "x-real-ip": "3.93.11.116",
+            "x-vercel-id": "gru1::gbjj7-1770842845733-54948f03d0a6"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "client_id": "18482396-86d3-4307-80b7-937cdb5c395d",
+            "whatsapp_id": "5516997515087",
+            "plano_id": "enterprise",
+            "billing": {
+              "nome": "Thiago Navarro Nunes",
+              "cpf_cnpj": "35276341850",
+              "email": "tn_nunes@hotmail.com",
+              "cep": "14807248",
+              "endereco": "Rua Arquiteto Walter Logatti",
+              "numero": "750",
+              "bairro": "Jardim Higienópolis",
+              "cidade": "Araraquara",
+              "estado": "SP",
+              "complemento": "Ap11"
+            }
+          },
+          "webhookUrl": "https://master-n8n.0wtkoy.easypanel.host/webhook/sara-portal-checkout",
+          "executionMode": "production"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook Portal Checkout": {
+      "main": [
+        [
+          {
+            "node": "Validar Secret",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parser Dados": {
+      "main": [
+        [
+          {
+            "node": "Buscar Plano",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Plano": {
+      "main": [
+        [
+          {
+            "node": "Plano Existe?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Plano Existe?": {
+      "main": [
+        [
+          {
+            "node": "Salvar Billing",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Responder Erro Plano",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Salvar Billing": {
+      "main": [
+        [
+          {
+            "node": "Customer Asaas Existe?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Customer Asaas Existe?": {
+      "main": [
+        [
+          {
+            "node": "Criar Assinatura (Customer Existe)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Criar Customer Asaas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Criar Customer Asaas": {
+      "main": [
+        [
+          {
+            "node": "Salvar Customer ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Salvar Customer ID": {
+      "main": [
+        [
+          {
+            "node": "Criar Assinatura Asaas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Criar Assinatura Asaas": {
+      "main": [
+        [
+          {
+            "node": "Salvar Subscription ID (Novo)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Salvar Subscription ID": {
+      "main": [
+        [
+          {
+            "node": "Buscar Link Pagamento",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Link Pagamento": {
+      "main": [
+        [
+          {
+            "node": "Preparar Resposta Sucesso",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar Resposta Sucesso": {
+      "main": [
+        [
+          {
+            "node": "Responder Sucesso",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Criar Assinatura (Customer Existe)": {
+      "main": [
+        [
+          {
+            "node": "Merge Subscription",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Subscription": {
+      "main": [
+        [
+          {
+            "node": "Salvar Subscription ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Salvar Subscription ID (Novo)": {
+      "main": [
+        [
+          {
+            "node": "Buscar Link Pagamento (Novo)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Link Pagamento (Novo)": {
+      "main": [
+        [
+          {
+            "node": "Preparar Resposta Sucesso (Novo)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar Resposta Sucesso (Novo)": {
+      "main": [
+        [
+          {
+            "node": "Responder Sucesso",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar Secret": {
+      "main": [
+        [
+          {
+            "node": "Parser Dados",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "068cdbf4-02a0-4b66-ac69-daf1110ff2ae",
+  "meta": {
+    "instanceId": "2162172325255cd265a19f3178f77abb9ab7ec9c7a1d869ba2d2925c11389625"
+  },
+  "id": "cwI0850UERJYrGc4ZsWvp",
+  "tags": []
+}
