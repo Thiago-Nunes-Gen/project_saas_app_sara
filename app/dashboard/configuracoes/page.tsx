@@ -852,16 +852,17 @@ export default function ConfiguracoesPage() {
 }
 
 function UsageBar({ label, used, max }: { label: string, used: number, max: number }) {
-  const percentage = max > 0 ? Math.min((used / max) * 100, 100) : 0
-  const isHigh = max > 0 && percentage > 80
-  const isDisabled = max === 0
+  const isUnlimited = max === -1 || max >= 999999
+  const percentage = isUnlimited ? 0 : (max > 0 ? Math.min((used / max) * 100, 100) : 0)
+  const isHigh = !isUnlimited && max > 0 && percentage > 80
+  const isDisabled = max === 0 && !isUnlimited
 
   return (
     <div>
       <div className="flex items-center justify-between mb-1">
         <span className={`text-sm ${isDisabled ? 'text-gray-400' : 'text-gray-600'}`}>{label}</span>
         <span className={`text-sm font-medium ${isDisabled ? 'text-gray-400' : isHigh ? 'text-amber-600' : 'text-gray-900'}`}>
-          {isDisabled ? 'Não disponível' : `${used} / ${max}`}
+          {isDisabled ? 'Não disponível' : `${used} / ${isUnlimited ? 'Ilimitado' : max}`}
         </span>
       </div>
       <div className="w-full bg-gray-100 rounded-full h-2">

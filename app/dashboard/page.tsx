@@ -464,38 +464,48 @@ export default function DashboardPage() {
               </Link>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="p-4 bg-gray-50 rounded-xl">
-                <p className="text-xs text-gray-500 mb-1">Lembretes</p>
-                <p className="text-lg font-semibold text-gray-900">
-                  {client?.reminders_count || 0} / {planLimits.max_reminders}
-                </p>
-              </div>
-              <div className="p-4 bg-gray-50 rounded-xl">
-                <p className="text-xs text-gray-500 mb-1">Transações/mês</p>
-                <p className="text-lg font-semibold text-gray-900">
-                  {client?.transactions_month || 0} / {planLimits.max_transactions_month}
-                </p>
-              </div>
-              <div className="p-4 bg-gray-50 rounded-xl">
-                <p className="text-xs text-gray-500 mb-1">Documentos</p>
-                <p className="text-lg font-semibold text-gray-900">
-                  {client?.documents_count || 0} / {planLimits.max_documents}
-                </p>
-              </div>
-              <div className="p-4 bg-gray-50 rounded-xl">
-                <p className="text-xs text-gray-500 mb-1">Pesquisas IA</p>
-                <p className="text-lg font-semibold text-gray-900">
-                  {client?.web_searches_month || 0} / {planLimits.max_web_searches_month}
-                </p>
-              </div>
-              <div className="p-4 bg-gray-50 rounded-xl">
-                <p className="text-xs text-gray-500 mb-1">Agendamentos</p>
-                <p className="text-lg font-semibold text-gray-900">
-                  {client?.appointments_month || 0} / {planLimits.max_appointments_month === -1 ? '∞' : planLimits.max_appointments_month}
-                </p>
-              </div>
-            </div>
+            {/* Helper to format limit display */}
+            {(() => {
+              const formatDisplayLimit = (limit: number) => {
+                if (limit === -1 || limit >= 999999) return 'Ilimitado'
+                return limit
+              }
+
+              return (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="p-4 bg-gray-50 rounded-xl">
+                    <p className="text-xs text-gray-500 mb-1">Lembretes</p>
+                    <p className="text-lg font-semibold text-gray-900">
+                      {client?.reminders_count || 0} / {formatDisplayLimit(planLimits.max_reminders)}
+                    </p>
+                  </div>
+                  <div className="p-4 bg-gray-50 rounded-xl">
+                    <p className="text-xs text-gray-500 mb-1">Transações/mês</p>
+                    <p className="text-lg font-semibold text-gray-900">
+                      {client?.transactions_month || 0} / {formatDisplayLimit(planLimits.max_transactions_month)}
+                    </p>
+                  </div>
+                  <div className="p-4 bg-gray-50 rounded-xl">
+                    <p className="text-xs text-gray-500 mb-1">Documentos</p>
+                    <p className="text-lg font-semibold text-gray-900">
+                      {client?.documents_count || 0} / {formatDisplayLimit(planLimits.max_documents)}
+                    </p>
+                  </div>
+                  <div className="p-4 bg-gray-50 rounded-xl">
+                    <p className="text-xs text-gray-500 mb-1">Pesquisas IA</p>
+                    <p className="text-lg font-semibold text-gray-900">
+                      {client?.web_searches_month || 0} / {formatDisplayLimit(planLimits.max_web_searches_month)}
+                    </p>
+                  </div>
+                  <div className="p-4 bg-gray-50 rounded-xl">
+                    <p className="text-xs text-gray-500 mb-1">Agendamentos</p>
+                    <p className="text-lg font-semibold text-gray-900">
+                      {client?.appointments_month || 0} / {formatDisplayLimit(planLimits.max_appointments_month)}
+                    </p>
+                  </div>
+                </div>
+              )
+            })()}
           </div>
         </div>
 
