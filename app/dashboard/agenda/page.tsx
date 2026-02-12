@@ -105,9 +105,9 @@ export default function AgendaPage() {
     const monthEnd = endOfMonth(currentDate)
     const days = eachDayOfInterval({ start: monthStart, end: monthEnd })
 
-    // Preenche dias para começar na segunda-feira
+    // Preenche dias para começar no domingo
     const startDay = monthStart.getDay()
-    const prefixDays = startDay === 0 ? 6 : startDay - 1 // Ajusta para segunda = 0
+    const prefixDays = startDay // Domingo = 0, Segunda = 1, etc.
 
     const previousMonth = () => {
         setCurrentDate(new Date(year, month - 2, 1))
@@ -193,7 +193,7 @@ export default function AgendaPage() {
 
                     {/* Dias da semana */}
                     <div className="grid grid-cols-7 gap-1 mb-2">
-                        {['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'].map(day => (
+                        {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map(day => (
                             <div key={day} className="text-center text-sm font-medium text-sara-muted py-2">
                                 {day}
                             </div>
