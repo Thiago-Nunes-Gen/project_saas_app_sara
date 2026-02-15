@@ -21,7 +21,9 @@ import {
   Key,
   Trash2,
   X,
-  Frown
+  Frown,
+  MessageSquare,
+  FileText
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -363,6 +365,7 @@ export default function ConfiguracoesPage() {
     { id: 'notificacoes', label: 'Notificações', icon: Bell },
     { id: 'plano', label: 'Plano', icon: CreditCard },
     { id: 'seguranca', label: 'Segurança', icon: Shield },
+    { id: 'ajuda', label: 'Ajuda', icon: AlertCircle }, // Usando AlertCircle como ícone de ajuda (ou HelpCircle se disponível)
   ]
 
   if (clientLoading) {
@@ -790,12 +793,201 @@ export default function ConfiguracoesPage() {
                       <p className="font-medium text-red-900">Excluir conta</p>
                       <p className="text-sm text-red-700">Isso irá apagar todos os seus dados</p>
                     </div>
-                    <button className="px-4 py-2 bg-red-500 text-white rounded-lg text-sm font-medium hover:bg-red-600 flex items-center gap-2">
+                    <button
+                      onClick={() => setShowCancelModal(true)}
+                      className="px-4 py-2 bg-red-500 text-white rounded-lg text-sm font-medium hover:bg-red-600 flex items-center gap-2"
+                    >
                       <Trash2 className="w-4 h-4" />
                       Excluir
                     </button>
                   </div>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* Ajuda / Documentação Tab */}
+          {activeTab === 'ajuda' && (
+            <div className="card">
+              <h2 className="text-lg font-medium text-gray-900 mb-6">Manual de Uso SARA</h2>
+
+              <div className="space-y-8">
+                {/* 1. Introdução */}
+                <section>
+                  <p className="text-gray-600 leading-relaxed">
+                    Olá! Eu sou a <strong>SARA</strong>, sua assistente pessoal inteligente. Meu objetivo é organizar sua vida, gerenciar seus compromissos, lembrar das suas tarefas importantes e cuidar das suas finanças.
+                  </p>
+                  <div className="mt-4 p-4 bg-blue-50 border border-blue-100 rounded-lg">
+                    <h3 className="text-sm font-semibold text-blue-900 mb-2">Onde você pode me usar?</h3>
+                    <ul className="text-sm text-blue-800 space-y-1">
+                      <li>📱 <strong>WhatsApp:</strong> Para o dia a dia, áudios e conversas rápidas na rua.</li>
+                      <li>💬 <strong>Chat do Portal:</strong> Mesma inteligência do Zap, mas no computador.</li>
+                      <li>🖥️ <strong>Painel do Portal:</strong> Para ver gráficos, relatórios e organizar tudo visualmente.</li>
+                    </ul>
+                  </div>
+                </section>
+
+                {/* 2. Comandos Mágicos */}
+                <section>
+                  <h3 className="text-base font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                    ⚡ Comandos Rápidos
+                  </h3>
+                  <div className="overflow-hidden border border-gray-200 rounded-lg">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Comando</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">O que faz</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200 bg-white">
+                        <tr>
+                          <td className="px-4 py-3 text-sm font-mono text-blue-600">#ajuda</td>
+                          <td className="px-4 py-3 text-sm text-gray-600">Mostra a lista do que eu posso fazer.</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-3 text-sm font-mono text-blue-600">#meuplano</td>
+                          <td className="px-4 py-3 text-sm text-gray-600">Mostra detalhes da sua assinatura.</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-3 text-sm font-mono text-blue-600">#meuuso</td>
+                          <td className="px-4 py-3 text-sm text-gray-600">Exibe quanto você já usou do limite mensal.</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </section>
+
+                {/* 3. Módulos */}
+                <section>
+                  <h3 className="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    🛠️ O que eu sei fazer?
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                    {/* Lembretes */}
+                    <div className="p-4 border border-gray-100 rounded-lg bg-gray-50 hover:border-blue-200 transition-colors">
+                      <div className="flex items-center gap-2 mb-2 text-purple-600">
+                        <Bell className="w-5 h-5" />
+                        <h4 className="font-medium">Lembretes</h4>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-2">Para não esquecer de nada.</p>
+                      <div className="text-xs bg-white p-2 rounded border border-gray-200 text-gray-500 italic">
+                        "Me lembre de tomar remédio amanhã às 14h"<br />
+                        "Lembrete: pagar conta dia 15"
+                      </div>
+                    </div>
+
+                    {/* Agenda */}
+                    <div className="p-4 border border-gray-100 rounded-lg bg-gray-50 hover:border-blue-200 transition-colors">
+                      <div className="flex items-center gap-2 mb-2 text-blue-600">
+                        <User className="w-5 h-5" /> {/* Usando User como ícone genérico de agenda se Calendar não estiver importado */}
+                        <h4 className="font-medium">Agenda</h4>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-2">Compromissos com hora marcada.</p>
+                      <div className="text-xs bg-white p-2 rounded border border-gray-200 text-gray-500 italic">
+                        "Reunião com João quinta das 14h às 15h"<br />
+                        "Agendar dentista amanhã 10h"
+                      </div>
+                    </div>
+
+                    {/* Financeiro */}
+                    <div className="p-4 border border-gray-100 rounded-lg bg-gray-50 hover:border-blue-200 transition-colors">
+                      <div className="flex items-center gap-2 mb-2 text-green-600">
+                        <CreditCard className="w-5 h-5" />
+                        <h4 className="font-medium">Financeiro</h4>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-2">Controle de gastos e ganhos.</p>
+                      <div className="text-xs bg-white p-2 rounded border border-gray-200 text-gray-500 italic">
+                        "Gastei 50 no almoço"<br />
+                        "Recebi 200 de freela"<br />
+                        "Quanto gastei esse mês?"
+                      </div>
+                    </div>
+
+                    {/* Listas */}
+                    <div className="p-4 border border-gray-100 rounded-lg bg-gray-50 hover:border-blue-200 transition-colors">
+                      <div className="flex items-center gap-2 mb-2 text-amber-600">
+                        <Check className="w-5 h-5" />
+                        <h4 className="font-medium">Listas</h4>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-2">Tarefas, compras, ideias.</p>
+                      <div className="text-xs bg-white p-2 rounded border border-gray-200 text-gray-500 italic">
+                        "Cria lista de compras"<br />
+                        "Adiciona leite na lista de compras"
+                      </div>
+                    </div>
+
+                    {/* Central de Memória (Histórico) */}
+                    <div className="p-4 border border-gray-100 rounded-lg bg-gray-50 hover:border-blue-200 transition-colors">
+                      <div className="flex items-center gap-2 mb-2 text-indigo-600">
+                        <MessageSquare className="w-5 h-5" />
+                        <h4 className="font-medium">Central de Memória</h4>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-2">Seu histórico completo de conversas.</p>
+                      <div className="text-xs bg-white p-2 rounded border border-gray-200 text-gray-500 italic">
+                        "Pesquise por algo que falamos mês passado"<br />
+                        "Filtre por finanças ou lembretes"<br />
+                        "Revise tudo que a SARA já fez"
+                      </div>
+                    </div>
+
+                    {/* Meus Documentos (Base de Conhecimento) */}
+                    <div className="p-4 border border-gray-100 rounded-lg bg-gray-50 hover:border-blue-200 transition-colors">
+                      <div className="flex items-center gap-2 mb-2 text-cyan-600">
+                        <FileText className="w-5 h-5" />
+                        <h4 className="font-medium">Meus Documentos</h4>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-2"><strong>Aumente a inteligência da SARA.</strong> Envie PDFs ou manuais para ela guardar e aprender. (Por enquanto só no WhatsApp)</p>
+                      <div className="text-xs bg-white p-2 rounded border border-gray-200 text-gray-500 italic">
+                        "Envie: Manual da TV"<br />
+                        "Depois pergunte: Como sintonizar canais?"<br />
+                        "A SARA usa esse conhecimento extra quando você precisar."
+                      </div>
+                    </div>
+
+                    {/* Pesquisas na Internet */}
+                    <div className="p-4 border border-gray-100 rounded-lg bg-gray-50 hover:border-blue-200 transition-colors">
+                      <div className="flex items-center gap-2 mb-2 text-teal-600">
+                        <MapPin className="w-5 h-5" />
+                        <h4 className="font-medium">Internet</h4>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-2">Precisa de informações atuais? Eu busco na web para você.</p>
+                      <div className="text-xs bg-white p-2 rounded border border-gray-200 text-gray-500 italic">
+                        "Pesquise o preço do iPhone 15"<br />
+                        "Como está o trânsito na Paulista?"<br />
+                        "Busque eventos em SP hoje"
+                      </div>
+                    </div>
+
+                  </div>
+                </section>
+
+                {/* 4. Dicas */}
+                <section className="bg-amber-50 border border-amber-100 rounded-lg p-5">
+                  <h3 className="text-base font-semibold text-amber-900 mb-3 flex items-center gap-2">
+                    💡 Dicas de Ouro
+                  </h3>
+                  <ul className="space-y-2 text-sm text-amber-800">
+                    <li className="flex items-start gap-2">
+                      <span className="mt-1">•</span>
+                      <span><strong>Seja direto:</strong> "Lembrete amanhã 9h pagar boleto" funciona melhor que frases longas.</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="mt-1">•</span>
+                      <span><strong>Áudios funcionam:</strong> Pode mandar áudio no WhatsApp que eu entendo tudo!</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="mt-1">•</span>
+                      <span><strong>Errou? Corrija:</strong> Se falou o valor errado, é só dizer "Na verdade foi 30 reais" logo em seguida.</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="mt-1">•</span>
+                      <span><strong>Use o Portal:</strong> Para ver gráficos bonitos e organizar a semana, o painel aqui é o melhor lugar.</span>
+                    </li>
+                  </ul>
+                </section>
+
               </div>
             </div>
           )}
