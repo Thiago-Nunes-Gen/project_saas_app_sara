@@ -2,8 +2,8 @@
 
 import { useState } from 'react'
 import { useReminders } from '@/hooks/useReminders'
-import { 
-  Plus, 
+import {
+  Plus,
   Calendar,
   Clock,
   CheckCircle2,
@@ -46,48 +46,45 @@ export default function LembretesPage() {
   return (
     <div className="animate-fade-in max-w-4xl">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
         <div>
           <h1 className="text-2xl font-semibold text-sara-text">Lembretes</h1>
           <p className="text-sara-muted">{reminders.length} {filter === 'pending' ? 'pendentes' : filter === 'completed' ? 'concluídos' : 'cancelados'}</p>
         </div>
-        <Link href="/dashboard/lembretes/novo" className="btn-primary flex items-center gap-2">
+        <Link href="/dashboard/lembretes/novo" className="btn-primary flex items-center justify-center gap-2 w-full sm:w-auto">
           <Plus className="w-5 h-5" />
           Novo Lembrete
         </Link>
       </div>
 
       {/* Filters */}
-      <div className="flex gap-2 mb-6">
-        <button 
+      <div className="flex flex-wrap gap-2 mb-6">
+        <button
           onClick={() => setFilter('pending')}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
-            filter === 'pending' 
-              ? 'bg-primary-500 text-white' 
+          className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 ${filter === 'pending'
+              ? 'bg-primary-500 text-white'
               : 'bg-white border border-sara-border text-sara-muted hover:bg-gray-50'
-          }`}
+            }`}
         >
           <Bell className="w-4 h-4" />
           Pendentes
         </button>
-        <button 
+        <button
           onClick={() => setFilter('completed')}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
-            filter === 'completed' 
-              ? 'bg-green-500 text-white' 
+          className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 ${filter === 'completed'
+              ? 'bg-green-500 text-white'
               : 'bg-white border border-sara-border text-sara-muted hover:bg-gray-50'
-          }`}
+            }`}
         >
           <CheckCircle2 className="w-4 h-4" />
           Concluídos
         </button>
-        <button 
+        <button
           onClick={() => setFilter('cancelled')}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
-            filter === 'cancelled' 
-              ? 'bg-gray-500 text-white' 
+          className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 ${filter === 'cancelled'
+              ? 'bg-gray-500 text-white'
               : 'bg-white border border-sara-border text-sara-muted hover:bg-gray-50'
-          }`}
+            }`}
         >
           <XCircle className="w-4 h-4" />
           Cancelados
@@ -146,17 +143,17 @@ export default function LembretesPage() {
                     </div>
                   </div>
                 </div>
-                
+
                 {filter === 'pending' && (
                   <div className="flex items-center gap-2">
-                    <button 
+                    <button
                       onClick={() => completeReminder(reminder.id)}
                       className="p-2 hover:bg-green-50 rounded-lg text-sara-light hover:text-green-600 transition-colors"
                       title="Marcar como concluído"
                     >
                       <CheckCircle2 className="w-5 h-5" />
                     </button>
-                    <button 
+                    <button
                       onClick={() => cancelReminder(reminder.id)}
                       className="p-2 hover:bg-red-50 rounded-lg text-sara-light hover:text-red-500 transition-colors"
                       title="Cancelar"
