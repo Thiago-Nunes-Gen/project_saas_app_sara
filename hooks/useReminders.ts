@@ -32,7 +32,15 @@ export function useReminders(options: UseRemindersOptions = {}) {
         .limit(limit)
 
       if (status) {
-        query = query.eq('status', status)
+        if (status === 'completed') {
+          // Inclui 'sent' (enviado/avisado) na aba de concluídos para histórico
+          query = query.in('status', ['completed', 'sent', 'avisado'])
+        } else if (status === 'cancelled') {
+          // Preveni variacoes de escrita
+          query = query.in('status', ['cancelled', 'cancelado'])
+        } else {
+          query = query.eq('status', status)
+        }
       }
 
       const { data, error: queryError } = await query
